@@ -47,3 +47,39 @@ func SystemMessageAdd(c *gin.Context) {
 	}
 	response.SuccessMsg("添加成功")
 }
+
+// @Tags 系统公告
+// @Summary 删除公告
+// @Produce json
+// @Param id path int true "公告ID"
+// @Router /systemMessage/{id} [delete]
+func SystemMessageDel(c *gin.Context)  {
+	response := util.Response{c}
+	id, _ := strconv.Atoi(c.Param("id"))
+	if err := service.MessageDel(id); err != nil {
+		response.SetOtherError(err)
+		return
+	}
+	response.SuccessMsg("删除成功")
+}
+
+// @Tags 系统公告
+// @Summary 编辑公告
+// @Produce json
+// @Param id path int true "公告ID"
+// @Param body body request.MessageEdit true "公告"
+// @Router /systemMessage/{id} [put]
+func SystemMessageEdit(c *gin.Context)  {
+	response := util.Response{c}
+	var  systemMessage request.MessageEdit
+	systemMessage.Id, _ = strconv.Atoi(c.Param("id"))
+	if err := c.ShouldBindJSON(&systemMessage); err != nil {
+		response.SetValidateError(err)
+		return
+	}
+	if err := service.MessageEdit(systemMessage); err != nil {
+		response.SetOtherError(err)
+		return
+	}
+	response.SuccessMsg("编辑成功")
+}

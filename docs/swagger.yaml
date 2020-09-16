@@ -22,24 +22,67 @@ definitions:
     properties:
       beginTime:
         description: 开始时间
-        example: "2020-09-14"
+        example: "2020-09-15T14:41:46+08:00"
         type: string
       endTime:
         description: 结束时间
-        example: "2020-09-18"
-        type: string
-      organizeName:
-        example: 张三,李四
+        example: "2020-09-23T14:41:50+08:00"
         type: string
       title:
         description: 系统公告
         example: 这是一个系统公告
         type: string
+      users:
+        description: 发给用户id
+        example:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        items:
+          type: integer
+        type: array
     required:
     - beginTime
     - endTime
-    - organizeName
     - title
+    - users
+    type: object
+  request.MessageEdit:
+    properties:
+      beginTime:
+        description: 开始时间
+        example: "2020-09-15T14:41:46+08:00"
+        type: string
+      endTime:
+        description: 结束时间
+        example: "2020-09-23T14:41:50+08:00"
+        type: string
+      title:
+        description: 系统公告
+        example: 这是一个系统公告
+        type: string
+      users:
+        description: 发给用户id
+        example:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        items:
+          type: integer
+        type: array
+    required:
+    - beginTime
+    - endTime
+    - title
+    - users
     type: object
   request.RoleAdd:
     properties:
@@ -288,15 +331,17 @@ definitions:
       id:
         description: id
         type: integer
-      organize_name:
-        description: 组织名称
-        type: string
       status:
         description: 是否作废 0：否，1：是
         type: integer
       title:
         description: 标题
         type: string
+      users:
+        description: 用户名称
+        items:
+          $ref: '#/definitions/response.UserNames'
+        type: array
     type: object
   response.SystemMessagePage:
     properties:
@@ -313,6 +358,15 @@ definitions:
       total:
         description: 总共多少页
         type: integer
+    type: object
+  response.UserNames:
+    properties:
+      id:
+        description: 用户ID
+        type: integer
+      user_name:
+        description: 用户名
+        type: string
     type: object
 info:
   contact: {}
@@ -583,6 +637,37 @@ paths:
       responses:
         "200": {}
       summary: 添加系统公告
+      tags:
+      - 系统公告
+  /systemMessage/{id}:
+    delete:
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      summary: 删除公告
+      tags:
+      - 系统公告
+    put:
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 公告
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.MessageEdit'
+      produces:
+      - application/json
+      summary: 编辑公告
       tags:
       - 系统公告
 swagger: "2.0"

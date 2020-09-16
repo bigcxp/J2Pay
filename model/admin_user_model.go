@@ -172,3 +172,19 @@ func GetUserAuth(userId int) (auth []Auth) {
 	Db.Find(&auth, "id in (?)", strings.Split(strings.Join(whereAuthId, ","), ","))
 	return
 }
+
+func GetAllUser() (mapping map[int]response.UserNames) {
+	var users []response.UserNames
+	mapping = make(map[int]response.UserNames)
+	Db.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
+	for _, user := range users {
+		mapping[user.Id] = user
+	}
+	return
+}
+
+// 根据条件获取多个角色
+func GetUsersByWhere(where ...interface{}) (res []AdminUser, err error) {
+	err = Db.Find(&res, where...).Error
+	return
+}

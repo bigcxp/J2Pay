@@ -33,7 +33,7 @@ func Setup() {
 	Db.SetLogger(&GormLogger{})
 	Db.DB().SetMaxIdleConns(setting.MysqlConf.MaxIdle)
 	Db.DB().SetMaxOpenConns(setting.MysqlConf.MaxActive)
-//	AutoMigrate()
+ 	AutoMigrate()
 
 	// 设置程序启动参数 -init | -init=true
 	if setting.Init {
@@ -74,6 +74,8 @@ func AutoMigrate() {
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '权限'").AutoMigrate(&Auth{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '用户系统消息中间表'").AutoMigrate(&SystemMessageUser{})
+
 
 }
 

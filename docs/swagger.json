@@ -417,6 +417,53 @@
                     "200": {}
                 }
             }
+        },
+        "/systemMessage/{id}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统公告"
+                ],
+                "summary": "编辑公告",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "公告ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "公告",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.MessageEdit"
+                        }
+                    }
+                ]
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统公告"
+                ],
+                "summary": "删除公告",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "公告ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ]
+            }
         }
     },
     "definitions": {
@@ -450,28 +497,82 @@
             "required": [
                 "beginTime",
                 "endTime",
-                "organizeName",
-                "title"
+                "title",
+                "users"
             ],
             "properties": {
                 "beginTime": {
                     "description": "开始时间",
                     "type": "string",
-                    "example": "2020-09-14"
+                    "example": "2020-09-15T14:41:46+08:00"
                 },
                 "endTime": {
                     "description": "结束时间",
                     "type": "string",
-                    "example": "2020-09-18"
-                },
-                "organizeName": {
-                    "type": "string",
-                    "example": "张三,李四"
+                    "example": "2020-09-23T14:41:50+08:00"
                 },
                 "title": {
                     "description": "系统公告",
                     "type": "string",
                     "example": "这是一个系统公告"
+                },
+                "users": {
+                    "description": "发给用户id",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ]
+                }
+            }
+        },
+        "request.MessageEdit": {
+            "type": "object",
+            "required": [
+                "beginTime",
+                "endTime",
+                "title",
+                "users"
+            ],
+            "properties": {
+                "beginTime": {
+                    "description": "开始时间",
+                    "type": "string",
+                    "example": "2020-09-15T14:41:46+08:00"
+                },
+                "endTime": {
+                    "description": "结束时间",
+                    "type": "string",
+                    "example": "2020-09-23T14:41:50+08:00"
+                },
+                "title": {
+                    "description": "系统公告",
+                    "type": "string",
+                    "example": "这是一个系统公告"
+                },
+                "users": {
+                    "description": "发给用户id",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ]
                 }
             }
         },
@@ -801,10 +902,6 @@
                     "description": "id",
                     "type": "integer"
                 },
-                "organize_name": {
-                    "description": "组织名称",
-                    "type": "string"
-                },
                 "status": {
                     "description": "是否作废 0：否，1：是",
                     "type": "integer"
@@ -812,6 +909,13 @@
                 "title": {
                     "description": "标题",
                     "type": "string"
+                },
+                "users": {
+                    "description": "用户名称",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.UserNames"
+                    }
                 }
             }
         },
@@ -835,6 +939,19 @@
                 "total": {
                     "description": "总共多少页",
                     "type": "integer"
+                }
+            }
+        },
+        "response.UserNames": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer"
+                },
+                "user_name": {
+                    "description": "用户名",
+                    "type": "string"
                 }
             }
         }

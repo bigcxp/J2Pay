@@ -1,9 +1,9 @@
 package logger
 
 import (
-	"j2pay-server/pkg/setting"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"j2pay-server/pkg/setting"
 	"log"
 	"os"
 	"time"

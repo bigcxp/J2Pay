@@ -1,8 +1,8 @@
 package logger
 
 import (
-	"j2pay-server/pkg/setting"
 	"github.com/sirupsen/logrus"
+	"j2pay-server/pkg/setting"
 	"log"
 	"os"
 )

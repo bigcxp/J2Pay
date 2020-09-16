@@ -57,6 +57,8 @@ func InitRouter() *gin.Engine {
 	{
 		r.GET("/systemMessage", controller.SystemMessage)
 		r.POST("/systemMessage", controller.SystemMessageAdd)
+		r.DELETE("/systemMessage/:id", controller.SystemMessageDel)
+		r.PUT("/systemMessage/:id", controller.SystemMessageEdit)
 	}
 	//首页
 	{
