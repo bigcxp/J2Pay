@@ -6,11 +6,13 @@ import (
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
 	"strconv"
+	"unicode/utf8"
 )
 
 // @Tags 系统公告
 // @Summary 获取系统公告列表
 // @Produce json
+// @Param title query string false "标题"
 // @Param page query int false "页码"
 // @Param pageSize query int false "每页显示多少条"
 // @Success 200 {object} response.SystemMessagePage
@@ -19,7 +21,8 @@ func SystemMessage(c *gin.Context)  {
 	response := util.Response{c}
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	res, err := service.MessageList(page, pageSize)
+	title := c.Query("title")
+	res, err := service.MessageList(title,page, pageSize)
 	if err != nil {
 		response.SetOtherError(err)
 		return
@@ -27,6 +30,35 @@ func SystemMessage(c *gin.Context)  {
 	response.SuccessData(res)
 
 }
+
+// @Tags 系统公告
+// @Summary 获取用户公告列表
+// @Produce json
+// @Param username query string true "用户名"
+// @Param page query int false "页码"
+// @Param pageSize query int false "每页显示多少条"
+// @Success 200 {object} response.AdminUserMessagePage
+// @Router /systemMessageByUser [get]
+func SystemMessageByUserId(c *gin.Context)  {
+	response := util.Response{c}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	username := c.Query("username")
+
+	if utf8.RuneCountInString(username) > 32 {
+		username = string([]rune(username)[:32])
+	}
+	res, err := service.MessageListByUser(username, page, pageSize)
+	if err != nil {
+		response.SetOtherError(err)
+		return
+	}
+	response.SuccessData(res)
+
+
+}
+
 
 // @Tags 系统公告
 // @Summary 添加系统公告

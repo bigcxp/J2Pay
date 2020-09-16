@@ -56,9 +56,11 @@ func InitRouter() *gin.Engine {
 	//公告
 	{
 		r.GET("/systemMessage", controller.SystemMessage)
+		r.GET("/systemMessageByUser", controller.SystemMessageByUserId)
 		r.POST("/systemMessage", controller.SystemMessageAdd)
 		r.DELETE("/systemMessage/:id", controller.SystemMessageDel)
 		r.PUT("/systemMessage/:id", controller.SystemMessageEdit)
+
 	}
 	//首页
 	{

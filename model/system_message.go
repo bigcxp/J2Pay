@@ -136,3 +136,13 @@ func (s *SystemMessage) GetCount(where ...interface{}) (count int) {
 	Db.Model(&s).Where(where[0], where[1:]...).Count(&count)
 	return
 }
+
+func GetAllMessage() (mapping map[int]response.AdminSystemMessage) {
+	var systemMessages []response.AdminSystemMessage
+	mapping = make(map[int]response.AdminSystemMessage)
+	Db.Table("system_message").Select("id,title,begin_time,end_time").Order("id desc").Find(&systemMessages)
+	for _, systemMessage := range systemMessages {
+		mapping[systemMessage.Id] = systemMessage
+	}
+	return
+}

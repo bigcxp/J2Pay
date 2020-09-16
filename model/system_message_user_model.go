@@ -28,3 +28,24 @@ func GetMessageUserMapping() map[int][]int {
 	}
 	return hash
 }
+
+// 获取所有系统消息和用户对应表
+// [用户ID] => [公告ID_1, 公告ID_2, 公告ID_3]
+func GetUserMessageMapping() map[int][]int {
+	var all []SystemMessageUser
+	Db.Select([]string{"substring(mid, 9) as mid", "substring(uid, 6) as uid"}).
+		Where("uid like ?",  "user:%").
+		Find(&all)
+	hash := make(map[int][]int)
+	for _, v := range all {
+		messageId, _ := strconv.Atoi(v.Mid)
+		userId, _ := strconv.Atoi(v.Uid)
+		_, ok := hash[userId]
+		if ok {
+			hash[userId] = append(hash[userId], messageId)
+		} else {
+			hash[userId] = []int{messageId}
+		}
+	}
+	return hash
+}

@@ -233,6 +233,17 @@ definitions:
     - tel
     - user_name
     type: object
+  response.AdminSystemMessage:
+    properties:
+      begin_time:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
   response.AdminUserList:
     properties:
       id:
@@ -254,6 +265,31 @@ definitions:
       user_name:
         description: 登录名
         type: string
+    type: object
+  response.AdminUserMessageList:
+    properties:
+      id:
+        type: integer
+      systemMessages:
+        items:
+          $ref: '#/definitions/response.AdminSystemMessage'
+        type: array
+    type: object
+  response.AdminUserMessagePage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.AdminUserMessageList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
     type: object
   response.AdminUserPage:
     properties:
@@ -606,6 +642,10 @@ paths:
   /systemMessage:
     get:
       parameters:
+      - description: 标题
+        in: query
+        name: title
+        type: string
       - description: 页码
         in: query
         name: page
@@ -668,6 +708,32 @@ paths:
       produces:
       - application/json
       summary: 编辑公告
+      tags:
+      - 系统公告
+  /systemMessageByUser:
+    get:
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AdminUserMessagePage'
+      summary: 获取用户公告列表
       tags:
       - 系统公告
 swagger: "2.0"

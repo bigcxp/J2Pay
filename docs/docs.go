@@ -392,6 +392,12 @@ var doc = `{
                 "summary": "获取系统公告列表",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "标题",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "页码",
                         "name": "page",
@@ -482,6 +488,46 @@ var doc = `{
                         "required": true
                     }
                 ]
+            }
+        },
+        "/systemMessageByUser": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统公告"
+                ],
+                "summary": "获取用户公告列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AdminUserMessagePage"
+                        }
+                    }
+                }
             }
         }
     },
@@ -782,6 +828,23 @@ var doc = `{
                 }
             }
         },
+        "response.AdminSystemMessage": {
+            "type": "object",
+            "properties": {
+                "begin_time": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "response.AdminUserList": {
             "type": "object",
             "properties": {
@@ -810,6 +873,43 @@ var doc = `{
                 "user_name": {
                     "description": "登录名",
                     "type": "string"
+                }
+            }
+        },
+        "response.AdminUserMessageList": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "systemMessages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AdminSystemMessage"
+                    }
+                }
+            }
+        },
+        "response.AdminUserMessagePage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AdminUserMessageList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
                 }
             }
         },

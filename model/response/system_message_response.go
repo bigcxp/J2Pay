@@ -22,3 +22,4 @@ type SystemMessageList struct {
 	Status    int8        `json:"status"`     //是否作废 0：否，1：是
 	Users     []UserNames `json:"users"`      //用户名称
 }
+

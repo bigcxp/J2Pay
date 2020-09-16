@@ -10,10 +10,15 @@ import (
 	_ "j2pay-server/pkg/util"
 )
 
-// 系统公告列表
-func MessageList(page, pageSize int) (res response.SystemMessagePage, err error) {
+// 系统所有公告列表
+func MessageList(title string,page, pageSize int) (res response.SystemMessagePage, err error) {
 	systemMessage := model.SystemMessage{}
-	res, err = systemMessage.GetAll(page, pageSize)
+	if title == "" {
+		res, err = systemMessage.GetAll(page, pageSize)
+	} else {
+		res, err = systemMessage.GetAll(page, pageSize, "title like ?", "%"+title+"%")
+	}
+
 	if err != nil {
 		return
 	}
@@ -31,6 +36,37 @@ func MessageList(page, pageSize int) (res response.SystemMessagePage, err error)
 				continue
 			}
 			res.Data[i].Users = append(res.Data[i].Users, users[user])
+		}
+	}
+	return
+}
+
+//根据用户名获取公告列表
+func MessageListByUser(username string,page, pageSize int) (res response.AdminUserMessagePage, err error) {
+	user := model.AdminUser{}
+	if username != "" {
+		res, err = user.GetAllMessage(page, pageSize, "user_name = ?", username)
+	} else {
+		return
+	}
+
+	if err != nil {
+		return
+	}
+	messages := model.GetAllMessage()
+	mappings := model.GetUserMessageMapping()
+	for i, v := range res.Data {
+		_, ok := mappings[v.Id]
+		if !ok {
+			continue
+		}
+		res.Data[i].SystemMessages = []response.AdminSystemMessage{}
+		for _, message := range mappings[v.Id] {
+			if _, ok := messages[message]; !ok {
+				logger.Logger.Error("系统公告获取错误: user_id = ", v.Id)
+				continue
+			}
+			res.Data[i].SystemMessages = append(res.Data[i].SystemMessages, messages[message])
 		}
 	}
 	return

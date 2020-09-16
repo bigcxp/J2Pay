@@ -1,5 +1,9 @@
 package response
 
+import (
+	"time"
+)
+
 type AdminUserPage struct {
 	Total       int             `json:"total"`        // 总共多少页
 	PerPage     int             `json:"per_page"`     // 当前页码
@@ -20,3 +24,25 @@ type AdminUserList struct {
 	Status   int8      `json:"status"`    // 用户状态
 	Roles    []CasRole `json:"roles"`     // 角色信息
 }
+
+type AdminUserMessagePage struct {
+	Total       int                    `json:"total"`        // 总共多少页
+	PerPage     int                    `json:"per_page"`     // 当前页码
+	CurrentPage int                    `json:"current_page"` // 每页显示多少条
+	Data        []AdminUserMessageList `json:"data"`
+}
+
+type AdminSystemMessage struct {
+	Id        int       `json:"id"`
+	Title     string    `json:"title"`      //标题
+	BeginTime time.Time `json:"begin_time"` //开始时间
+	EndTime   time.Time `json:"end_time"`   //结束时间
+}
+
+type AdminUserMessageList struct {
+	Id             int                  `json:"id"`
+	UserName       string               `json:"user_name"`      //用户名
+	SystemMessages []AdminSystemMessage `json:"systemMessages"` //系统公告
+}
+
+

@@ -35,6 +35,25 @@ func (u *AdminUser) GetAll(page, pageSize int, where ...interface{}) (response.A
 	return all, err
 }
 
+// 获取用户所有系统公告
+func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (response.AdminUserMessagePage, error) {
+	all := response.AdminUserMessagePage{
+		Total:       u.GetCount(where...),
+		PerPage:     pageSize,
+		CurrentPage: page,
+		Data:        []response.AdminUserMessageList{},
+	}
+	offset := GetOffset(page, pageSize)
+	err := Db.Table("admin_user").
+		Limit(pageSize).
+		Offset(offset).
+		Find(&all.Data, where...).Error
+	if err != nil {
+		return response.AdminUserMessagePage{}, err
+	}
+	return all, err
+}
+
 // 根据ID获取用户详情
 func (u *AdminUser) Detail(id ...int) (res response.AdminUserList, err error) {
 	searchId := u.Id
