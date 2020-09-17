@@ -159,3 +159,14 @@ func UserDel(id int) error {
 	}
 	return u.Del()
 }
+
+// 更新Token
+func EditToken(token string,username string) error {
+	defer casbin.ClearEnforcer()
+	u := model.AdminUser{
+		Token: token,
+		UserName: username,
+	}
+	return u.EditToken(token,username)
+}
+

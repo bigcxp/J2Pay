@@ -3,7 +3,8 @@ package request
 type LoginUser struct {
 	Username   string `binding:"required,max=255" example:"admin"`                 // 用户名
 	Password   string `binding:"required,max=255" example:"admin"`                 // 密码
-	VerifyCode string `json:"verify_code" binding:"required,len=4" example:"9527"` // 验证码
+	VerifyCode string `json:"verify_code" binding:"required,len=4" example:"9527"` // 验证码 	// token
+
 }
 
 type UserAdd struct {
@@ -24,6 +25,6 @@ type CommonUser struct {
 	RealName string `json:"real_name" binding:"required,max=255" example:"test"` // 真实姓名
 	Status   int8   `binding:"oneof=0 1" example:"1"`                            // 状态
 	Tel      string `binding:"required,max=12" example:"17585534067"`            // 电话号码
-	Roles    [] int `binding:"required,min=1" example:"1,2"`                     // 所属角色
+	Roles    []int  `binding:"required,min=1" example:"1,2"`                     // 所属角色
 
 }
