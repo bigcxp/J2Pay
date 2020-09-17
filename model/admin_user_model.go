@@ -8,12 +8,13 @@ import (
 )
 
 type AdminUser struct {
-	Id       int
-	UserName string `gorm:"unique;comment:'用户名'"`
-	Tel      string `gorm:"unique;default:'';comment:'手机号'"`
-	Password string `gorm:"comment:'密码'"`
-	RealName string `gorm:"default:'';comment:'真实姓名';"`
-	Status   int8   `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
+	Id             int
+	UserName       string          `gorm:"unique;comment:'用户名'"`
+	Tel            string          `gorm:"unique;default:'';comment:'手机号'"`
+	Password       string          `gorm:"comment:'密码'"`
+	RealName       string          `gorm:"default:'';comment:'真实姓名';"`
+	Status         int8            `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
+	SystemMessages []SystemMessage `gorm:"many2many:system_message_user;"`
 }
 
 // 获取所有后台用户
@@ -37,6 +38,10 @@ func (u *AdminUser) GetAll(page, pageSize int, where ...interface{}) (response.A
 
 // 获取用户所有系统公告
 func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (response.AdminUserMessagePage, error) {
+	user := &response.AdminUserMessageList{}
+	Db.Where("id = ?", 1).Preload("system_message").Find(&user)
+	logger.Logger.Println(user)
+
 	all := response.AdminUserMessagePage{
 		Total:       u.GetCount(where...),
 		PerPage:     pageSize,

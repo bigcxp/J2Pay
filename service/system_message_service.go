@@ -18,7 +18,6 @@ func MessageList(title string,page, pageSize int) (res response.SystemMessagePag
 	} else {
 		res, err = systemMessage.GetAll(page, pageSize, "title like ?", "%"+title+"%")
 	}
-
 	if err != nil {
 		return
 	}
@@ -44,8 +43,10 @@ func MessageList(title string,page, pageSize int) (res response.SystemMessagePag
 //根据用户名获取公告列表
 func MessageListByUser(username string,page, pageSize int) (res response.AdminUserMessagePage, err error) {
 	user := model.AdminUser{}
+
 	if username != "" {
 		res, err = user.GetAllMessage(page, pageSize, "user_name = ?", username)
+
 	} else {
 		return
 	}

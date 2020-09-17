@@ -33,6 +33,9 @@ func Setup() {
 	Db.SetLogger(&GormLogger{})
 	Db.DB().SetMaxIdleConns(setting.MysqlConf.MaxIdle)
 	Db.DB().SetMaxOpenConns(setting.MysqlConf.MaxActive)
+	
+
+	
  	AutoMigrate()
 
 	// 设置程序启动参数 -init | -init=true
@@ -74,20 +77,17 @@ func AutoMigrate() {
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '权限'").AutoMigrate(&Auth{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '用户系统消息中间表'").AutoMigrate(&SystemMessageUser{})
-
-
 }
 
 func InitSql() {
 	// 清空
-	//Db.Exec("truncate admin_user")
+	Db.Exec("truncate admin_user")
 	//Db.Exec("truncate role")
 	//Db.Exec("truncate casbin_rule")
 	//Db.Exec("truncate auth")
 
 	// 初始化
-	//Db.Exec("insert into admin_user (id, user_name, password, real_name, tel, status) values (1, 'admin', '$2a$10$057uuCLoKja2J04GLuWl1eNnwQtS7HxvookpbBa0thTHq7/fIaNF6', 'joy', '13054174174', 1)")
+	Db.Exec("insert into admin_user (id, user_name, password, real_name, tel, status) values (1, 'admin', '$2a$10$057uuCLoKja2J04GLuWl1eNnwQtS7HxvookpbBa0thTHq7/fIaNF6', 'joy', '13054174174', 1)")
 
 	//Db.Exec("insert into role (id, pid, name, auth) values (1, 0, '超级管理员', '10,11,1100,1101,110000,110001,110002,110003,110004,110005,110100,110101,110102,110103,110104,110105')")
 	//Db.Exec("insert into role (id, pid, name, auth) values (2, 1, '系统维护管理员', '10,11,1100,1101,110000,110001,110002,110003,110004,110005,110100,110101,110102,110103,110104,110105')")

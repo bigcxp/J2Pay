@@ -7,7 +7,7 @@ type MessageAdd struct {
 }
 
 type MessageEdit struct {
-	Id int `json:"-"`
+	Id int `json:"id"`
 	CommonMessage
 }
 
