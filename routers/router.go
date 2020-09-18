@@ -66,5 +66,10 @@ func InitRouter() *gin.Engine {
 	{
 		r.GET("/index", controller.IndexSystem)
 	}
+	//商户提领
+	{
+		r.GET("/merchantPick",controller.PickIndex)
+		r.GET("/merchantPick/:id",controller.PickDetail)
+	}
 	return r
 }

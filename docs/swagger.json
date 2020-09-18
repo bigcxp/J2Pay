@@ -18,7 +18,7 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "1:查账户列表",
+                        "description": "默认0：查商户列表，1:查商户账户列表",
                         "name": "Pid",
                         "in": "query"
                     },
@@ -227,6 +227,51 @@
                 ],
                 "responses": {
                     "200": {}
+                }
+            }
+        },
+        "/merchantPick": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户管理"
+                ],
+                "summary": "商户提领列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "0：等待中，1:执行中，2：成功，3：取消，4，失败",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PickUpPage"
+                        }
+                    }
                 }
             }
         },
@@ -513,6 +558,73 @@
         }
     },
     "definitions": {
+        "model.Pick": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "fee": {
+                    "type": "number"
+                },
+                "finishTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "idCode": {
+                    "type": "string"
+                },
+                "order_code": {
+                    "type": "string"
+                },
+                "pickAddress": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "txid": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.PickUpPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Pick"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                }
+            }
+        },
         "request.LoginUser": {
             "type": "object",
             "required": [
@@ -720,20 +832,140 @@
         "request.UserAdd": {
             "type": "object",
             "required": [
+                "address",
+                "dai_charge",
+                "dai_url",
+                "day_total_count",
+                "examine",
+                "limit",
+                "max_order_count",
+                "min_order_count",
+                "more",
+                "order_charge",
                 "password",
+                "pid",
                 "real_name",
+                "remark",
+                "return_charge",
+                "return_url",
                 "roles",
                 "tel",
+                "user_less_time",
                 "user_name"
             ],
             "properties": {
+                "address": {
+                    "description": "商户地址",
+                    "type": "string",
+                    "example": "test"
+                },
+                "dai_charge": {
+                    "description": "代发手续费",
+                    "type": "number",
+                    "example": 1
+                },
+                "dai_type": {
+                    "description": "代发手续费类型 1：百分比 0：固定",
+                    "type": "integer",
+                    "example": 1
+                },
+                "dai_url": {
+                    "description": "代发URL",
+                    "type": "string",
+                    "example": "test"
+                },
+                "day_total_count": {
+                    "description": "每日交易总量",
+                    "type": "number",
+                    "example": 1
+                },
+                "examine": {
+                    "description": "代发审核",
+                    "type": "number",
+                    "example": 1
+                },
+                "is_collection": {
+                    "description": "是否开启收款功能 1：是 0：否",
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_creation": {
+                    "description": "是否开启手动建单 1：是 0：否",
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_dai": {
+                    "description": "是否启用代发功能",
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_gas": {
+                    "description": "是否启用gas预估 1：是 0：否",
+                    "type": "integer",
+                    "example": 1
+                },
+                "limit": {
+                    "description": "结账限制",
+                    "type": "number",
+                    "example": 1
+                },
+                "max_order_count": {
+                    "description": "最大交易总量",
+                    "type": "number",
+                    "example": 1
+                },
+                "min_order_count": {
+                    "description": "最小交易总量",
+                    "type": "number",
+                    "example": 1
+                },
+                "more": {
+                    "description": "地址多单收款",
+                    "type": "integer",
+                    "example": 1
+                },
+                "order_charge": {
+                    "description": "订单手续费",
+                    "type": "number",
+                    "example": 1
+                },
+                "order_type": {
+                    "description": "订单手续费类型 1：百分比 0：固定",
+                    "type": "integer",
+                    "example": 1
+                },
                 "password": {
                     "description": "密码",
                     "type": "string",
                     "example": "test"
                 },
+                "pid": {
+                    "description": "所属组织ID",
+                    "type": "integer",
+                    "example": 1
+                },
                 "real_name": {
-                    "description": "真实姓名",
+                    "description": "组织名称",
+                    "type": "string",
+                    "example": "test"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string",
+                    "example": "test"
+                },
+                "return_charge": {
+                    "description": "退款手续费",
+                    "type": "number",
+                    "example": 1
+                },
+                "return_type": {
+                    "description": "退款手续费类型 1：百分比 0：固定",
+                    "type": "integer",
+                    "example": 1
+                },
+                "return_url": {
+                    "description": "回传URL",
                     "type": "string",
                     "example": "test"
                 },
@@ -749,7 +981,7 @@
                     ]
                 },
                 "status": {
-                    "description": "状态",
+                    "description": "状态 1：正常 0：禁用",
                     "type": "integer",
                     "example": 1
                 },
@@ -757,6 +989,11 @@
                     "description": "电话号码",
                     "type": "string",
                     "example": "17585534067"
+                },
+                "user_less_time": {
+                    "description": "订单无效时间",
+                    "type": "integer",
+                    "example": 1
                 },
                 "user_name": {
                     "description": "账号",
@@ -768,19 +1005,139 @@
         "request.UserEdit": {
             "type": "object",
             "required": [
+                "address",
+                "dai_charge",
+                "dai_url",
+                "day_total_count",
+                "examine",
+                "limit",
+                "max_order_count",
+                "min_order_count",
+                "more",
+                "order_charge",
+                "pid",
                 "real_name",
+                "remark",
+                "return_charge",
+                "return_url",
                 "roles",
                 "tel",
+                "user_less_time",
                 "user_name"
             ],
             "properties": {
+                "address": {
+                    "description": "商户地址",
+                    "type": "string",
+                    "example": "test"
+                },
+                "dai_charge": {
+                    "description": "代发手续费",
+                    "type": "number",
+                    "example": 1
+                },
+                "dai_type": {
+                    "description": "代发手续费类型 1：百分比 0：固定",
+                    "type": "integer",
+                    "example": 1
+                },
+                "dai_url": {
+                    "description": "代发URL",
+                    "type": "string",
+                    "example": "test"
+                },
+                "day_total_count": {
+                    "description": "每日交易总量",
+                    "type": "number",
+                    "example": 1
+                },
+                "examine": {
+                    "description": "代发审核",
+                    "type": "number",
+                    "example": 1
+                },
+                "is_collection": {
+                    "description": "是否开启收款功能 1：是 0：否",
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_creation": {
+                    "description": "是否开启手动建单 1：是 0：否",
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_dai": {
+                    "description": "是否启用代发功能",
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_gas": {
+                    "description": "是否启用gas预估 1：是 0：否",
+                    "type": "integer",
+                    "example": 1
+                },
+                "limit": {
+                    "description": "结账限制",
+                    "type": "number",
+                    "example": 1
+                },
+                "max_order_count": {
+                    "description": "最大交易总量",
+                    "type": "number",
+                    "example": 1
+                },
+                "min_order_count": {
+                    "description": "最小交易总量",
+                    "type": "number",
+                    "example": 1
+                },
+                "more": {
+                    "description": "地址多单收款",
+                    "type": "integer",
+                    "example": 1
+                },
+                "order_charge": {
+                    "description": "订单手续费",
+                    "type": "number",
+                    "example": 1
+                },
+                "order_type": {
+                    "description": "订单手续费类型 1：百分比 0：固定",
+                    "type": "integer",
+                    "example": 1
+                },
                 "password": {
                     "description": "密码（非必填）",
                     "type": "string",
                     "example": "test"
                 },
+                "pid": {
+                    "description": "所属组织ID",
+                    "type": "integer",
+                    "example": 1
+                },
                 "real_name": {
-                    "description": "真实姓名",
+                    "description": "组织名称",
+                    "type": "string",
+                    "example": "test"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string",
+                    "example": "test"
+                },
+                "return_charge": {
+                    "description": "退款手续费",
+                    "type": "number",
+                    "example": 1
+                },
+                "return_type": {
+                    "description": "退款手续费类型 1：百分比 0：固定",
+                    "type": "integer",
+                    "example": 1
+                },
+                "return_url": {
+                    "description": "回传URL",
                     "type": "string",
                     "example": "test"
                 },
@@ -796,7 +1153,7 @@
                     ]
                 },
                 "status": {
-                    "description": "状态",
+                    "description": "状态 1：正常 0：禁用",
                     "type": "integer",
                     "example": 1
                 },
@@ -804,6 +1161,11 @@
                     "description": "电话号码",
                     "type": "string",
                     "example": "17585534067"
+                },
+                "user_less_time": {
+                    "description": "订单无效时间",
+                    "type": "integer",
+                    "example": 1
                 },
                 "user_name": {
                     "description": "账号",
@@ -845,6 +1207,10 @@
                 },
                 "id": {
                     "type": "integer"
+                },
+                "last_login_time": {
+                    "description": "最后登录时间",
+                    "type": "string"
                 },
                 "order_charge": {
                     "description": "提领fee",

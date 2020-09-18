@@ -1,10 +1,10 @@
 package service
 
 import (
-	"j2pay-server/pkg/setting"
 	"github.com/mojocn/base64Captcha"
 	"github.com/satori/go.uuid"
 	"image/color"
+	"j2pay-server/pkg/setting"
 )
 
 type CaptchaConfig struct {

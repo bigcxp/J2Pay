@@ -1,4 +1,49 @@
 definitions:
+  model.Pick:
+    properties:
+      amount:
+        type: number
+      createTime:
+        type: string
+      fee:
+        type: number
+      finishTime:
+        type: string
+      id:
+        type: integer
+      idCode:
+        type: string
+      order_code:
+        type: string
+      pickAddress:
+        type: string
+      remark:
+        type: string
+      status:
+        type: integer
+      txid:
+        type: string
+      type:
+        type: integer
+      userId:
+        type: integer
+    type: object
+  model.PickUpPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/model.Pick'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
+    type: object
   request.LoginUser:
     properties:
       password:
@@ -164,12 +209,96 @@ definitions:
     type: object
   request.UserAdd:
     properties:
+      address:
+        description: 商户地址
+        example: test
+        type: string
+      dai_charge:
+        description: 代发手续费
+        example: 1
+        type: number
+      dai_type:
+        description: 代发手续费类型 1：百分比 0：固定
+        example: 1
+        type: integer
+      dai_url:
+        description: 代发URL
+        example: test
+        type: string
+      day_total_count:
+        description: 每日交易总量
+        example: 1
+        type: number
+      examine:
+        description: 代发审核
+        example: 1
+        type: number
+      is_collection:
+        description: 是否开启收款功能 1：是 0：否
+        example: 1
+        type: integer
+      is_creation:
+        description: 是否开启手动建单 1：是 0：否
+        example: 1
+        type: integer
+      is_dai:
+        description: 是否启用代发功能
+        example: 1
+        type: integer
+      is_gas:
+        description: 是否启用gas预估 1：是 0：否
+        example: 1
+        type: integer
+      limit:
+        description: 结账限制
+        example: 1
+        type: number
+      max_order_count:
+        description: 最大交易总量
+        example: 1
+        type: number
+      min_order_count:
+        description: 最小交易总量
+        example: 1
+        type: number
+      more:
+        description: 地址多单收款
+        example: 1
+        type: integer
+      order_charge:
+        description: 订单手续费
+        example: 1
+        type: number
+      order_type:
+        description: 订单手续费类型 1：百分比 0：固定
+        example: 1
+        type: integer
       password:
         description: 密码
         example: test
         type: string
+      pid:
+        description: 所属组织ID
+        example: 1
+        type: integer
       real_name:
-        description: 真实姓名
+        description: 组织名称
+        example: test
+        type: string
+      remark:
+        description: 备注
+        example: test
+        type: string
+      return_charge:
+        description: 退款手续费
+        example: 1
+        type: number
+      return_type:
+        description: 退款手续费类型 1：百分比 0：固定
+        example: 1
+        type: integer
+      return_url:
+        description: 回传URL
         example: test
         type: string
       roles:
@@ -181,32 +310,135 @@ definitions:
           type: integer
         type: array
       status:
-        description: 状态
+        description: 状态 1：正常 0：禁用
         example: 1
         type: integer
       tel:
         description: 电话号码
         example: "17585534067"
         type: string
+      user_less_time:
+        description: 订单无效时间
+        example: 1
+        type: integer
       user_name:
         description: 账号
         example: test
         type: string
     required:
+    - address
+    - dai_charge
+    - dai_url
+    - day_total_count
+    - examine
+    - limit
+    - max_order_count
+    - min_order_count
+    - more
+    - order_charge
     - password
+    - pid
     - real_name
+    - remark
+    - return_charge
+    - return_url
     - roles
     - tel
+    - user_less_time
     - user_name
     type: object
   request.UserEdit:
     properties:
+      address:
+        description: 商户地址
+        example: test
+        type: string
+      dai_charge:
+        description: 代发手续费
+        example: 1
+        type: number
+      dai_type:
+        description: 代发手续费类型 1：百分比 0：固定
+        example: 1
+        type: integer
+      dai_url:
+        description: 代发URL
+        example: test
+        type: string
+      day_total_count:
+        description: 每日交易总量
+        example: 1
+        type: number
+      examine:
+        description: 代发审核
+        example: 1
+        type: number
+      is_collection:
+        description: 是否开启收款功能 1：是 0：否
+        example: 1
+        type: integer
+      is_creation:
+        description: 是否开启手动建单 1：是 0：否
+        example: 1
+        type: integer
+      is_dai:
+        description: 是否启用代发功能
+        example: 1
+        type: integer
+      is_gas:
+        description: 是否启用gas预估 1：是 0：否
+        example: 1
+        type: integer
+      limit:
+        description: 结账限制
+        example: 1
+        type: number
+      max_order_count:
+        description: 最大交易总量
+        example: 1
+        type: number
+      min_order_count:
+        description: 最小交易总量
+        example: 1
+        type: number
+      more:
+        description: 地址多单收款
+        example: 1
+        type: integer
+      order_charge:
+        description: 订单手续费
+        example: 1
+        type: number
+      order_type:
+        description: 订单手续费类型 1：百分比 0：固定
+        example: 1
+        type: integer
       password:
         description: 密码（非必填）
         example: test
         type: string
+      pid:
+        description: 所属组织ID
+        example: 1
+        type: integer
       real_name:
-        description: 真实姓名
+        description: 组织名称
+        example: test
+        type: string
+      remark:
+        description: 备注
+        example: test
+        type: string
+      return_charge:
+        description: 退款手续费
+        example: 1
+        type: number
+      return_type:
+        description: 退款手续费类型 1：百分比 0：固定
+        example: 1
+        type: integer
+      return_url:
+        description: 回传URL
         example: test
         type: string
       roles:
@@ -218,21 +450,40 @@ definitions:
           type: integer
         type: array
       status:
-        description: 状态
+        description: 状态 1：正常 0：禁用
         example: 1
         type: integer
       tel:
         description: 电话号码
         example: "17585534067"
         type: string
+      user_less_time:
+        description: 订单无效时间
+        example: 1
+        type: integer
       user_name:
         description: 账号
         example: test
         type: string
     required:
+    - address
+    - dai_charge
+    - dai_url
+    - day_total_count
+    - examine
+    - limit
+    - max_order_count
+    - min_order_count
+    - more
+    - order_charge
+    - pid
     - real_name
+    - remark
+    - return_charge
+    - return_url
     - roles
     - tel
+    - user_less_time
     - user_name
     type: object
   response.AdminSystemMessage:
@@ -259,6 +510,9 @@ definitions:
         type: number
       id:
         type: integer
+      last_login_time:
+        description: 最后登录时间
+        type: string
       order_charge:
         description: 提领fee
         type: number
@@ -436,7 +690,7 @@ paths:
   /adminUser:
     get:
       parameters:
-      - description: 1:查账户列表
+      - description: 默认0：查商户列表，1:查商户账户列表
         in: query
         name: Pid
         type: integer
@@ -577,6 +831,35 @@ paths:
       summary: 登录操作
       tags:
       - 登录操作
+  /merchantPick:
+    get:
+      parameters:
+      - description: 0：等待中，1:执行中，2：成功，3：取消，4，失败
+        in: query
+        name: status
+        type: integer
+      - description: 组织名称
+        in: query
+        name: name
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PickUpPage'
+      summary: 商户提领列表
+      tags:
+      - 商户管理
   /role:
     get:
       parameters:

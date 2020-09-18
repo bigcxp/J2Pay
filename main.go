@@ -2,12 +2,12 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"j2pay-server/model"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/setting"
 	"j2pay-server/routers"
-	"flag"
-	"fmt"
 )
 
 func main() {

@@ -29,10 +29,10 @@ type CommonUser struct {
 	Address       string  `json:"address" binding:"required,max=255" example:"test"`    // 商户地址
 	ReturnUrl     string  `json:"return_url" binding:"required,max=255" example:"test"` // 回传URL
 	DaiUrl        string  `json:"dai_url" binding:"required,max=255" example:"test"`    // 代发URL
-	Remark        string  `json:"remark" binding:"false,max=255" example:"test"`        // 回传URL
+	Remark        string  `json:"remark" binding:"required,max=255" example:"test"`     // 备注
 	IsCollection  int     `json:"is_collection" binding:"oneof=0 1" example:"1"`        //是否开启收款功能 1：是 0：否
 	IsCreation    int     `json:"is_creation" binding:"oneof=0 1" example:"1"`          //是否开启手动建单 1：是 0：否
-	More          int     `json:"more" binding:"required,max=11" example:"1"`			//地址多单收款
+	More          int     `json:"more" binding:"required,max=11" example:"1"`           //地址多单收款
 	OrderType     int     `json:"order_type" binding:"oneof=0 1" example:"1"`           //订单手续费类型 1：百分比 0：固定
 	OrderCharge   float64 `json:"order_charge" binding:"required" example:"1"`          //订单手续费
 	ReturnType    int     `json:"return_type" binding:"oneof=0 1" example:"1"`          //退款手续费类型 1：百分比 0：固定
@@ -47,6 +47,6 @@ type CommonUser struct {
 	MinOrderCount float64 `json:"min_order_count" binding:"required" example:"1"`       //最小交易总量
 	Limit         float64 `json:"limit" binding:"required" example:"1"`                 //结账限制
 	UserLessTime  int     `json:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
-	Roles []int `binding:"required,min=1" example:"1,2"` // 所属角色
+	Roles         []int   `binding:"required,min=1" example:"1,2"`                      // 所属角色
 
 }

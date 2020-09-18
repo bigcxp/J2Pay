@@ -9,40 +9,40 @@ import (
 )
 
 type AdminUser struct {
-	Id            int
-	Pid           int       `gorm:"default:0;commit:'上级ID'"`
-	UserName      string    `gorm:"unique;comment:'用户名'"`
-	Tel           string    `gorm:"unique;default:'';comment:'手机号'"`
-	Password      string    `gorm:"comment:'密码'"`
-	RealName      string    `gorm:"default:'';comment:'组织名称';"`
-	Status        int8      `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
-	CreateTime    time.Time `gorm:"type:timestamp;commit:'创建时间';"`
-	UpdateTime    time.Time `gorm:"type:timestamp;commit:'更新时间';"`
-	Balance       float64   `gorm:"default:0;commit:'用户余额';"`
-	Address       string    `gorm:"default:'';commit:'商户地址';"`
-	LastLoginTime time.Time `gorm:"type:timestamp;commit:'最后登录时间';"`
-	Token         string    `gorm:"default:'';commit:'Token'"`
-	ReturnUrl     string    `gorm:"default:'';commit:'回传URL'"`
-	DaiUrl        string    `gorm:"default:'';commit:'代发URL'"`
-	Remark        string    `gorm:"default:'';commit:'备注'"`
-	IsCollection  int       `gorm:"default:1;commit:'是否开启收款功能 1：是 0：否'"`
-	IsCreation    int       `gorm:"default:1;commit:'是否开启手动建单 1：是 0：否'"`
-	More          int       `gorm:"default:0;commit:'地址多单收款'"`
-	OrderType     int       `gorm:"default:1;commit:'订单手续费类型 1：百分比 0：固定'"`
-	OrderCharge   float64   `gorm:"default:0;commit:'订单手续费';"`
-	ReturnType    int       `gorm:"default:1;commit:'退款手续费类型 1：百分比 0：固定'"`
-	ReturnCharge  float64   `gorm:"default:0;commit:'退款手续费';"`
-	IsDai         int       `gorm:"default:1;commit:'是否启用代发功能';"`
-	DaiType       int       `gorm:"default:1;commit:'代发手续费类型 1：百分比 0：固定'"`
-	DaiCharge     float64   `gorm:"default:0;commit:'代发手续费';"`
-	IsGas         int       `gorm:"default:1;commit:'是否启用gas预估 1：是 0：否'"`
-	Examine       float64   `gorm:"default:0;commit:'代发审核';"`
-	DayTotalCount float64   `gorm:"default:0;commit:'每日交易总量';"`
-	MaxOrderCount float64   `gorm:"default:0;commit:'最大交易数量';"`
-	MinOrderCount float64   `gorm:"default:0;commit:'最小交易数量';"`
-	Limit         float64   `gorm:"default:0;commit:'结账限制';"`
-	UserLessTime  int       `gorm:"default:0;commit:'订单无效时间';"`
-
+	Id             int
+	Pid            int             `gorm:"default:0;commit:'上级ID';"`
+	UserName       string          `gorm:"unique;comment:'用户名';"`
+	Tel            string          `gorm:"unique;default:'';comment:'手机号';"`
+	Password       string          `gorm:"comment:'密码';"`
+	RealName       string          `gorm:"default:'';comment:'组织名称';"`
+	Status         int8            `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
+	CreateTime     time.Time       `gorm:"type:timestamp;commit:'创建时间';"`
+	UpdateTime     time.Time       `gorm:"type:timestamp;commit:'更新时间';"`
+	Balance        float64         `gorm:"default:0;commit:'用户余额';"`
+	Address        string          `gorm:"default:'';commit:'商户地址';"`
+	LastLoginTime  time.Time       `gorm:"type:timestamp;commit:'最后登录时间';"`
+	Token          string          `gorm:"default:'';commit:'Token'"`
+	ReturnUrl      string          `gorm:"default:'';commit:'回传URL'"`
+	DaiUrl         string          `gorm:"default:'';commit:'代发URL'"`
+	Remark         string          `gorm:"default:'';commit:'备注'"`
+	IsCollection   int             `gorm:"default:1;commit:'是否开启收款功能 1：是 0：否'"`
+	IsCreation     int             `gorm:"default:1;commit:'是否开启手动建单 1：是 0：否'"`
+	More           int             `gorm:"default:0;commit:'地址多单收款'"`
+	OrderType      int             `gorm:"default:1;commit:'订单手续费类型 1：百分比 0：固定'"`
+	OrderCharge    float64         `gorm:"default:0;commit:'订单手续费';"`
+	ReturnType     int             `gorm:"default:1;commit:'退款手续费类型 1：百分比 0：固定'"`
+	ReturnCharge   float64         `gorm:"default:0;commit:'退款手续费';"`
+	IsDai          int             `gorm:"default:1;commit:'是否启用代发功能';"`
+	DaiType        int             `gorm:"default:1;commit:'代发手续费类型 1：百分比 0：固定'"`
+	DaiCharge      float64         `gorm:"default:0;commit:'代发手续费';"`
+	IsGas          int             `gorm:"default:1;commit:'是否启用gas预估 1：是 0：否'"`
+	Examine        float64         `gorm:"default:0;commit:'代发审核';"`
+	DayTotalCount  float64         `gorm:"default:0;commit:'每日交易总量';"`
+	MaxOrderCount  float64         `gorm:"default:0;commit:'最大交易数量';"`
+	MinOrderCount  float64         `gorm:"default:0;commit:'最小交易数量';"`
+	Limit          float64         `gorm:"default:0;commit:'结账限制';"`
+	UserLessTime   int             `gorm:"default:0;commit:'订单无效时间';"`
+	Pick           []Pick          `gorm:"FOREIGNKEY:UserId;ASSOCIATION_FOREIGNKEY:Id"`
 	SystemMessages []SystemMessage `gorm:"many2many:system_message_user;"`
 }
 
@@ -248,7 +248,7 @@ func GetUsersByWhere(where ...interface{}) (res []AdminUser, err error) {
 func (u *AdminUser) EditToken(token string, username string) error {
 	tx := Db.Begin()
 	updateInfo := map[string]interface{}{
-		"token": u.Token,
+		"token":           u.Token,
 		"last_login_time": u.LastLoginTime,
 	}
 	updateInfo["token"] = token
