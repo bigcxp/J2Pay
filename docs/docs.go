@@ -36,9 +36,9 @@ var doc = `{
                 "summary": "获取账户列表",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "姓名|手机",
-                        "name": "name",
+                        "type": "integer",
+                        "description": "1:查账户列表",
+                        "name": "Pid",
                         "in": "query"
                     },
                     {
@@ -551,7 +551,7 @@ var doc = `{
                     "example": "admin"
                 },
                 "verify_code": {
-                    "description": "验证码",
+                    "description": "验证码 \t// token",
                     "type": "string",
                     "example": "9527"
                 }
@@ -617,6 +617,9 @@ var doc = `{
                     "description": "结束时间",
                     "type": "string",
                     "example": "2020-09-23T14:41:50+08:00"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "title": {
                     "description": "系统公告",
@@ -832,15 +835,18 @@ var doc = `{
             "type": "object",
             "properties": {
                 "begin_time": {
+                    "description": "开始时间",
                     "type": "string"
                 },
                 "end_time": {
+                    "description": "结束时间",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "title": {
+                    "description": "标题",
                     "type": "string"
                 }
             }
@@ -848,12 +854,32 @@ var doc = `{
         "response.AdminUserList": {
             "type": "object",
             "properties": {
+                "address": {
+                    "description": "商户地址",
+                    "type": "string"
+                },
+                "balance": {
+                    "description": "账户余额",
+                    "type": "number"
+                },
                 "id": {
                     "type": "integer"
                 },
+                "order_charge": {
+                    "description": "提领fee",
+                    "type": "number"
+                },
                 "real_name": {
-                    "description": "真实姓名",
+                    "description": "组织名称",
                     "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "return_charge": {
+                    "description": "退款fee",
+                    "type": "number"
                 },
                 "roles": {
                     "description": "角色信息",
@@ -883,10 +909,15 @@ var doc = `{
                     "type": "integer"
                 },
                 "systemMessages": {
+                    "description": "系统公告",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.AdminSystemMessage"
                     }
+                },
+                "user_name": {
+                    "description": "用户名",
+                    "type": "string"
                 }
             }
         },

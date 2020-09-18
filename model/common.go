@@ -81,13 +81,13 @@ func AutoMigrate() {
 
 func InitSql() {
 	// 清空
-	Db.Exec("truncate admin_user")
+	//Db.Exec("truncate admin_user")
 	//Db.Exec("truncate role")
 	//Db.Exec("truncate casbin_rule")
 	//Db.Exec("truncate auth")
 
 	// 初始化
-	Db.Exec("insert into admin_user (id, user_name, password, real_name, tel, status) values (1, 'admin', '$2a$10$057uuCLoKja2J04GLuWl1eNnwQtS7HxvookpbBa0thTHq7/fIaNF6', 'joy', '13054174174', 1)")
+	//Db.Exec("insert into admin_user (id, user_name, password, real_name, tel, status) values (1, 'admin', '$2a$10$057uuCLoKja2J04GLuWl1eNnwQtS7HxvookpbBa0thTHq7/fIaNF6', 'joy', '13054174174', 1)")
 
 	//Db.Exec("insert into role (id, pid, name, auth) values (1, 0, '超级管理员', '10,11,1100,1101,110000,110001,110002,110003,110004,110005,110100,110101,110102,110103,110104,110105')")
 	//Db.Exec("insert into role (id, pid, name, auth) values (2, 1, '系统维护管理员', '10,11,1100,1101,110000,110001,110002,110003,110004,110005,110100,110101,110102,110103,110104,110105')")

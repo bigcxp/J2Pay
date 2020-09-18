@@ -10,7 +10,7 @@ definitions:
         example: admin
         type: string
       verify_code:
-        description: 验证码
+        description: "验证码 \t// token"
         example: "9527"
         type: string
     required:
@@ -61,6 +61,8 @@ definitions:
         description: 结束时间
         example: "2020-09-23T14:41:50+08:00"
         type: string
+      id:
+        type: integer
       title:
         description: 系统公告
         example: 这是一个系统公告
@@ -236,21 +238,39 @@ definitions:
   response.AdminSystemMessage:
     properties:
       begin_time:
+        description: 开始时间
         type: string
       end_time:
+        description: 结束时间
         type: string
       id:
         type: integer
       title:
+        description: 标题
         type: string
     type: object
   response.AdminUserList:
     properties:
+      address:
+        description: 商户地址
+        type: string
+      balance:
+        description: 账户余额
+        type: number
       id:
         type: integer
+      order_charge:
+        description: 提领fee
+        type: number
       real_name:
-        description: 真实姓名
+        description: 组织名称
         type: string
+      remark:
+        description: 备注
+        type: string
+      return_charge:
+        description: 退款fee
+        type: number
       roles:
         description: 角色信息
         items:
@@ -271,9 +291,13 @@ definitions:
       id:
         type: integer
       systemMessages:
+        description: 系统公告
         items:
           $ref: '#/definitions/response.AdminSystemMessage'
         type: array
+      user_name:
+        description: 用户名
+        type: string
     type: object
   response.AdminUserMessagePage:
     properties:
@@ -412,10 +436,10 @@ paths:
   /adminUser:
     get:
       parameters:
-      - description: 姓名|手机
+      - description: 1:查账户列表
         in: query
-        name: name
-        type: string
+        name: Pid
+        type: integer
       - description: 页码
         in: query
         name: page

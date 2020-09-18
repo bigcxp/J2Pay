@@ -17,12 +17,18 @@ type CasRole struct {
 }
 
 type AdminUserList struct {
-	Id       int       `json:"id"`
-	UserName string    `json:"user_name"` // 登录名
-	Tel      string    `json:"tel"`       // 手机号码
-	RealName string    `json:"real_name"` // 真实姓名
-	Status   int8      `json:"status"`    // 用户状态
-	Roles    []CasRole `json:"roles"`     // 角色信息
+	Id            int       `json:"id"`
+	UserName      string    `json:"user_name"`       // 登录名
+	Tel           string    `json:"tel"`             // 手机号码
+	RealName      string    `json:"real_name"`       // 组织名称
+	Balance       float64   `json:"balance"`         //账户余额
+	Address       string    `json:"address"`         //商户地址
+	OrderCharge   float64   `json:"order_charge"`    //提领fee
+	ReturnCharge  float64   `json:"return_charge"`   //退款fee
+	Remark        string    `json:"remark"`          //备注
+	Status        int8      `json:"status"`          // 用户状态
+	LastLoginTime time.Time `json:"last_login_time"` //最后登录时间
+	Roles         []CasRole `json:"roles"`           // 角色信息
 }
 
 type AdminUserMessagePage struct {
@@ -44,5 +50,3 @@ type AdminUserMessageList struct {
 	UserName       string               `json:"user_name"`      //用户名
 	SystemMessages []AdminSystemMessage `json:"systemMessages"` //系统公告
 }
-
-

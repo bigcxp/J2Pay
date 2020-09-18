@@ -6,28 +6,26 @@ import (
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
 	"strconv"
-	"unicode/utf8"
 )
 
 // @Tags 账户管理
 // @Summary 获取账户列表
 // @Produce json
-// @Param name query string false "姓名|手机"
+// @Param Pid  query int false "默认0：查商户列表，1:查商户账户列表"
 // @Param page query int false "页码"
 // @Param pageSize query int false "每页显示多少条"
 // @Success 200 {object} response.AdminUserPage
 // @Router /adminUser [get]
 func UserIndex(c *gin.Context) {
 	response := util.Response{c}
-
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	name := c.Query("name")
-
-	if utf8.RuneCountInString(name) > 32 {
-		name = string([]rune(name)[:32])
-	}
-	res, err := service.UserList(name, page, pageSize)
+	//name := c.Query("name")
+	Pid,_ :=strconv.Atoi(c.Query("Pid"))
+	//if utf8.RuneCountInString(name) > 32 {
+	//	name = string([]rune(name)[:32])
+	//}
+	res, err := service.UserList(Pid, page, pageSize)
 	if err != nil {
 		response.SetOtherError(err)
 		return

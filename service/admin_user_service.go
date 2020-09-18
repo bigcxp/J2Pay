@@ -9,6 +9,7 @@ import (
 	"j2pay-server/pkg/casbin"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/util"
+	"time"
 )
 
 // 登录逻辑
@@ -33,12 +34,13 @@ func Login(user *request.LoginUser, id string) (string, error) {
 }
 
 // 用户列表
-func UserList(name string, page, pageSize int) (res response.AdminUserPage, err error) {
+func UserList(pid int, page, pageSize int) (res response.AdminUserPage, err error) {
 	adminUser := model.AdminUser{}
-	if name == "" {
-		res, err = adminUser.GetAll(page, pageSize)
+	if pid == 0 {
+		res, err = adminUser.GetAll(page, pageSize, "pid = 0")
 	} else {
-		res, err = adminUser.GetAll(page, pageSize, "user_name like ? or tel like ?", "%"+name+"%", "%"+name+"%")
+		//res, err = adminUser.GetAll(page, pageSize, "user_name like ? or tel like ?", "%"+name+"%", "%"+name+"%")
+		res, err = adminUser.GetAll(page, pageSize)
 	}
 	if err != nil {
 		return
@@ -77,13 +79,36 @@ func UserDetail(id int) (res response.AdminUserList, err error) {
 func UserAdd(user request.UserAdd) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		UserName: user.UserName,
-		Tel:      user.Tel,
-		Password: user.Password,
-		RealName: user.RealName,
-		Status:   user.Status,
+		UserName:      user.UserName,
+		Tel:           user.Tel,
+		Password:      user.Password,
+		RealName:      user.RealName,
+		Status:        user.Status,
+		Address:       user.Address,
+		ReturnUrl:     user.ReturnUrl,
+		DaiUrl:        user.DaiUrl,
+		Remark:        user.Remark,
+		IsCollection:  user.IsCollection,
+		IsCreation:    user.IsCreation,
+		More:          user.More,
+		OrderType:     user.OrderType,
+		OrderCharge:   user.OrderCharge,
+		ReturnType:    user.ReturnType,
+		ReturnCharge:  user.ReturnCharge,
+		IsDai:         user.IsDai,
+		DaiType:       user.DaiType,
+		DaiCharge:     user.DaiCharge,
+		IsGas:         user.IsGas,
+		Examine:       user.Examine,
+		DayTotalCount: user.DayTotalCount,
+		MaxOrderCount: user.MaxOrderCount,
+		MinOrderCount: user.MinOrderCount,
+		Limit:         user.Limit,
+		UserLessTime:  user.UserLessTime,
+		CreateTime:    time.Now(),
+		UpdateTime:    time.Now(),
+		LastLoginTime: time.Now(),
 	}
-
 	// 1.判断用户名和手机号是否存在
 	if hasName := model.GetUserByWhere("user_name = ?", user.UserName); hasName.Id > 0 {
 		return myerr.NewDbValidateError("用户名已存在")
@@ -114,12 +139,36 @@ func UserAdd(user request.UserAdd) error {
 func UserEdit(user request.UserEdit) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		Id:       user.Id,
-		UserName: user.UserName,
-		Tel:      user.Tel,
-		Password: user.Password,
-		RealName: user.RealName,
-		Status:   user.Status,
+		Id:            user.Id,
+		UserName:      user.UserName,
+		Tel:           user.Tel,
+		Password:      user.Password,
+		RealName:      user.RealName,
+		Status:        user.Status,
+		Address:       user.Address,
+		ReturnUrl:     user.ReturnUrl,
+		DaiUrl:        user.DaiUrl,
+		Remark:        user.Remark,
+		IsCollection:  user.IsCollection,
+		IsCreation:    user.IsCreation,
+		More:          user.More,
+		OrderType:     user.OrderType,
+		OrderCharge:   user.OrderCharge,
+		ReturnType:    user.ReturnType,
+		ReturnCharge:  user.ReturnCharge,
+		IsDai:         user.IsDai,
+		DaiType:       user.DaiType,
+		DaiCharge:     user.DaiCharge,
+		IsGas:         user.IsGas,
+		Examine:       user.Examine,
+		DayTotalCount: user.DayTotalCount,
+		MaxOrderCount: user.MaxOrderCount,
+		MinOrderCount: user.MinOrderCount,
+		Limit:         user.Limit,
+		UserLessTime:  user.UserLessTime,
+		UpdateTime:    time.Now(),
+		CreateTime:    time.Now(),
+		LastLoginTime: time.Now(),
 	}
 
 	// 1.判断用户名和手机号是否存在
@@ -161,12 +210,12 @@ func UserDel(id int) error {
 }
 
 // 更新Token
-func EditToken(token string,username string) error {
+func EditToken(token string, username string) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		Token: token,
-		UserName: username,
+		Token:         token,
+		UserName:      username,
+		LastLoginTime: time.Now(),
 	}
-	return u.EditToken(token,username)
+	return u.EditToken(token, username)
 }
-

@@ -14,12 +14,12 @@ type AdminUser struct {
 	UserName      string    `gorm:"unique;comment:'用户名'"`
 	Tel           string    `gorm:"unique;default:'';comment:'手机号'"`
 	Password      string    `gorm:"comment:'密码'"`
-	RealName      string    `gorm:"default:'';comment:'真实姓名';"`
+	RealName      string    `gorm:"default:'';comment:'组织名称';"`
 	Status        int8      `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
 	CreateTime    time.Time `gorm:"type:timestamp;commit:'创建时间';"`
 	UpdateTime    time.Time `gorm:"type:timestamp;commit:'更新时间';"`
 	Balance       float64   `gorm:"default:0;commit:'用户余额';"`
-	Address       string    `gorm:"default:'';commit:'钱包地址';"`
+	Address       string    `gorm:"default:'';commit:'商户地址';"`
 	LastLoginTime time.Time `gorm:"type:timestamp;commit:'最后登录时间';"`
 	Token         string    `gorm:"default:'';commit:'Token'"`
 	ReturnUrl     string    `gorm:"default:'';commit:'回传URL'"`
@@ -27,7 +27,7 @@ type AdminUser struct {
 	Remark        string    `gorm:"default:'';commit:'备注'"`
 	IsCollection  int       `gorm:"default:1;commit:'是否开启收款功能 1：是 0：否'"`
 	IsCreation    int       `gorm:"default:1;commit:'是否开启手动建单 1：是 0：否'"`
-	more          int       `gorm:"default:0;commit:'地址多单收款'"`
+	More          int       `gorm:"default:0;commit:'地址多单收款'"`
 	OrderType     int       `gorm:"default:1;commit:'订单手续费类型 1：百分比 0：固定'"`
 	OrderCharge   float64   `gorm:"default:0;commit:'订单手续费';"`
 	ReturnType    int       `gorm:"default:1;commit:'退款手续费类型 1：百分比 0：固定'"`
@@ -104,6 +104,7 @@ func (u *AdminUser) Detail(id ...int) (res response.AdminUserList, err error) {
 // 创建
 func (u *AdminUser) Create(roles []int) error {
 	tx := Db.Begin()
+	u.CreateTime = time.Now()
 	if err := tx.Create(u).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -128,10 +129,11 @@ func (u *AdminUser) Create(roles []int) error {
 func (u *AdminUser) Edit(roles []int) error {
 	tx := Db.Begin()
 	updateInfo := map[string]interface{}{
-		"user_name": u.UserName,
-		"real_name": u.RealName,
-		"status":    u.Status,
-		"tel":       u.Tel,
+		"user_name":   u.UserName,
+		"real_name":   u.RealName,
+		"status":      u.Status,
+		"tel":         u.Tel,
+		"update_time": time.Now(),
 	}
 	if u.Password != "" {
 		updateInfo["password"] = u.Password
@@ -243,12 +245,14 @@ func GetUsersByWhere(where ...interface{}) (res []AdminUser, err error) {
 }
 
 // 编辑用户
-func (u *AdminUser) EditToken(token string,username string) error {
+func (u *AdminUser) EditToken(token string, username string) error {
 	tx := Db.Begin()
 	updateInfo := map[string]interface{}{
-		"token":       u.Token,
+		"token": u.Token,
+		"last_login_time": u.LastLoginTime,
 	}
-	updateInfo["token"] =token
+	updateInfo["token"] = token
+	updateInfo["last_login_time"] = time.Now()
 	if err := tx.Model(&AdminUser{UserName: username}).
 		Updates(updateInfo).Error; err != nil {
 		tx.Rollback()
