@@ -2,6 +2,8 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"j2pay-server/model"
+	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
 	"strconv"
@@ -13,6 +15,7 @@ import (
 // @Produce json
 // @Param status  query int false "-1：等待中，1:执行中，2：成功，3：取消，4，失败"
 // @Param name    query string false "组织名称"
+// @Param code    query string false "系统编号"
 // @Param from_date  query string false "起"
 // @Param to_date    query string false "至"
 // @Param page query int false "页码"
@@ -24,14 +27,14 @@ func PickIndex(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 	name := c.Query("name")
+	code := c.Query("code")
 	FromDate := c.Query("name")
 	ToDate := c.Query("name")
 	status, _ := strconv.Atoi(c.Query("status"))
 	if utf8.RuneCountInString(name) > 32 {
 		name = string([]rune(name)[:32])
 	}
-
-	res, err := service.PickList(FromDate,ToDate,status, name, page, pageSize)
+	res, err := service.PickList(FromDate,ToDate,status, name,code, page, pageSize)
 	if err != nil {
 		response.SetOtherError(err)
 		return
@@ -54,4 +57,40 @@ func PickDetail(c *gin.Context) {
 		return
 	}
 	response.SuccessData(detail)
+}
+
+// @Tags 商户管理
+// @Summary 提领，代发
+// @Produce json
+// @Param body body request.PickAdd true "商户提领"
+// @Success 200
+// @Router /merchantPick [post]
+func PickAdd(c *gin.Context)  {
+	response := util.Response{c}
+	var pick request.PickAdd
+	if err := c.ShouldBindJSON(&pick); err != nil {
+		response.SetValidateError(err)
+		return
+	}
+	if err := service.PickAdd(pick); err != nil {
+		response.SetOtherError(err)
+		return
+	}
+	response.SuccessMsg("成功")
+
+}
+
+// @Tags 商户管理
+// @Summary 通知
+// @Produce json
+// @Param token  query string true "token"
+// @Success 302
+// @Router /notify [post]
+func PickNotify(c *gin.Context)  {
+	response := util.Response{c}
+	token := c.Query("token")
+	adminUser := model.GetUserByWhere("token =?", token)
+	c.Redirect(302, adminUser.DaiUrl)
+	c.Abort()
+	response.SuccessMsg("成功")
 }

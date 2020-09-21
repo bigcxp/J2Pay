@@ -261,7 +261,7 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "0：等待中，1:执行中，2：成功，3：取消，4，失败",
+                        "description": "-1：等待中，1:执行中，2：成功，3：取消，4，失败",
                         "name": "status",
                         "in": "query"
                     },
@@ -269,6 +269,24 @@ var doc = `{
                         "type": "string",
                         "description": "组织名称",
                         "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "系统编号",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "至",
+                        "name": "to_date",
                         "in": "query"
                     },
                     {
@@ -291,6 +309,80 @@ var doc = `{
                             "$ref": "#/definitions/model.PickUpPage"
                         }
                     }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户管理"
+                ],
+                "summary": "提领，代发",
+                "parameters": [
+                    {
+                        "description": "商户提领",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.PickAdd"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
+        "/merchantPick/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户管理"
+                ],
+                "summary": "获取提领详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AdminUserList"
+                        }
+                    }
+                }
+            }
+        },
+        "/notify": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户管理"
+                ],
+                "summary": "通知",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {}
                 }
             }
         },
@@ -577,23 +669,138 @@ var doc = `{
         }
     },
     "definitions": {
-        "model.Pick": {
+        "model.AdminUser": {
             "type": "object",
             "properties": {
-                "amount": {
+                "address": {
+                    "type": "string"
+                },
+                "balance": {
                     "type": "number"
                 },
                 "createTime": {
                     "type": "string"
+                },
+                "daiCharge": {
+                    "type": "number"
+                },
+                "daiType": {
+                    "type": "integer"
+                },
+                "daiUrl": {
+                    "type": "string"
+                },
+                "dayTotalCount": {
+                    "type": "number"
+                },
+                "examine": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isCollection": {
+                    "type": "integer"
+                },
+                "isCreation": {
+                    "type": "integer"
+                },
+                "isDai": {
+                    "type": "integer"
+                },
+                "isGas": {
+                    "type": "integer"
+                },
+                "lastLoginTime": {
+                    "type": "string"
+                },
+                "limit": {
+                    "type": "number"
+                },
+                "maxOrderCount": {
+                    "type": "number"
+                },
+                "minOrderCount": {
+                    "type": "number"
+                },
+                "more": {
+                    "type": "integer"
+                },
+                "orderCharge": {
+                    "type": "number"
+                },
+                "orderType": {
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "pick": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Pick"
+                    }
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "realName": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "returnCharge": {
+                    "type": "number"
+                },
+                "returnType": {
+                    "type": "integer"
+                },
+                "returnUrl": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "systemMessages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.SystemMessage"
+                    }
+                },
+                "tel": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "userLessTime": {
+                    "type": "integer"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Pick": {
+            "type": "object",
+            "properties": {
+                "admin_user": {
+                    "description": "指定关联外键",
+                    "type": "object",
+                    "$ref": "#/definitions/model.AdminUser"
+                },
+                "amount": {
+                    "type": "number"
                 },
                 "fee": {
                     "type": "number"
                 },
                 "finishTime": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "idCode": {
                     "type": "string"
@@ -641,6 +848,32 @@ var doc = `{
                 "total": {
                     "description": "总共多少页",
                     "type": "integer"
+                }
+            }
+        },
+        "model.SystemMessage": {
+            "type": "object",
+            "properties": {
+                "adminUsers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.AdminUser"
+                    }
+                },
+                "beginTime": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -753,6 +986,49 @@ var doc = `{
                         6,
                         7
                     ]
+                }
+            }
+        },
+        "request.PickAdd": {
+            "type": "object",
+            "required": [
+                "amount",
+                "orderCode",
+                "pickAddress",
+                "remark",
+                "type",
+                "user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "数量",
+                    "type": "number",
+                    "example": 1
+                },
+                "orderCode": {
+                    "description": "商户订单编号",
+                    "type": "string",
+                    "example": "asfasgdsasfgas"
+                },
+                "pickAddress": {
+                    "description": "收款地址",
+                    "type": "string",
+                    "example": "0x1243cfsadfcsd"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string",
+                    "example": "备注"
+                },
+                "type": {
+                    "description": "类型 1：代发 0：收款",
+                    "type": "integer",
+                    "example": 1
+                },
+                "user_id": {
+                    "description": "用户id",
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },

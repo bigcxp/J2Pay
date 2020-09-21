@@ -1,16 +1,93 @@
 definitions:
-  model.Pick:
+  model.AdminUser:
     properties:
-      amount:
+      address:
+        type: string
+      balance:
         type: number
       createTime:
         type: string
+      daiCharge:
+        type: number
+      daiType:
+        type: integer
+      daiUrl:
+        type: string
+      dayTotalCount:
+        type: number
+      examine:
+        type: number
+      id:
+        type: integer
+      isCollection:
+        type: integer
+      isCreation:
+        type: integer
+      isDai:
+        type: integer
+      isGas:
+        type: integer
+      lastLoginTime:
+        type: string
+      limit:
+        type: number
+      maxOrderCount:
+        type: number
+      minOrderCount:
+        type: number
+      more:
+        type: integer
+      orderCharge:
+        type: number
+      orderType:
+        type: integer
+      password:
+        type: string
+      pick:
+        items:
+          $ref: '#/definitions/model.Pick'
+        type: array
+      pid:
+        type: integer
+      realName:
+        type: string
+      remark:
+        type: string
+      returnCharge:
+        type: number
+      returnType:
+        type: integer
+      returnUrl:
+        type: string
+      status:
+        type: integer
+      systemMessages:
+        items:
+          $ref: '#/definitions/model.SystemMessage'
+        type: array
+      tel:
+        type: string
+      token:
+        type: string
+      updateTime:
+        type: string
+      userLessTime:
+        type: integer
+      userName:
+        type: string
+    type: object
+  model.Pick:
+    properties:
+      admin_user:
+        $ref: '#/definitions/model.AdminUser'
+        description: 指定关联外键
+        type: object
+      amount:
+        type: number
       fee:
         type: number
       finishTime:
         type: string
-      id:
-        type: integer
       idCode:
         type: string
       order_code:
@@ -43,6 +120,23 @@ definitions:
       total:
         description: 总共多少页
         type: integer
+    type: object
+  model.SystemMessage:
+    properties:
+      adminUsers:
+        items:
+          $ref: '#/definitions/model.AdminUser'
+        type: array
+      beginTime:
+        type: string
+      endTime:
+        type: string
+      id:
+        type: integer
+      status:
+        type: integer
+      title:
+        type: string
     type: object
   request.LoginUser:
     properties:
@@ -130,6 +224,40 @@ definitions:
     - endTime
     - title
     - users
+    type: object
+  request.PickAdd:
+    properties:
+      amount:
+        description: 数量
+        example: 1
+        type: number
+      orderCode:
+        description: 商户订单编号
+        example: asfasgdsasfgas
+        type: string
+      pickAddress:
+        description: 收款地址
+        example: 0x1243cfsadfcsd
+        type: string
+      remark:
+        description: 备注
+        example: 备注
+        type: string
+      type:
+        description: 类型 1：代发 0：收款
+        example: 1
+        type: integer
+      user_id:
+        description: 用户id
+        example: 1
+        type: integer
+    required:
+    - amount
+    - orderCode
+    - pickAddress
+    - remark
+    - type
+    - user_id
     type: object
   request.RoleAdd:
     properties:
@@ -834,13 +962,25 @@ paths:
   /merchantPick:
     get:
       parameters:
-      - description: 0：等待中，1:执行中，2：成功，3：取消，4，失败
+      - description: -1：等待中，1:执行中，2：成功，3：取消，4，失败
         in: query
         name: status
         type: integer
       - description: 组织名称
         in: query
         name: name
+        type: string
+      - description: 系统编号
+        in: query
+        name: code
+        type: string
+      - description: 起
+        in: query
+        name: from_date
+        type: string
+      - description: 至
+        in: query
+        name: to_date
         type: string
       - description: 页码
         in: query
@@ -858,6 +998,54 @@ paths:
           schema:
             $ref: '#/definitions/model.PickUpPage'
       summary: 商户提领列表
+      tags:
+      - 商户管理
+    post:
+      parameters:
+      - description: 商户提领
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.PickAdd'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: 提领，代发
+      tags:
+      - 商户管理
+  /merchantPick/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AdminUserList'
+      summary: 获取提领详情
+      tags:
+      - 商户管理
+  /notify:
+    post:
+      parameters:
+      - description: token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302": {}
+      summary: 通知
       tags:
       - 商户管理
   /role:
