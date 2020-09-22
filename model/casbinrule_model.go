@@ -1,6 +1,8 @@
 package model
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type CasbinRule struct {
 	PType string

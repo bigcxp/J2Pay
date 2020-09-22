@@ -1,6 +1,8 @@
 package model
 
-import "j2pay-server/model/response"
+import (
+	"j2pay-server/model/response"
+)
 
 type Auth struct {
 	Id     int

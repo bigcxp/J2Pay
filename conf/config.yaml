@@ -44,3 +44,7 @@ captcha:
 jwt:
   key: bfgdiojhnpbwfsfa23/*-/*-/sgdeasdg4sd6+0@%!
   exp_time: 100 #小时
+
+# eth 配置
+eth:
+  url: https://ropsten.infura.io/v3/fca54f064a584d378cfedff40eabeef5

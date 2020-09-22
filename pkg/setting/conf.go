@@ -48,3 +48,8 @@ type Jwt struct {
 	Key     string
 	ExpTime int `mapstructure:"exp_time"`
 }
+
+// eth 配置
+type Eth struct {
+	Url string
+}

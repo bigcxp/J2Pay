@@ -1,10 +1,10 @@
 package model
 
 import (
-	"j2pay-server/pkg/setting"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"j2pay-server/pkg/setting"
 	"log"
 )
 

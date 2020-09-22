@@ -6,12 +6,13 @@ import (
 )
 
 var (
-	ApplicationConf   = Application{}
-	MysqlConf         = Mysql{}
-	LogConf           = Log{}
-	CasbinConf        = Casbin{}
-	JwtConf           = Jwt{}
-	CaptchaConf       = Captcha{}
+	ApplicationConf = Application{}
+	MysqlConf       = Mysql{}
+	LogConf         = Log{}
+	CasbinConf      = Casbin{}
+	JwtConf         = Jwt{}
+	CaptchaConf     = Captcha{}
+	EthConf         = Eth{}
 )
 
 func Setup() {
@@ -43,4 +44,8 @@ func Setup() {
 	if err := viper.UnmarshalKey("captcha", &CaptchaConf); err != nil {
 		log.Panic("captcha配置文件格式错误", err)
 	}
+	if err := viper.UnmarshalKey("eth", &EthConf); err != nil {
+		log.Panic("eth配置文件格式错误", err)
+	}
+
 }

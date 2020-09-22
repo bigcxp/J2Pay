@@ -4,9 +4,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	_"github.com/ethereum/go-ethereum/accounts/keystore"
 	"j2pay-server/model"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/setting"
+	"j2pay-server/pkg/util"
 	"j2pay-server/routers"
 )
 
@@ -17,7 +19,8 @@ func main() {
 	setting.Setup()
 	logger.Setup()
 	model.Setup()
-
 	router := routers.InitRouter()
+	util.EthClient()
+
 	panic(router.Run(fmt.Sprintf("%s:%d", setting.ApplicationConf.Host, setting.ApplicationConf.Port)))
 }

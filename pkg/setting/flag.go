@@ -17,5 +17,5 @@ var Init bool
 func init() {
 	dir, _ := os.Getwd()
 	flag.StringVar(&Path, "config", dir + "/conf/config.yaml", "配置文件路径")
-	flag.BoolVar(&Init, "init", true, "初始化 -- 清空数据表，并且插入初始数据")
+	flag.BoolVar(&Init, "init", false, "初始化 -- 清空数据表，并且插入初始数据")
 }

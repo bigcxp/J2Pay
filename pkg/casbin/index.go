@@ -1,10 +1,10 @@
 package casbin
 
 import (
-	"j2pay-server/model"
-	"j2pay-server/pkg/setting"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v2"
+	"j2pay-server/model"
+	"j2pay-server/pkg/setting"
 	"os"
 )
 
