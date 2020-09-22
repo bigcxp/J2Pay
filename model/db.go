@@ -73,7 +73,9 @@ func AutoMigrate() {
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '权限'").AutoMigrate(&Auth{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统公告'").AutoMigrate(&Pick{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商户提领'").AutoMigrate(&Pick{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '订单'").AutoMigrate(&Order{})
+
 }
 
 func InitSql() {

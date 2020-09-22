@@ -76,6 +76,39 @@ definitions:
       userName:
         type: string
     type: object
+  model.Order:
+    properties:
+      admin_user:
+        $ref: '#/definitions/model.AdminUser'
+        description: 指定关联外键
+        type: object
+      amount:
+        type: number
+      chargeAddress:
+        type: string
+      fee:
+        type: number
+      finishTime:
+        type: string
+      id_code:
+        type: string
+      merchantAmount:
+        type: number
+      order_code:
+        type: string
+      receiptAmount:
+        type: number
+      remark:
+        type: string
+      returnAmount:
+        type: number
+      status:
+        type: integer
+      txid:
+        type: string
+      userId:
+        type: integer
+    type: object
   model.Pick:
     properties:
       admin_user:
@@ -225,6 +258,30 @@ definitions:
     - title
     - users
     type: object
+  request.OrderAdd:
+    properties:
+      amount:
+        description: 数量
+        example: 1
+        type: number
+      orderCode:
+        description: 商户订单编号
+        example: asfasgdsasfgas
+        type: string
+      remark:
+        description: 备注
+        example: 备注
+        type: string
+      user_id:
+        description: 用户id
+        example: 1
+        type: integer
+    required:
+    - amount
+    - orderCode
+    - remark
+    - user_id
+    type: object
   request.PickAdd:
     properties:
       amount:
@@ -244,7 +301,7 @@ definitions:
         example: 备注
         type: string
       type:
-        description: 类型 1：代发 0：收款
+        description: 类型 1：代发 0：提领
         example: 1
         type: integer
       user_id:
@@ -1029,7 +1086,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.AdminUserList'
+            $ref: '#/definitions/model.Pick'
       summary: 获取提领详情
       tags:
       - 商户管理
@@ -1048,6 +1105,84 @@ paths:
       summary: 通知
       tags:
       - 商户管理
+  /order:
+    get:
+      parameters:
+      - description: 状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：已过期
+        in: query
+        name: status
+        type: integer
+      - description: 商户订单编号
+        in: query
+        name: orderCode
+        type: string
+      - description: 交易哈希
+        in: query
+        name: txid
+        type: string
+      - description: 收款地址
+        in: query
+        name: chargeAddress
+        type: string
+      - description: 起
+        in: query
+        name: from_date
+        type: string
+      - description: 至
+        in: query
+        name: to_date
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PickUpPage'
+      summary: 订单列表
+      tags:
+      - 订单管理
+    post:
+      parameters:
+      - description: 新增订单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.OrderAdd'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: 新增订单
+      tags:
+      - 订单管理
+  /order/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+      summary: 订单详情
+      tags:
+      - 订单管理
   /role:
     get:
       parameters:

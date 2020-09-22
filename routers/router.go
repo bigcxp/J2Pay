@@ -73,5 +73,11 @@ func InitRouter() *gin.Engine {
 		r.GET("/merchantPick/:id",controller.PickDetail)
 		r.POST("/notify",controller.PickNotify)
 	}
+	//订单
+	{
+		r.GET("/order",controller.OrderList)
+		r.POST("/order",controller.OrderAdd)
+		r.GET("/order/:id",controller.OrderDetail)
+	}
 	return r
 }

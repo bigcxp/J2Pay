@@ -14,6 +14,7 @@ import (
 // @Summary 商户提领列表
 // @Produce json
 // @Param status  query int false "-1：等待中，1:执行中，2：成功，3：取消，4，失败"
+// @Param type  query int false "0:全部，1：代发，2：提领"
 // @Param name    query string false "组织名称"
 // @Param code    query string false "系统编号"
 // @Param from_date  query string false "起"
@@ -31,10 +32,11 @@ func PickIndex(c *gin.Context) {
 	FromDate := c.Query("name")
 	ToDate := c.Query("name")
 	status, _ := strconv.Atoi(c.Query("status"))
+	types, _ := strconv.Atoi(c.Query("type"))
 	if utf8.RuneCountInString(name) > 32 {
 		name = string([]rune(name)[:32])
 	}
-	res, err := service.PickList(FromDate,ToDate,status, name,code, page, pageSize)
+	res, err := service.PickList(FromDate,ToDate,status, name,code,types, page, pageSize)
 	if err != nil {
 		response.SetOtherError(err)
 		return
@@ -46,7 +48,7 @@ func PickIndex(c *gin.Context) {
 // @Summary 获取提领详情
 // @Produce json
 // @Param id path uint true "ID"
-// @Success 200 {object} response.AdminUserList
+// @Success 200 {object} model.Pick
 // @Router /merchantPick/{id} [get]
 func PickDetail(c *gin.Context) {
 	response := util.Response{c}

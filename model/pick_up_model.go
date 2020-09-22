@@ -27,6 +27,9 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (PickUpPage, err
 		Total:       p.GetCount(where...),
 		PerPage:     pageSize,
 		CurrentPage: page,
+		TotalFee:    p.getFee(),
+		TotalReduce: p.getFee() + p.getAmount(),
+		TotalAmount: p.getAmount(),
 		Data:        []Pick{},
 	}
 	//分页查询
@@ -79,4 +82,16 @@ func (p *Pick) Create() error {
 	}
 	tx.Commit()
 	return nil
+}
+
+//获取提领总金额
+func (p *Pick) getAmount() (totalAmount float64) {
+	Db.Model(&p).Exec("select sum(amount) from pick where status = ?", 2)
+	return
+}
+
+//总手续费
+func (p *Pick)getFee() (totalFee float64) {
+	Db.Model(&p).Select("sum(fee)").Where("status = ?", 2).Find(&totalFee)
+	return
 }

@@ -357,7 +357,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.AdminUserList"
+                            "$ref": "#/definitions/model.Pick"
                         }
                     }
                 }
@@ -383,6 +383,126 @@ var doc = `{
                 ],
                 "responses": {
                     "302": {}
+                }
+            }
+        },
+        "/order": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "订单列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：已过期",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "商户订单编号",
+                        "name": "orderCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "交易哈希",
+                        "name": "txid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "收款地址",
+                        "name": "chargeAddress",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "至",
+                        "name": "to_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PickUpPage"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "新增订单",
+                "parameters": [
+                    {
+                        "description": "新增订单",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OrderAdd"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
+        "/order/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "订单详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Order"
+                        }
+                    }
                 }
             }
         },
@@ -785,6 +905,55 @@ var doc = `{
                 }
             }
         },
+        "model.Order": {
+            "type": "object",
+            "properties": {
+                "admin_user": {
+                    "description": "指定关联外键",
+                    "type": "object",
+                    "$ref": "#/definitions/model.AdminUser"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "chargeAddress": {
+                    "type": "string"
+                },
+                "fee": {
+                    "type": "number"
+                },
+                "finishTime": {
+                    "type": "string"
+                },
+                "id_code": {
+                    "type": "string"
+                },
+                "merchantAmount": {
+                    "type": "number"
+                },
+                "order_code": {
+                    "type": "string"
+                },
+                "receiptAmount": {
+                    "type": "number"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "returnAmount": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "txid": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Pick": {
             "type": "object",
             "properties": {
@@ -989,6 +1158,37 @@ var doc = `{
                 }
             }
         },
+        "request.OrderAdd": {
+            "type": "object",
+            "required": [
+                "amount",
+                "orderCode",
+                "remark",
+                "user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "数量",
+                    "type": "number",
+                    "example": 1
+                },
+                "orderCode": {
+                    "description": "商户订单编号",
+                    "type": "string",
+                    "example": "asfasgdsasfgas"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string",
+                    "example": "备注"
+                },
+                "user_id": {
+                    "description": "用户id",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "request.PickAdd": {
             "type": "object",
             "required": [
@@ -1021,7 +1221,7 @@ var doc = `{
                     "example": "备注"
                 },
                 "type": {
-                    "description": "类型 1：代发 0：收款",
+                    "description": "类型 1：代发 0：提领",
                     "type": "integer",
                     "example": 1
                 },
