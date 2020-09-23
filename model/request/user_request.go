@@ -7,6 +7,7 @@ type LoginUser struct {
 
 }
 
+
 type UserAdd struct {
 	CommonUser
 	Password string `binding:"required,max=255" example:"test"` // 密码

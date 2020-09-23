@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/jinzhu/gorm"
+	"j2pay-server/validate"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (PickUpPage, err
 		PerPage:     pageSize,
 		CurrentPage: page,
 		TotalFee:    p.getFee(),
-		TotalReduce: p.getFee() + p.getAmount(),
+		TotalReduce: validate.Decimal(p.getFee() + p.getAmount()),
 		TotalAmount: p.getAmount(),
 		Data:        []Pick{},
 	}
@@ -85,13 +86,33 @@ func (p *Pick) Create() error {
 }
 
 //获取提领总金额
-func (p *Pick) getAmount() (totalAmount float64) {
-	Db.Model(&p).Exec("select sum(amount) from pick where status = ?", 2)
-	return
+func (p *Pick) getAmount()  float64{
+	var totalAmount float64
+	all := PickUpPage{
+		Data:        []Pick{},
+	}
+	err := Db.Model(&p).Order("id desc").Where("status = ?",2).Find(&all.Data).Error
+	if err != nil {
+		return 0
+	}
+	for _, v := range all.Data {
+		totalAmount += validate.Decimal(v.Amount)
+	}
+	return validate.Decimal(totalAmount)
 }
 
 //总手续费
-func (p *Pick)getFee() (totalFee float64) {
-	Db.Model(&p).Select("sum(fee)").Where("status = ?", 2).Find(&totalFee)
-	return
+func (p *Pick)getFee()  float64 {
+	var totalFee float64
+	all := PickUpPage{
+		Data:        []Pick{},
+	}
+	err := Db.Model(&p).Order("id desc").Where("status = ?",2).Find(&all.Data).Error
+	if err != nil {
+		return 0
+	}
+	for _, v := range all.Data {
+		totalFee += validate.Decimal(v.Fee)
+	}
+	return validate.Decimal(totalFee)
 }

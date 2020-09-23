@@ -47,4 +47,5 @@ jwt:
 
 # eth 配置
 eth:
+# url: http://127.0.0.1:8545
   url: https://ropsten.infura.io/v3/fca54f064a584d378cfedff40eabeef5

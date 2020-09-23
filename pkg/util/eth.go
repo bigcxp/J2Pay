@@ -10,8 +10,8 @@ import (
 
 //连接以太坊   返回 以太坊web3对象
 func EthClient() *ethrpc.EthRPC {
-	client := ethrpc.New(fmt.Sprintf("%s", setting.EthConf.Url))
 
+	client := ethrpc.New(fmt.Sprintf("%s", setting.EthConf.Url))
 	version, err := client.Web3ClientVersion()
 	if err != nil {
 		log.Fatal(err)
@@ -21,20 +21,20 @@ func EthClient() *ethrpc.EthRPC {
 }
 
 //创建用户并返回地址
-func getUserAddress(password string) string {
+func GetUserAddress(password string) string {
 	ks := keystore.NewKeyStore(
 		"./address",
 		keystore.LightScryptN,
 		keystore.LightScryptP)
 
 	address, _ := ks.NewAccount(password)
-	fmt.Println("Account address",address)
+	fmt.Println("Account address", address.Address.Hex())
 	account, err := ks.Export(address, password, password)
 	err = ks.Unlock(address, password)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("private key",account)
-	return address.Address.String()
+	return address.Address.Hex()
 }
 

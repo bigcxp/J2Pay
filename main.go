@@ -20,7 +20,18 @@ func main() {
 	logger.Setup()
 	model.Setup()
 	router := routers.InitRouter()
-	util.EthClient()
+	client := util.EthClient()
+	//util.GetUserAddress("123456")
+	accounts, err := client.EthAccounts()
+	if err != nil{
+		return
+	}
+	fmt.Println(accounts)
+	balance, err := client.EthGetBalance("0x3305a26A87bc4Cdb761e7623bf7054EA8376863b", "pending")
+	fmt.Println(balance)
+
+	count, err := client.NetPeerCount()
+	fmt.Println(count)
 
 	panic(router.Run(fmt.Sprintf("%s:%d", setting.ApplicationConf.Host, setting.ApplicationConf.Port)))
 }

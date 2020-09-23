@@ -2,12 +2,12 @@ package model
 
 import (
 	"github.com/jinzhu/gorm"
+	"j2pay-server/validate"
 	"time"
 )
 
 type Order struct {
 	gorm.Model
-	IdCode         string    `gorm:"default:'';comment:'实收明细订单编号';"json:"id_code"`
 	OrderCode      string    `gorm:"default:'';comment:'商户订单编号';"json:"order_code"`
 	Amount         float64   `gorm:"default:0;comment:'金额';";json:"amount"`
 	ReceiptAmount  float64   `gorm:"default:0;comment:'实收金额';";json:"receipt_amount"`
@@ -29,10 +29,10 @@ func (o *Order) GetAll(page, pageSize int, where ...interface{}) (OrderPage, err
 		Total:          o.GetCount(where...),
 		PerPage:        pageSize,
 		CurrentPage:    page,
-		TotalAmount:    getTotalAmount(),
-		ReallyAmount:   getReceiptAmount(),
-		MerchantAmount: getMerchantAmount(),
-		TotalFee:       getTotalFee(),
+		TotalAmount:    o.getTotalAmount(),
+		ReallyAmount:   o.getReceiptAmount(),
+		MerchantAmount: o.getMerchantAmount(),
+		TotalFee:       o.getTotalFee(),
 		Data:           []Order{},
 	}
 	//分页查询
@@ -91,30 +91,68 @@ func GetOrderByWhere(where ...interface{}) (o Order) {
 	return
 }
 
-//获取订单总金额
-func getTotalAmount() float64 {
+//商户订单总金额
+func (o *Order) getTotalAmount() float64{
 	var totalAmount float64
-	Db.Table("order").Select("sum(amount)").Find(&totalAmount)
-	return totalAmount
+	all := OrderPage{
+		Data:        []Order{},
+	}
+	err := Db.Model(&o).Order("id desc").Find(&all.Data).Error
+	if err != nil {
+		return 0
+	}
+	for _, v := range all.Data {
+		totalAmount += validate.Decimal(v.Amount)
+	}
+	return validate.Decimal(totalAmount)
+}
+
+
+
+//总商户总实收金额
+func (o *Order) getMerchantAmount() float64{
+	var merchantAmount float64
+	all := OrderPage{
+		Data:        []Order{},
+	}
+	err := Db.Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
+	if err != nil {
+		return 0
+	}
+	for _, v := range all.Data {
+		merchantAmount += validate.Decimal(v.MerchantAmount)
+	}
+	return validate.Decimal(merchantAmount)
 }
 
 //总实收金额
-func getReceiptAmount() float64 {
+func (o *Order) getReceiptAmount() float64{
 	var receiptAmount float64
-	Db.Table("order").Where("status = ?", 1).Select("sum(receipt_amount)").Find(&receiptAmount)
-	return receiptAmount
-}
-
-//总商户总实收金额
-func getMerchantAmount() float64 {
-	var merchantAmount float64
-	Db.Table("order").Where("status = ?", 1).Select("sum(merchant_amount)").Find(&merchantAmount)
-	return merchantAmount
+	all := OrderPage{
+		Data:        []Order{},
+	}
+	err := Db.Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
+	if err != nil {
+		return 0
+	}
+	for _, v := range all.Data {
+		receiptAmount += validate.Decimal(v.ReceiptAmount)
+	}
+	return validate.Decimal(receiptAmount)
 }
 
 //总手续费
-func getTotalFee() float64 {
+func (o *Order) getTotalFee() float64 {
 	var totalFee float64
-	Db.Table("order").Where("status = ?", 1).Select("sum(fee)").Find(&totalFee)
-	return totalFee
+	all := OrderPage{
+		Data:        []Order{},
+	}
+	err := Db.Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
+	if err != nil {
+		return 0
+	}
+	for _, v := range all.Data {
+		totalFee += validate.Decimal(v.Fee)
+	}
+	return validate.Decimal(totalFee)
 }
