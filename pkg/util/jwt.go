@@ -2,11 +2,11 @@
 package util
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"j2pay-server/model"
 	"j2pay-server/model/response"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/setting"
-	"github.com/dgrijalva/jwt-go"
 	"time"
 )
 

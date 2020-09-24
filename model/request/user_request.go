@@ -3,10 +3,8 @@ package request
 type LoginUser struct {
 	Username   string `binding:"required,max=255" example:"admin"`                 // 用户名
 	Password   string `binding:"required,max=255" example:"admin"`                 // 密码
-	VerifyCode string `json:"verify_code" binding:"required,len=4" example:"9527"` // 验证码 	// token
-
+	GoogleCode string `json:"google_code" example:"952721"` // google 动态验证码
 }
-
 
 type UserAdd struct {
 	CommonUser
@@ -15,7 +13,9 @@ type UserAdd struct {
 }
 
 type UserEdit struct {
-	Id int `json:"-"`
+	Id     int `json:"-"`
+	IsOpen int `json:"is_open"` //是否开启双重验证 0：关闭 1：开启
+	Code   string `json:"code"`    //动态码
 	CommonUser
 	Password string `example:"test"` // 密码（非必填）
 

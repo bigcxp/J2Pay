@@ -9,6 +9,7 @@ import (
 	"j2pay-server/pkg/casbin"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/util"
+	"j2pay-server/validate"
 	"time"
 )
 
@@ -21,6 +22,17 @@ func Login(user *request.LoginUser, id string) (string, error) {
 	//	return "", myerr.NewNormalValidateError("验证码错误")
 	//}
 	adminUser := model.GetUserByWhere("user_name = ?", user.Username)
+	//验证google Code
+	if adminUser.IsOpen != 0 {
+		code, err := validate.NewGoogleAuth().VerifyCode(adminUser.Secret, user.GoogleCode)
+		if err != nil {
+			return "", err
+		}
+		if !code {
+			return "", myerr.NewNormalValidateError("验证码错误")
+		}
+
+	}
 	if adminUser.Id == 0 {
 		return "", myerr.NewNormalValidateError("用户不存在")
 	}
@@ -79,20 +91,22 @@ func UserDetail(id int) (res response.AdminUserList, err error) {
 func UserAdd(user request.UserAdd) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		UserName:      user.UserName,
-		Tel:           user.Tel,
-		Password:      user.Password,
-		RealName:      user.RealName,
-		Status:        user.Status,
-		Address:       user.Address,
-		ReturnUrl:     user.ReturnUrl,
-		DaiUrl:        user.DaiUrl,
-		Remark:        user.Remark,
-		IsCollection:  user.IsCollection,
-		IsCreation:    user.IsCreation,
-		More:          user.More,
-		OrderType:     user.OrderType,
-		OrderCharge:   user.OrderCharge,
+		UserName:     user.UserName,
+		Pid:          user.Pid,
+		Tel:          user.Tel,
+		Password:     user.Password,
+		RealName:     user.RealName,
+		Secret:       validate.NewGoogleAuth().GetSecret(), //生成唯一密钥
+		Status:       user.Status,
+		Address:      user.Address,
+		ReturnUrl:    user.ReturnUrl,
+		DaiUrl:       user.DaiUrl,
+		Remark:       user.Remark,
+		IsCollection: user.IsCollection,
+		IsCreation:   user.IsCreation,
+		More:         user.More,
+		OrderType:    user.OrderType,
+		OrderCharge:  user.OrderCharge,
 		ReturnType:    user.ReturnType,
 		ReturnCharge:  user.ReturnCharge,
 		IsDai:         user.IsDai,
@@ -108,6 +122,7 @@ func UserAdd(user request.UserAdd) error {
 		CreateTime:    time.Now(),
 		UpdateTime:    time.Now(),
 		LastLoginTime: time.Now(),
+		IsOpen:        0,
 	}
 	// 1.判断用户名和手机号是否存在
 	if hasName := model.GetUserByWhere("user_name = ?", user.UserName); hasName.Id > 0 {
@@ -141,6 +156,7 @@ func UserEdit(user request.UserEdit) error {
 	u := model.AdminUser{
 		Id:            user.Id,
 		UserName:      user.UserName,
+		IsOpen:        user.IsOpen,
 		Tel:           user.Tel,
 		Password:      user.Password,
 		RealName:      user.RealName,
@@ -178,7 +194,15 @@ func UserEdit(user request.UserEdit) error {
 	if hasTel := model.GetUserByWhere("tel = ? and id <> ?", user.UserName, user.Id); hasTel.Id > 0 {
 		return myerr.NewDbValidateError("手机号已存在")
 	}
-
+	//是否开启google双重验证
+	userName := model.GetUserByWhere("user_name = ?", user.UserName)
+	code, err2 := validate.NewGoogleAuth().VerifyCode(userName.Secret, user.Code)
+	if err2 != nil {
+		return err2
+	}
+	if !code {
+		return myerr.NewDbValidateError("动态验证码错误")
+	}
 	// 2.判断角色是否存在
 	hasRoles, err := model.GetRolesByWhere("id in (?)", user.Roles)
 	if err != nil {
@@ -213,9 +237,7 @@ func UserDel(id int) error {
 func EditToken(token string, username string) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		Token:         token,
 		UserName:      username,
-		LastLoginTime: time.Now(),
 	}
 	return u.EditToken(token, username)
 }

@@ -3,6 +3,7 @@ package model
 import (
 	"j2pay-server/model/response"
 	"j2pay-server/pkg/logger"
+	"j2pay-server/validate"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,9 @@ type AdminUser struct {
 	UserName       string          `gorm:"unique;comment:'用户名';"`
 	Tel            string          `gorm:"unique;default:'';comment:'手机号';"`
 	Password       string          `gorm:"comment:'密码';"`
+	Secret         string          `gorm:"comment:'google私钥';"`
+	IsOpen         int             `gorm:"default:0;commit:'是否开启google双重验证 默认0：不开启 1：开启';"`
+	QrcodeUrl      string          `gorm:"comment:'google二维码图片地址';"`
 	RealName       string          `gorm:"default:'';comment:'组织名称';"`
 	Status         int8            `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
 	CreateTime     time.Time       `gorm:"type:timestamp;commit:'创建时间';"`
@@ -247,14 +251,9 @@ func GetUsersByWhere(where ...interface{}) (res []AdminUser, err error) {
 // 编辑用户
 func (u *AdminUser) EditToken(token string, username string) error {
 	tx := Db.Begin()
-	updateInfo := map[string]interface{}{
-		"token":           u.Token,
-		"last_login_time": u.LastLoginTime,
-	}
-	updateInfo["token"] = token
-	updateInfo["last_login_time"] = time.Now()
-	if err := tx.Model(&AdminUser{UserName: username}).
-		Updates(updateInfo).Error; err != nil {
+	adminUser := GetUserByWhere("user_name = ?", username)
+	if err := tx.Model(&adminUser).
+		Updates(AdminUser{Token: token,LastLoginTime: time.Now(),QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username,adminUser.Secret)}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

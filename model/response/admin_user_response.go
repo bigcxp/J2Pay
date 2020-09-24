@@ -18,6 +18,8 @@ type CasRole struct {
 
 type AdminUserList struct {
 	Id            int       `json:"id"`
+	QrcodeUrl     string    `json:"qr_code_url"`     //google 二维码地址
+	Secret        string    `json:"secret"`          //google密钥
 	UserName      string    `json:"user_name"`       // 登录名
 	Tel           string    `json:"tel"`             // 手机号码
 	RealName      string    `json:"real_name"`       // 组织名称
@@ -50,4 +52,3 @@ type AdminUserMessageList struct {
 	UserName       string               `json:"user_name"`      //用户名
 	SystemMessages []AdminSystemMessage `json:"systemMessages"` //系统公告
 }
-
