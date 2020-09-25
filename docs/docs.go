@@ -206,6 +206,92 @@ var doc = `{
                 }
             }
         },
+        "/fee": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "手续费结账"
+                ],
+                "summary": "手续费列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "状态 1：等待中，2：已完成",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "商户id",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "至",
+                        "name": "to_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.FeePage"
+                        }
+                    }
+                }
+            }
+        },
+        "/fee/{id}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "手续费"
+                ],
+                "summary": "结账",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "手续费",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.FeeEdit"
+                        }
+                    }
+                ]
+            }
+        },
         "/index": {
             "get": {
                 "produces": [
@@ -455,7 +541,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.PickUpPage"
+                            "$ref": "#/definitions/model.OrderPage"
                         }
                     }
                 }
@@ -507,6 +593,114 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.Order"
+                        }
+                    }
+                }
+            }
+        },
+        "/return": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "退款订单管理"
+                ],
+                "summary": "退款订单列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "状态 1：退款等待中，2：退款中，3：退款失败，4：已退款",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "商户订单编号",
+                        "name": "orderCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "至",
+                        "name": "to_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ReturnPage"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "退款订单管理"
+                ],
+                "summary": "新增退款订单",
+                "parameters": [
+                    {
+                        "description": "新增退款订单",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ReturnAdd"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
+        "/return/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "退款订单管理"
+                ],
+                "summary": "退款订单详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Return"
                         }
                     }
                 }
@@ -966,6 +1160,45 @@ var doc = `{
                 }
             }
         },
+        "model.OrderPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Order"
+                    }
+                },
+                "merchant_amount": {
+                    "description": "总商户总实收金额",
+                    "type": "number"
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "really_amount": {
+                    "description": "总实收金额",
+                    "type": "number"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                },
+                "total_amount": {
+                    "description": "总订单金额",
+                    "type": "number"
+                },
+                "total_fee": {
+                    "description": "总手续费",
+                    "type": "number"
+                }
+            }
+        },
         "model.Pick": {
             "type": "object",
             "properties": {
@@ -1044,6 +1277,57 @@ var doc = `{
                 }
             }
         },
+        "model.Return": {
+            "type": "object",
+            "properties": {
+                "admin_user": {
+                    "description": "指定关联外键",
+                    "type": "object",
+                    "$ref": "#/definitions/model.AdminUser"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "finishTime": {
+                    "type": "string"
+                },
+                "order_code": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "system_code": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.ReturnPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Return"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                }
+            }
+        },
         "model.SystemMessage": {
             "type": "object",
             "properties": {
@@ -1067,6 +1351,19 @@ var doc = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "request.FeeEdit": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "id",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态 1：执行中 2：已完成",
+                    "type": "integer"
                 }
             }
         },
@@ -1247,6 +1544,31 @@ var doc = `{
                     "description": "类型 1：代发 0：提领",
                     "type": "integer",
                     "example": 1
+                },
+                "user_id": {
+                    "description": "用户id",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "request.ReturnAdd": {
+            "type": "object",
+            "required": [
+                "amount",
+                "orderCode",
+                "user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "实收金额金额",
+                    "type": "number",
+                    "example": 1
+                },
+                "orderCode": {
+                    "description": "商户订单编号",
+                    "type": "string",
+                    "example": "asfasgdsasfgas"
                 },
                 "user_id": {
                     "description": "用户id",
@@ -1858,6 +2180,54 @@ var doc = `{
                 "name": {
                     "description": "角色名",
                     "type": "string"
+                }
+            }
+        },
+        "response.FeeList": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "金额",
+                    "type": "number"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "finish_time": {
+                    "description": "完成时间",
+                    "type": "string"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 1：执行中 2：已完成",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.FeePage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.FeeList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
                 }
             }
         },

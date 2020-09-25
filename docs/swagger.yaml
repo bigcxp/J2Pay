@@ -113,6 +113,34 @@ definitions:
       userId:
         type: integer
     type: object
+  model.OrderPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/model.Order'
+        type: array
+      merchant_amount:
+        description: 总商户总实收金额
+        type: number
+      per_page:
+        description: 当前页码
+        type: integer
+      really_amount:
+        description: 总实收金额
+        type: number
+      total:
+        description: 总共多少页
+        type: integer
+      total_amount:
+        description: 总订单金额
+        type: number
+      total_fee:
+        description: 总手续费
+        type: number
+    type: object
   model.Pick:
     properties:
       admin_user:
@@ -167,6 +195,41 @@ definitions:
         description: 总减少金额
         type: number
     type: object
+  model.Return:
+    properties:
+      admin_user:
+        $ref: '#/definitions/model.AdminUser'
+        description: 指定关联外键
+        type: object
+      amount:
+        type: number
+      finishTime:
+        type: string
+      order_code:
+        type: string
+      status:
+        type: integer
+      system_code:
+        type: string
+      userId:
+        type: integer
+    type: object
+  model.ReturnPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/model.Return'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
+    type: object
   model.SystemMessage:
     properties:
       adminUsers:
@@ -183,6 +246,15 @@ definitions:
         type: integer
       title:
         type: string
+    type: object
+  request.FeeEdit:
+    properties:
+      id:
+        description: id
+        type: integer
+      status:
+        description: 状态 1：执行中 2：已完成
+        type: integer
     type: object
   request.LoginUser:
     properties:
@@ -326,6 +398,25 @@ definitions:
     - pickAddress
     - remark
     - type
+    - user_id
+    type: object
+  request.ReturnAdd:
+    properties:
+      amount:
+        description: 实收金额金额
+        example: 1
+        type: number
+      orderCode:
+        description: 商户订单编号
+        example: asfasgdsasfgas
+        type: string
+      user_id:
+        description: 用户id
+        example: 1
+        type: integer
+    required:
+    - amount
+    - orderCode
     - user_id
     type: object
   request.RoleAdd:
@@ -803,6 +894,40 @@ definitions:
         description: 角色名
         type: string
     type: object
+  response.FeeList:
+    properties:
+      amount:
+        description: 金额
+        type: number
+      created_at:
+        description: 创建时间
+        type: string
+      finish_time:
+        description: 完成时间
+        type: string
+      real_name:
+        description: 组织名称
+        type: string
+      status:
+        description: 状态 1：执行中 2：已完成
+        type: integer
+    type: object
+  response.FeePage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.FeeList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
+    type: object
   response.RoleList:
     properties:
       auth:
@@ -1013,6 +1138,62 @@ paths:
       summary: 验证码
       tags:
       - 登录操作
+  /fee:
+    get:
+      parameters:
+      - description: 状态 1：等待中，2：已完成
+        in: query
+        name: status
+        type: integer
+      - description: 商户id
+        in: query
+        name: userId
+        type: integer
+      - description: 起
+        in: query
+        name: from_date
+        type: string
+      - description: 至
+        in: query
+        name: to_date
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.FeePage'
+      summary: 手续费列表
+      tags:
+      - 手续费结账
+  /fee/{id}:
+    put:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 手续费
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.FeeEdit'
+      produces:
+      - application/json
+      summary: 结账
+      tags:
+      - 手续费
   /index:
     get:
       produces:
@@ -1174,7 +1355,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PickUpPage'
+            $ref: '#/definitions/model.OrderPage'
       summary: 订单列表
       tags:
       - 订单管理
@@ -1211,6 +1392,76 @@ paths:
       summary: 订单详情
       tags:
       - 订单管理
+  /return:
+    get:
+      parameters:
+      - description: 状态 1：退款等待中，2：退款中，3：退款失败，4：已退款
+        in: query
+        name: status
+        type: integer
+      - description: 商户订单编号
+        in: query
+        name: orderCode
+        type: string
+      - description: 起
+        in: query
+        name: from_date
+        type: string
+      - description: 至
+        in: query
+        name: to_date
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ReturnPage'
+      summary: 退款订单列表
+      tags:
+      - 退款订单管理
+    post:
+      parameters:
+      - description: 新增退款订单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ReturnAdd'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: 新增退款订单
+      tags:
+      - 退款订单管理
+  /return/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Return'
+      summary: 退款订单详情
+      tags:
+      - 退款订单管理
   /role:
     get:
       parameters:

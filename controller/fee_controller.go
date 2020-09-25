@@ -17,7 +17,7 @@ import (
 // @Param to_date    query string false "至"
 // @Param page query int false "页码"
 // @Param pageSize query int false "每页显示多少条"
-// @Success 200 {object} model.FeePage
+// @Success 200 {object} response.FeePage
 // @Router /fee [get]
 func FeeList(c *gin.Context) {
 	response := util.Response{c}

@@ -88,8 +88,7 @@ func InitRouter() *gin.Engine {
 	//手续费结账
 	{
 		r.GET("/fee",controller.FeeList)
-		r.POST("/fee",controller.FeeAdd)
-		r.GET("/fee/:id",controller.FeeDetail)
+		r.POST("/fee",controller.Settle)
 	}
 	return r
 }
