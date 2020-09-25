@@ -27,6 +27,8 @@ definitions:
         type: integer
       isGas:
         type: integer
+      isOpen:
+        type: integer
       lastLoginTime:
         type: string
       limit:
@@ -49,6 +51,8 @@ definitions:
         type: array
       pid:
         type: integer
+      qrcodeUrl:
+        type: string
       realName:
         type: string
       remark:
@@ -58,6 +62,8 @@ definitions:
       returnType:
         type: integer
       returnUrl:
+        type: string
+      secret:
         type: string
       status:
         type: integer
@@ -89,8 +95,6 @@ definitions:
       fee:
         type: number
       finishTime:
-        type: string
-      id_code:
         type: string
       merchantAmount:
         type: number
@@ -153,6 +157,15 @@ definitions:
       total:
         description: 总共多少页
         type: integer
+      total_amount:
+        description: 提领总额
+        type: number
+      total_fee:
+        description: 总手续费
+        type: number
+      total_reduce:
+        description: 总减少金额
+        type: number
     type: object
   model.SystemMessage:
     properties:
@@ -173,6 +186,10 @@ definitions:
     type: object
   request.LoginUser:
     properties:
+      google_code:
+        description: google 动态验证码
+        example: "952721"
+        type: string
       password:
         description: 密码
         example: admin
@@ -181,14 +198,9 @@ definitions:
         description: 用户名
         example: admin
         type: string
-      verify_code:
-        description: "验证码 \t// token"
-        example: "9527"
-        type: string
     required:
     - password
     - username
-    - verify_code
     type: object
   request.MessageAdd:
     properties:
@@ -538,6 +550,9 @@ definitions:
         description: 商户地址
         example: test
         type: string
+      code:
+        description: 动态码
+        type: string
       dai_charge:
         description: 代发手续费
         example: 1
@@ -573,6 +588,9 @@ definitions:
       is_gas:
         description: 是否启用gas预估 1：是 0：否
         example: 1
+        type: integer
+      is_open:
+        description: 是否开启双重验证 0：关闭 1：开启
         type: integer
       limit:
         description: 结账限制
@@ -701,6 +719,9 @@ definitions:
       order_charge:
         description: 提领fee
         type: number
+      qr_code_url:
+        description: google 二维码地址
+        type: string
       real_name:
         description: 组织名称
         type: string
@@ -715,6 +736,9 @@ definitions:
         items:
           $ref: '#/definitions/response.CasRole'
         type: array
+      secret:
+        description: google密钥
+        type: string
       status:
         description: 用户状态
         type: integer
@@ -1022,6 +1046,10 @@ paths:
       - description: -1：等待中，1:执行中，2：成功，3：取消，4，失败
         in: query
         name: status
+        type: integer
+      - description: 0:全部，1：代发，2：提领
+        in: query
+        name: type
         type: integer
       - description: 组织名称
         in: query

@@ -266,6 +266,12 @@ var doc = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "0:全部，1：代发，2：提领",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "组织名称",
                         "name": "name",
@@ -831,6 +837,9 @@ var doc = `{
                 "isGas": {
                     "type": "integer"
                 },
+                "isOpen": {
+                    "type": "integer"
+                },
                 "lastLoginTime": {
                     "type": "string"
                 },
@@ -864,6 +873,9 @@ var doc = `{
                 "pid": {
                     "type": "integer"
                 },
+                "qrcodeUrl": {
+                    "type": "string"
+                },
                 "realName": {
                     "type": "string"
                 },
@@ -877,6 +889,9 @@ var doc = `{
                     "type": "integer"
                 },
                 "returnUrl": {
+                    "type": "string"
+                },
+                "secret": {
                     "type": "string"
                 },
                 "status": {
@@ -923,9 +938,6 @@ var doc = `{
                     "type": "number"
                 },
                 "finishTime": {
-                    "type": "string"
-                },
-                "id_code": {
                     "type": "string"
                 },
                 "merchantAmount": {
@@ -1017,6 +1029,18 @@ var doc = `{
                 "total": {
                     "description": "总共多少页",
                     "type": "integer"
+                },
+                "total_amount": {
+                    "description": "提领总额",
+                    "type": "number"
+                },
+                "total_fee": {
+                    "description": "总手续费",
+                    "type": "number"
+                },
+                "total_reduce": {
+                    "description": "总减少金额",
+                    "type": "number"
                 }
             }
         },
@@ -1050,10 +1074,14 @@ var doc = `{
             "type": "object",
             "required": [
                 "password",
-                "username",
-                "verify_code"
+                "username"
             ],
             "properties": {
+                "google_code": {
+                    "description": "google 动态验证码",
+                    "type": "string",
+                    "example": "952721"
+                },
                 "password": {
                     "description": "密码",
                     "type": "string",
@@ -1063,11 +1091,6 @@ var doc = `{
                     "description": "用户名",
                     "type": "string",
                     "example": "admin"
-                },
-                "verify_code": {
-                    "description": "验证码 \t// token",
-                    "type": "string",
-                    "example": "9527"
                 }
             }
         },
@@ -1526,6 +1549,10 @@ var doc = `{
                     "type": "string",
                     "example": "test"
                 },
+                "code": {
+                    "description": "动态码",
+                    "type": "string"
+                },
                 "dai_charge": {
                     "description": "代发手续费",
                     "type": "number",
@@ -1570,6 +1597,10 @@ var doc = `{
                     "description": "是否启用gas预估 1：是 0：否",
                     "type": "integer",
                     "example": 1
+                },
+                "is_open": {
+                    "description": "是否开启双重验证 0：关闭 1：开启",
+                    "type": "integer"
                 },
                 "limit": {
                     "description": "结账限制",
@@ -1711,6 +1742,10 @@ var doc = `{
                     "description": "提领fee",
                     "type": "number"
                 },
+                "qr_code_url": {
+                    "description": "google 二维码地址",
+                    "type": "string"
+                },
                 "real_name": {
                     "description": "组织名称",
                     "type": "string"
@@ -1729,6 +1764,10 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/response.CasRole"
                     }
+                },
+                "secret": {
+                    "description": "google密钥",
+                    "type": "string"
                 },
                 "status": {
                     "description": "用户状态",

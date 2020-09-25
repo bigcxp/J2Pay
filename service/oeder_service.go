@@ -14,7 +14,7 @@ func OrderList(fromDate string, toDate string, status int, chargeAddress string,
 		res, err = order.GetAll(page, pageSize)
 	} else {
 		//将时间进行转换
-		res, err = order.GetAll(page, pageSize, "status = ? or charge_address like ? order_code like ?  or txid like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?", status, chargeAddress, orderCode, txid, fromDate, toDate)
+		res, err = order.GetAll(page, pageSize, "status = ? or charge_address like ? or order_code like ?  or txid like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?", status, chargeAddress, orderCode, txid, fromDate, toDate)
 	}
 	return
 }

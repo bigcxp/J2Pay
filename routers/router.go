@@ -79,5 +79,17 @@ func InitRouter() *gin.Engine {
 		r.POST("/order",controller.OrderAdd)
 		r.GET("/order/:id",controller.OrderDetail)
 	}
+	//订单退款
+	{
+		r.GET("/return",controller.ReturnList)
+		r.POST("/return",controller.ReturnAdd)
+		r.GET("/return/:id",controller.ReturnDetail)
+	}
+	//手续费结账
+	{
+		r.GET("/fee",controller.FeeList)
+		r.POST("/fee",controller.FeeAdd)
+		r.GET("/fee/:id",controller.FeeDetail)
+	}
 	return r
 }
