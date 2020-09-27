@@ -77,7 +77,7 @@ func AutoMigrate() {
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '订单'").AutoMigrate(&Order{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '退款订单'").AutoMigrate(&Return{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '手续费结账'").AutoMigrate(&Fee{})
-
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '实收明细记录'").AutoMigrate(&DetailedRecord{})
 
 }
 
