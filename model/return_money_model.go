@@ -61,7 +61,7 @@ func (r *Return) GetDetail(id ...int) (res Return, err error) {
 	return
 }
 
-// 创建订单
+// 创建退款订单
 func (r *Return) Create() error {
 	tx := Db.Begin()
 	r.CreatedAt = time.Now()
