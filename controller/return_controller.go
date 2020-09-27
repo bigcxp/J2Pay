@@ -23,9 +23,9 @@ func ReturnList(c *gin.Context) {
 	response := util.Response{c}
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	orderCode := c.Query("orderCode")
-	FromDate := c.Query("fromDate")
-	ToDate := c.Query("toDate")
+	orderCode := c.Query("")
+	FromDate := c.Query("orderCode")
+	ToDate := c.Query("to_date")
 	status, _ := strconv.Atoi(c.Query("status"))
 	res, err := service.ReturnList(FromDate,ToDate,status,orderCode,page,pageSize)
 	if err != nil {

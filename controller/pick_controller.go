@@ -17,6 +17,7 @@ import (
 // @Param type  query int false "0:全部，1：代发，2：提领"
 // @Param name    query string false "组织名称"
 // @Param code    query string false "系统编号"
+// @Param userId query int false "商户id"
 // @Param from_date  query string false "起"
 // @Param to_date    query string false "至"
 // @Param page query int false "页码"
@@ -29,14 +30,15 @@ func PickIndex(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 	name := c.Query("name")
 	code := c.Query("code")
-	FromDate := c.Query("name")
-	ToDate := c.Query("name")
+	FromDate := c.Query("from_date")
+	ToDate := c.Query("to_date")
 	status, _ := strconv.Atoi(c.Query("status"))
+	userId, _ := strconv.Atoi(c.Query("userId"))
 	types, _ := strconv.Atoi(c.Query("type"))
 	if utf8.RuneCountInString(name) > 32 {
 		name = string([]rune(name)[:32])
 	}
-	res, err := service.PickList(FromDate,ToDate,status, name,code,types, page, pageSize)
+	res, err := service.PickList(FromDate,ToDate,status, name,code,types,userId, page, pageSize)
 	if err != nil {
 		response.SetOtherError(err)
 		return

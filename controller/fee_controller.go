@@ -36,7 +36,7 @@ func FeeList(c *gin.Context) {
 }
 
 
-// @Tags 手续费
+// @Tags 手续费结账
 // @Summary 结账
 // @Produce json
 // @Param id path int true "ID"

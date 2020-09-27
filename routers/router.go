@@ -90,5 +90,13 @@ func InitRouter() *gin.Engine {
 		r.GET("/fee",controller.FeeList)
 		r.POST("/fee",controller.Settle)
 	}
+	//实收明细记录
+	{
+		r.GET("/detail", controller.DetailedList)
+		r.GET("/detail/:id", controller.DetailedDetail)
+		r.POST("/detail", controller.DetailedAdd)
+		r.PUT("/detail", controller.DetailedEdit)
+	}
+
 	return r
 }

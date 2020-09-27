@@ -8,13 +8,13 @@ import (
 )
 
 // 订单列表
-func OrderList(fromDate string, toDate string, status int, chargeAddress string, txid string, orderCode string, page, pageSize int) (res model.OrderPage, err error) {
+func OrderList(fromDate string, toDate string, status int, chargeAddress string, txid string, orderCode string, userId int,page, pageSize int) (res model.OrderPage, err error) {
 	order := model.Order{}
 	if chargeAddress == "" && status == 0 && fromDate == "" && toDate == "" && orderCode == "" && txid == "" {
-		res, err = order.GetAll(page, pageSize)
+		res, err = order.GetAll(page, pageSize,"user_id = ?",userId)
 	} else {
 		//将时间进行转换
-		res, err = order.GetAll(page, pageSize, "status = ? or charge_address like ? or order_code like ?  or txid like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?", status, chargeAddress, orderCode, txid, fromDate, toDate)
+		res, err = order.GetAll(page, pageSize, "user_id = ? and status = ? or charge_address like ? or order_code like ?  or txid like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?",userId, status, chargeAddress, orderCode, txid, fromDate, toDate)
 	}
 	return
 }

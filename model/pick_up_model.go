@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+//提领订单
 type Pick struct {
 	gorm.Model
 	IdCode      string    `gorm:"default:'';comment:'系统编号';";json:"id_code"`
@@ -15,10 +16,10 @@ type Pick struct {
 	TXID        string    `gorm:"default:'';comment:'交易信息';";json:"txid"`
 	Fee         float64   `gorm:"default:0;comment:'手续费';";json:"fee"`
 	Type        int       `gorm:"default:1;comment:'类型 1：代发，0：收款';";json:"type"`
-	UserId      int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
 	Remark      string    `gorm:"default:'';commit:'提领备注';";json:"remark"`
 	PickAddress string    `gorm:"default:'';commit:'提领地址';";json:"pick_address"`
 	Status      int       `gorm:"default:1;comment:'状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败';";json:"status"`
+	UserId      int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
 	AdminUser   AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
 }
 
@@ -86,12 +87,12 @@ func (p *Pick) Create() error {
 }
 
 //获取提领总金额
-func (p *Pick) getAmount()  float64{
+func (p *Pick) getAmount() float64 {
 	var totalAmount float64
 	all := PickUpPage{
-		Data:        []Pick{},
+		Data: []Pick{},
 	}
-	err := Db.Model(&p).Order("id desc").Where("status = ?",2).Find(&all.Data).Error
+	err := Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -102,12 +103,12 @@ func (p *Pick) getAmount()  float64{
 }
 
 //总手续费
-func (p *Pick)getFee()  float64 {
+func (p *Pick) getFee() float64 {
 	var totalFee float64
 	all := PickUpPage{
-		Data:        []Pick{},
+		Data: []Pick{},
 	}
-	err := Db.Model(&p).Order("id desc").Where("status = ?",2).Find(&all.Data).Error
+	err := Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}

@@ -13,6 +13,7 @@ import (
 // @Produce json
 // @Param status  query int false "状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：已过期"
 // @Param orderCode    query string false "商户订单编号"
+// @Param userId    query int true "商户id"
 // @Param txid    query string false "交易哈希"
 // @Param chargeAddress    query string false "收款地址"
 // @Param from_date  query string false "起"
@@ -31,7 +32,8 @@ func OrderList(c *gin.Context) {
 	FromDate := c.Query("fromDate")
 	ToDate := c.Query("toDate")
 	status, _ := strconv.Atoi(c.Query("status"))
-	res, err := service.OrderList(FromDate,ToDate,status,chargeAddress,txid,orderCode,page,pageSize)
+	userId, _ := strconv.Atoi(c.Query("userId"))
+	res, err := service.OrderList(FromDate,ToDate,status,chargeAddress,txid,orderCode,userId,page,pageSize)
 	if err != nil {
 		response.SetOtherError(err)
 		return

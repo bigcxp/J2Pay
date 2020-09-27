@@ -12,6 +12,7 @@ type FeePage struct {
 }
 
 type FeeList struct {
+	ID         uint      `json:"id"`          //ID
 	RealName   string    `json:"real_name"`   //组织名称
 	Amount     float64   `json:"amount"`      //金额
 	CreatedAt  time.Time `json:"created_at"`  //创建时间

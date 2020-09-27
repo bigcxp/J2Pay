@@ -9,14 +9,24 @@ import (
 )
 
 // 提领订单列表
-func PickList(fromDate string, toDate string, status int, name string, code string,types int, page, pageSize int) (res model.PickUpPage, err error) {
+func PickList(fromDate string, toDate string, status int, name string, code string,types int,userId int, page, pageSize int) (res model.PickUpPage, err error) {
 	pick := model.Pick{}
-	if name == "" && status == 0 && fromDate == "" && toDate == "" && code == "" && types == 0 {
-		res, err = pick.GetAll(page, pageSize)
-	} else {
-		//将时间进行转换
-		res, err = pick.GetAll(page, pageSize, "status = ? or type = ? or real_name like ? or is_code like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?", status,types, name, code, fromDate, toDate)
+	if userId == 0{
+		if name == "" && status == 0 && fromDate == "" && toDate == "" && code == "" && types == 0{
+			res, err = pick.GetAll(page, pageSize)
+		} else {
+			//将时间进行转换
+			res, err = pick.GetAll(page, pageSize, "status = ? or type = ? or real_name like ? or is_code like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?",status,types, name, code, fromDate, toDate)
+		}
+	}else {
+		if name == "" && status == 0 && fromDate == "" && toDate == "" && code == "" && types == 0{
+			res, err = pick.GetAll(page, pageSize,"user_id = ?",userId)
+		} else {
+			//将时间进行转换
+			res, err = pick.GetAll(page, pageSize, "user_id = ? and status = ? or type = ? or real_name like ? or is_code like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?",userId,status,types, name, code, fromDate, toDate)
+		}
 	}
+
 	return
 }
 
