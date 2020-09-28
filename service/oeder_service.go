@@ -6,6 +6,7 @@ import (
 	"j2pay-server/model/response"
 	"j2pay-server/myerr"
 	"j2pay-server/pkg/casbin"
+	"j2pay-server/pkg/util"
 )
 
 // 订单列表
@@ -46,6 +47,7 @@ func OrderAdd(order request.OrderAdd) error {
 	defer casbin.ClearEnforcer()
 	o := model.Order{
 		OrderCode: order.OrderCode,
+		IdCode: util.RandString(20),
 		Amount:    order.Amount,
 		UserId:    order.UserId,
 		Remark:    order.Remark,

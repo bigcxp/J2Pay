@@ -15,7 +15,7 @@ type Order struct {
 	Amount           float64   `gorm:"default:0;comment:'金额';";json:"amount"`
 	ShouldAmount     float64   `gorm:"default:0;comment:'应收金额';";json:"should_amount"`
 	ReceiptAmount    float64   `gorm:"default:0;comment:'实收金额';";json:"receipt_amount"`
-	DetailedRecordId float64   `gorm:"default:'';comment:'实收明细订单编号';"json:"detailed_record_id"`
+	DetailedRecordId float64   `gorm:"default:'0';comment:'实收明细订单编号';"json:"detailed_record_id"`
 	Fee              float64   `gorm:"default:0;comment:'手续费';";json:"fee"`
 	ReturnAmount     float64   `gorm:"default:0;comment:'退款金额';";json:"return_amount"`
 	MerchantAmount   float64   `gorm:"default:0;comment:'商户实收金额';";json:"merchant_amount"`
@@ -94,6 +94,7 @@ func (o *Order) Create() error {
 	tx := Db.Begin()
 	o.CreatedAt = time.Now()
 	o.FinishTime = time.Now()
+	o.ExprireTime = time.Now().Add(7200)
 	if err := tx.Create(o).Error; err != nil {
 		tx.Rollback()
 		return err
