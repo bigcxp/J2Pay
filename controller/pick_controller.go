@@ -175,7 +175,7 @@ func PickAdd(c *gin.Context)  {
 }
 
 // @Tags 商户提领代发管理
-// @Summary 提领
+// @Summary 代发
 // @Produce json
 // @Param body body request.SendAdd true "商户代发"
 // @Success 200
