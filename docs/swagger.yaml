@@ -170,31 +170,6 @@ definitions:
       userId:
         type: integer
     type: object
-  model.PickUpPage:
-    properties:
-      current_page:
-        description: 每页显示多少条
-        type: integer
-      data:
-        items:
-          $ref: '#/definitions/model.Pick'
-        type: array
-      per_page:
-        description: 当前页码
-        type: integer
-      total:
-        description: 总共多少页
-        type: integer
-      total_amount:
-        description: 提领总额
-        type: number
-      total_fee:
-        description: 总手续费
-        type: number
-      total_reduce:
-        description: 总减少金额
-        type: number
-    type: object
   model.Return:
     properties:
       admin_user:
@@ -245,6 +220,39 @@ definitions:
       status:
         type: integer
       title:
+        type: string
+    type: object
+  request.DetailedAdd:
+    properties:
+      amount:
+        description: 金额
+        type: number
+      charge_address:
+        description: 收款地址
+        type: string
+      create_at:
+        description: 时间
+        type: string
+      from_address:
+        description: 发款地址
+        type: string
+      id_code:
+        description: 系统编号
+        type: string
+      txid:
+        description: 交易hash
+        type: string
+    type: object
+  request.DetailedEdit:
+    properties:
+      id:
+        description: id
+        type: integer
+      is_bind:
+        description: 1：解绑 2：绑定
+        type: integer
+      order_code:
+        description: 商户订单编号
         type: string
     type: object
   request.FeeEdit:
@@ -372,11 +380,7 @@ definitions:
         description: 数量
         example: 1
         type: number
-      orderCode:
-        description: 商户订单编号
-        example: asfasgdsasfgas
-        type: string
-      pickAddress:
+      pick_address:
         description: 收款地址
         example: 0x1243cfsadfcsd
         type: string
@@ -394,8 +398,7 @@ definitions:
         type: integer
     required:
     - amount
-    - orderCode
-    - pickAddress
+    - pick_address
     - remark
     - type
     - user_id
@@ -494,6 +497,49 @@ definitions:
     required:
     - auth
     - name
+    type: object
+  request.SendAdd:
+    properties:
+      amount:
+        description: 数量
+        example: 1
+        type: number
+      order_code:
+        description: 商户订单编号
+        example: asfasgdsasfgas
+        type: string
+      pick_address:
+        description: 收款地址
+        example: 0x1243cfsadfcsd
+        type: string
+      remark:
+        description: 备注
+        example: 备注
+        type: string
+      type:
+        description: 类型 1：代发 0：提领
+        example: 1
+        type: integer
+      user_id:
+        description: 用户id
+        example: 1
+        type: integer
+    required:
+    - amount
+    - order_code
+    - pick_address
+    - remark
+    - type
+    - user_id
+    type: object
+  request.SendEdit:
+    properties:
+      status:
+        description: 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
+        example: 3
+        type: integer
+    required:
+    - status
     type: object
   request.UserAdd:
     properties:
@@ -894,6 +940,62 @@ definitions:
         description: 角色名
         type: string
     type: object
+  response.DetailedList:
+    properties:
+      amount:
+        description: 金额
+        type: number
+      charge_address:
+        description: 收款地址
+        type: string
+      create_at:
+        description: 时间
+        type: string
+      id:
+        description: ID
+        type: integer
+      id_code:
+        description: 系统编号
+        type: string
+      order_code:
+        description: 订单编号
+        type: string
+      order_id:
+        description: 商户订单id
+        type: integer
+      real_name:
+        description: 组织名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 状态 1：未绑定 2：已绑定
+        type: integer
+      txid:
+        description: 交易hash
+        type: string
+      user_id:
+        description: 商户id
+        type: integer
+    type: object
+  response.DetailedRecordPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        description: 数据
+        items:
+          $ref: '#/definitions/response.DetailedList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
+    type: object
   response.FeeList:
     properties:
       amount:
@@ -905,6 +1007,9 @@ definitions:
       finish_time:
         description: 完成时间
         type: string
+      id:
+        description: ID
+        type: integer
       real_name:
         description: 组织名称
         type: string
@@ -920,6 +1025,131 @@ definitions:
       data:
         items:
           $ref: '#/definitions/response.FeeList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
+    type: object
+  response.MerchantPickList:
+    properties:
+      amount:
+        description: 金额
+        type: number
+      create_at:
+        description: 建立时间
+        type: string
+      del_money:
+        description: 扣除商户余额
+        type: number
+      fee:
+        description: 手续费
+        type: number
+      finish_time:
+        description: 完成时间
+        type: string
+      id:
+        description: ID
+        type: integer
+      id_code:
+        description: 系统编号
+        type: string
+      order_code:
+        description: 商户订单编号
+        type: string
+      real_name:
+        description: 组织名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      send_address:
+        description: 代发地址
+        type: string
+      status:
+        description: 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
+        type: integer
+      txid:
+        description: 交易hash
+        type: string
+      type:
+        description: 类型 1：提领，2：代发
+        type: integer
+      user_id:
+        description: 商户id
+        type: integer
+    type: object
+  response.MerchantPickSendPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.MerchantPickList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
+      total_amount:
+        description: 提领总额
+        type: number
+      total_fee:
+        description: 总手续费
+        type: number
+      total_reduce:
+        description: 总减少金额
+        type: number
+    type: object
+  response.PickList:
+    properties:
+      amount:
+        description: 金额
+        type: number
+      create_at:
+        description: 建立时间
+        type: string
+      finish_time:
+        description: 完成时间
+        type: string
+      id:
+        description: ID
+        type: integer
+      id_code:
+        description: 系统编号
+        type: string
+      real_name:
+        description: 组织名称
+        type: string
+      send_address:
+        description: 代发地址
+        type: string
+      status:
+        description: 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
+        type: integer
+      txid:
+        description: 交易hash
+        type: string
+      type:
+        description: 类型 1：提领，2：代发
+        type: integer
+      user_id:
+        description: 商户id
+        type: integer
+    type: object
+  response.PickUpPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.PickList'
         type: array
       per_page:
         description: 当前页码
@@ -960,6 +1190,70 @@ definitions:
       data:
         items:
           $ref: '#/definitions/response.RoleList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
+    type: object
+  response.SendList:
+    properties:
+      amount:
+        description: 金额
+        type: number
+      create_at:
+        description: 建立时间
+        type: string
+      del_money:
+        description: 扣除商户余额
+        type: number
+      fee:
+        description: 手续费
+        type: number
+      finish_time:
+        description: 完成时间
+        type: string
+      id:
+        description: ID
+        type: integer
+      id_code:
+        description: 系统编号
+        type: string
+      order_code:
+        description: 商户订单编号
+        type: string
+      real_name:
+        description: 组织名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      send_address:
+        description: 代发地址
+        type: string
+      status:
+        description: 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
+        type: integer
+      txid:
+        description: 交易hash
+        type: string
+      type:
+        description: 类型 1：提领，2：代发
+        type: integer
+      user_id:
+        description: 商户id
+        type: integer
+    type: object
+  response.SendPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.SendList'
         type: array
       per_page:
         description: 当前页码
@@ -1138,6 +1432,106 @@ paths:
       summary: 验证码
       tags:
       - 登录操作
+  /detail:
+    get:
+      parameters:
+      - description: 状态 1：未绑定，2：已绑定
+        in: query
+        name: status
+        type: integer
+      - description: 系统编号
+        in: query
+        name: idCode
+        type: string
+      - description: 商户id
+        in: query
+        name: userId
+        type: integer
+      - description: 交易hash
+        in: query
+        name: txid
+        type: string
+      - description: 收款地址
+        in: query
+        name: address
+        type: string
+      - description: 起
+        in: query
+        name: from_date
+        type: string
+      - description: 至
+        in: query
+        name: to_date
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DetailedRecordPage'
+      summary: 实收明细记录列表
+      tags:
+      - 实收明细记录
+    post:
+      parameters:
+      - description: 实收记录
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.DetailedAdd'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: 新增实收明细记录
+      tags:
+      - 实收明细记录
+  /detail/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DetailedList'
+      summary: 实收记录详情
+      tags:
+      - 实收明细记录
+    put:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 明细记录
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.DetailedEdit'
+      produces:
+      - application/json
+      summary: 绑定 | 解绑 订单
+      tags:
+      - 实收明细记录
   /fee:
     get:
       parameters:
@@ -1193,7 +1587,7 @@ paths:
       - application/json
       summary: 结账
       tags:
-      - 手续费
+      - 手续费结账
   /index:
     get:
       produces:
@@ -1228,18 +1622,18 @@ paths:
         in: query
         name: status
         type: integer
-      - description: 0:全部，1：代发，2：提领
+      - description: 0：所有，1：代发，2：提领
         in: query
         name: type
         type: integer
-      - description: 组织名称
+      - description: 商户订单编号
         in: query
-        name: name
+        name: orderCode
         type: string
-      - description: 系统编号
+      - description: 商户id
         in: query
-        name: code
-        type: string
+        name: userId
+        type: integer
       - description: 起
         in: query
         name: from_date
@@ -1262,10 +1656,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PickUpPage'
-      summary: 商户提领列表
+            $ref: '#/definitions/response.MerchantPickSendPage'
+      summary: 商户提领、代发列表
       tags:
-      - 商户管理
+      - 商户提领代发管理
     post:
       parameters:
       - description: 商户提领
@@ -1278,9 +1672,9 @@ paths:
       - application/json
       responses:
         "200": {}
-      summary: 提领，代发
+      summary: 提领
       tags:
-      - 商户管理
+      - 商户提领代发管理
   /merchantPick/{id}:
     get:
       parameters:
@@ -1295,10 +1689,26 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Pick'
-      summary: 获取提领详情
+            $ref: '#/definitions/response.MerchantPickList'
+      summary: 商户提领代发详情
       tags:
-      - 商户管理
+      - 商户提领代发管理
+  /merchantSend:
+    post:
+      parameters:
+      - description: 商户代发
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.SendAdd'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: 提领
+      tags:
+      - 商户提领代发管理
   /notify:
     post:
       parameters:
@@ -1313,7 +1723,7 @@ paths:
         "302": {}
       summary: 通知
       tags:
-      - 商户管理
+      - 商户提领代发管理
   /order:
     get:
       parameters:
@@ -1325,6 +1735,11 @@ paths:
         in: query
         name: orderCode
         type: string
+      - description: 商户id
+        in: query
+        name: userId
+        required: true
+        type: integer
       - description: 交易哈希
         in: query
         name: txid
@@ -1392,6 +1807,83 @@ paths:
       summary: 订单详情
       tags:
       - 订单管理
+  /pick:
+    get:
+      parameters:
+      - description: -1：等待中，1:执行中，2：成功，3：取消，4，失败
+        in: query
+        name: status
+        type: integer
+      - description: 0：所有，1：代发，2：提领
+        in: query
+        name: type
+        type: integer
+      - description: 商户id
+        in: query
+        name: userId
+        type: integer
+      - description: 起
+        in: query
+        name: from_date
+        type: string
+      - description: 至
+        in: query
+        name: to_date
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PickUpPage'
+      summary: 管理端商户提领列表
+      tags:
+      - 商户提领代发管理
+  /pick/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PickList'
+      summary: 管理端商户提领详情
+      tags:
+      - 商户提领代发管理
+    put:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 提领订单
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.SendEdit'
+      produces:
+      - application/json
+      summary: 修改提领订单状态
+      tags:
+      - 商户提领代发管理
   /return:
     get:
       parameters:
@@ -1548,6 +2040,69 @@ paths:
       summary: 编辑角色
       tags:
       - 角色管理
+  /send:
+    get:
+      parameters:
+      - description: -1：等待中，1:执行中，2：成功，3：取消，4，失败
+        in: query
+        name: status
+        type: integer
+      - description: 0：所有，1：代发，2：提领
+        in: query
+        name: type
+        type: integer
+      - description: 商户订单编号
+        in: query
+        name: orderCode
+        type: string
+      - description: 商户id
+        in: query
+        name: userId
+        type: integer
+      - description: 起
+        in: query
+        name: from_date
+        type: string
+      - description: 至
+        in: query
+        name: to_date
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SendPage'
+      summary: 管理端商户代发列表
+      tags:
+      - 商户提领代发管理
+  /send/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SendList'
+      summary: 管理端商户代发详情
+      tags:
+      - 商户提领代发管理
   /systemMessage:
     get:
       parameters:

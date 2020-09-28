@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/jinzhu/gorm"
+	"j2pay-server/model/response"
 	"j2pay-server/validate"
 	"time"
 )
@@ -23,28 +24,69 @@ type Pick struct {
 	AdminUser   AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
 }
 
-// 获取所有提领订单列表
-func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (PickUpPage, error) {
-	all := PickUpPage{
+// 管理端获取所有提领订单列表
+func (p *Pick) GetAllPick(page, pageSize int, where ...interface{}) (response.PickUpPage, error) {
+	all := response.PickUpPage{
+		Total:       p.GetCount(where...),
+		PerPage:     pageSize,
+		CurrentPage: page,
+		Data:        []response.PickList{},
+	}
+	//分页查询
+	offset := GetOffset(page, pageSize)
+	err := Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	if err != nil {
+		return response.PickUpPage{}, err
+	}
+	for index, v := range all.Data {
+		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+	}
+
+	return all, err
+}
+// 管理端获取所有代发订单列表
+func (p *Pick) GetAllSend(page, pageSize int, where ...interface{}) (response.SendPage, error) {
+	all := response.SendPage{
+		Total:       p.GetCount(where...),
+		PerPage:     pageSize,
+		CurrentPage: page,
+		Data:        []response.SendList{},
+	}
+	//分页查询
+	offset := GetOffset(page, pageSize)
+	err := Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	if err != nil {
+		return response.SendPage{}, err
+	}
+	for index, v := range all.Data {
+		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		all.Data[index].DelMoney = all.Data[index].Amount+all.Data[index].Fee
+	}
+
+	return all, err
+}
+// 商户端获取所有提领代发订单列表
+func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.MerchantPickSendPage, error) {
+	all := response.MerchantPickSendPage{
 		Total:       p.GetCount(where...),
 		PerPage:     pageSize,
 		CurrentPage: page,
 		TotalFee:    p.getFee(),
 		TotalReduce: validate.Decimal(p.getFee() + p.getAmount()),
 		TotalAmount: p.getAmount(),
-		Data:        []Pick{},
+		Data:        []response.MerchantPickList{},
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	//err := Db.Debug().Preload("Pick").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	err := Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
-		return PickUpPage{}, err
+		return response.MerchantPickSendPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].AdminUser = GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		all.Data[index].DelMoney = all.Data[index].Amount+all.Data[index].Fee
+		//gasFee 待完成
 	}
-
 	return all, err
 }
 
@@ -58,8 +100,8 @@ func (p *Pick) GetCount(where ...interface{}) (count int) {
 	return
 }
 
-// 根据ID获取提领订单详情
-func (p *Pick) GetDetail(id ...int) (res Pick, err error) {
+// 管理端根据ID获取提领订单详情
+func (p *Pick) GetPickDetail(id ...int) (res response.PickList, err error) {
 	searchId := p.ID
 	if len(id) > 0 {
 		searchId = uint(id[0])
@@ -68,12 +110,53 @@ func (p *Pick) GetDetail(id ...int) (res Pick, err error) {
 		Where("id = ?", searchId).
 		First(&res).
 		Error
-	adminUser := GetUserByWhere("id = ?", res.UserId)
-	res.AdminUser = adminUser
+	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
 	return
 }
 
-// 创建提领代发订单
+// 管理端根据ID获取提领订单详情
+func (p *Pick) GetSendDetail(id ...int) (res response.SendList, err error) {
+	searchId := p.ID
+	if len(id) > 0 {
+		searchId = uint(id[0])
+	}
+	err = Db.Table("pick").
+		Where("id = ?", searchId).
+		First(&res).
+		Error
+	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
+	res.DelMoney = res.Amount+res.Fee
+	return
+}
+// 商户端根据ID获取提领代发订单详情
+func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err error) {
+	searchId := p.ID
+	if len(id) > 0 {
+		searchId = uint(id[0])
+	}
+	err = Db.Table("pick").
+		Where("id = ?", searchId).
+		First(&res).
+		Error
+	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
+	res.DelMoney = res.Amount+res.Fee
+	//gasFee 待完成·
+	return
+}
+
+//取消代发 取消提领
+func (p *Pick)CancelPick(id,status int)  error{
+	tx := Db.Begin()
+	pick := GetPickByWhere("id = ?", id)
+	if err := tx.Model(&pick).
+		Updates(Pick{Status: status}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return nil
+}
+
+// 商户端创建提领或者代发订单
 func (p *Pick) Create() error {
 	tx := Db.Begin()
 	p.CreatedAt = time.Now()
@@ -89,8 +172,8 @@ func (p *Pick) Create() error {
 //获取提领总金额
 func (p *Pick) getAmount() float64 {
 	var totalAmount float64
-	all := PickUpPage{
-		Data: []Pick{},
+	all := response.MerchantPickSendPage{
+		Data: []response.MerchantPickList{},
 	}
 	err := Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
@@ -105,8 +188,8 @@ func (p *Pick) getAmount() float64 {
 //总手续费
 func (p *Pick) getFee() float64 {
 	var totalFee float64
-	all := PickUpPage{
-		Data: []Pick{},
+	all := response.MerchantPickSendPage{
+		Data: []response.MerchantPickList{},
 	}
 	err := Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
@@ -117,3 +200,11 @@ func (p *Pick) getFee() float64 {
 	}
 	return validate.Decimal(totalFee)
 }
+
+
+// 根据条件获取详情
+func GetPickByWhere(where ...interface{}) (pi Pick) {
+	Db.First(&pi, where...)
+	return
+}
+

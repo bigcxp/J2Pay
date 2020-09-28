@@ -83,8 +83,8 @@ func DetailedAdd(c *gin.Context)  {
 // @Summary 绑定 | 解绑 订单
 // @Produce json
 // @Param id path int true "ID"
-// @Param body body request.DetailedEdit true ""
-// @Router /adminUser/{id} [put]
+// @Param body body request.DetailedEdit true "明细记录"
+// @Router /detail/{id} [put]
 func DetailedEdit(c *gin.Context) {
 	response := util.Response{c}
 	var detail request.DetailedEdit

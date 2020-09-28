@@ -66,11 +66,22 @@ func InitRouter() *gin.Engine {
 	{
 		r.GET("/index", controller.IndexSystem)
 	}
-	//商户提领
+	//商户提领 代发
 	{
-		r.GET("/merchantPick",controller.PickIndex)
+		r.GET("/merchantPick",controller.MerchantPickIndex)
+		r.GET("/merchantPick/:id",controller.MerchantPickDetail)
+
+		r.GET("/pick",controller.PickIndex)
+		r.GET("/pick/:id",controller.PickDetail)
+
+		r.GET("/send",controller.SendIndex)
+		r.GET("/send/:id",controller.SendDetail)
+
 		r.POST("/merchantPick",controller.PickAdd)
-		r.GET("/merchantPick/:id",controller.PickDetail)
+		r.POST("/merchantSend",controller.SendAdd)
+
+		r.PUT("/pick/:id", controller.PickEdit)
+
 		r.POST("/notify",controller.PickNotify)
 	}
 	//订单

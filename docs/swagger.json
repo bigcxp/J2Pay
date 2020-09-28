@@ -187,6 +187,159 @@
                 }
             }
         },
+        "/detail": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实收明细记录"
+                ],
+                "summary": "实收明细记录列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "状态 1：未绑定，2：已绑定",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "系统编号",
+                        "name": "idCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "商户id",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "交易hash",
+                        "name": "txid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "收款地址",
+                        "name": "address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "至",
+                        "name": "to_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.DetailedRecordPage"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实收明细记录"
+                ],
+                "summary": "新增实收明细记录",
+                "parameters": [
+                    {
+                        "description": "实收记录",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DetailedAdd"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
+        "/detail/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实收明细记录"
+                ],
+                "summary": "实收记录详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.DetailedList"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实收明细记录"
+                ],
+                "summary": "绑定 | 解绑 订单",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "明细记录",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DetailedEdit"
+                        }
+                    }
+                ]
+            }
+        },
         "/fee": {
             "get": {
                 "produces": [
@@ -250,7 +403,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "手续费"
+                    "手续费结账"
                 ],
                 "summary": "结账",
                 "parameters": [
@@ -322,9 +475,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "商户管理"
+                    "商户提领代发管理"
                 ],
-                "summary": "商户提领列表",
+                "summary": "商户提领、代发列表",
                 "parameters": [
                     {
                         "type": "integer",
@@ -334,20 +487,20 @@
                     },
                     {
                         "type": "integer",
-                        "description": "0:全部，1：代发，2：提领",
+                        "description": "0：所有，1：代发，2：提领",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "组织名称",
-                        "name": "name",
+                        "description": "商户订单编号",
+                        "name": "orderCode",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "系统编号",
-                        "name": "code",
+                        "type": "integer",
+                        "description": "商户id",
+                        "name": "userId",
                         "in": "query"
                     },
                     {
@@ -379,7 +532,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.PickUpPage"
+                            "$ref": "#/definitions/response.MerchantPickSendPage"
                         }
                     }
                 }
@@ -389,9 +542,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "商户管理"
+                    "商户提领代发管理"
                 ],
-                "summary": "提领，代发",
+                "summary": "提领",
                 "parameters": [
                     {
                         "description": "商户提领",
@@ -414,9 +567,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "商户管理"
+                    "商户提领代发管理"
                 ],
-                "summary": "获取提领详情",
+                "summary": "商户提领代发详情",
                 "parameters": [
                     {
                         "type": "integer",
@@ -430,9 +583,34 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Pick"
+                            "$ref": "#/definitions/response.MerchantPickList"
                         }
                     }
+                }
+            }
+        },
+        "/merchantSend": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户提领代发管理"
+                ],
+                "summary": "提领",
+                "parameters": [
+                    {
+                        "description": "商户代发",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SendAdd"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {}
                 }
             }
         },
@@ -442,7 +620,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "商户管理"
+                    "商户提领代发管理"
                 ],
                 "summary": "通知",
                 "parameters": [
@@ -480,6 +658,13 @@
                         "description": "商户订单编号",
                         "name": "orderCode",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "商户id",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -577,6 +762,124 @@
                         }
                     }
                 }
+            }
+        },
+        "/pick": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户提领代发管理"
+                ],
+                "summary": "管理端商户提领列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "-1：等待中，1:执行中，2：成功，3：取消，4，失败",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0：所有，1：代发，2：提领",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "商户id",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "至",
+                        "name": "to_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PickUpPage"
+                        }
+                    }
+                }
+            }
+        },
+        "/pick/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户提领代发管理"
+                ],
+                "summary": "管理端商户提领详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PickList"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户提领代发管理"
+                ],
+                "summary": "修改提领订单状态",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "提领订单",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SendEdit"
+                        }
+                    }
+                ]
             }
         },
         "/return": {
@@ -816,6 +1119,103 @@
                 ],
                 "responses": {
                     "200": {}
+                }
+            }
+        },
+        "/send": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户提领代发管理"
+                ],
+                "summary": "管理端商户代发列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "-1：等待中，1:执行中，2：成功，3：取消，4，失败",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0：所有，1：代发，2：提领",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "商户订单编号",
+                        "name": "orderCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "商户id",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "至",
+                        "name": "to_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SendPage"
+                        }
+                    }
+                }
+            }
+        },
+        "/send/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户提领代发管理"
+                ],
+                "summary": "管理端商户代发详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SendList"
+                        }
+                    }
                 }
             }
         },
@@ -1223,41 +1623,6 @@
                 }
             }
         },
-        "model.PickUpPage": {
-            "type": "object",
-            "properties": {
-                "current_page": {
-                    "description": "每页显示多少条",
-                    "type": "integer"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Pick"
-                    }
-                },
-                "per_page": {
-                    "description": "当前页码",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "总共多少页",
-                    "type": "integer"
-                },
-                "total_amount": {
-                    "description": "提领总额",
-                    "type": "number"
-                },
-                "total_fee": {
-                    "description": "总手续费",
-                    "type": "number"
-                },
-                "total_reduce": {
-                    "description": "总减少金额",
-                    "type": "number"
-                }
-            }
-        },
         "model.Return": {
             "type": "object",
             "properties": {
@@ -1331,6 +1696,52 @@
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DetailedAdd": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "金额",
+                    "type": "number"
+                },
+                "charge_address": {
+                    "description": "收款地址",
+                    "type": "string"
+                },
+                "create_at": {
+                    "description": "时间",
+                    "type": "string"
+                },
+                "from_address": {
+                    "description": "发款地址",
+                    "type": "string"
+                },
+                "id_code": {
+                    "description": "系统编号",
+                    "type": "string"
+                },
+                "txid": {
+                    "description": "交易hash",
+                    "type": "string"
+                }
+            }
+        },
+        "request.DetailedEdit": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "id",
+                    "type": "integer"
+                },
+                "is_bind": {
+                    "description": "1：解绑 2：绑定",
+                    "type": "integer"
+                },
+                "order_code": {
+                    "description": "商户订单编号",
                     "type": "string"
                 }
             }
@@ -1494,8 +1905,7 @@
             "type": "object",
             "required": [
                 "amount",
-                "orderCode",
-                "pickAddress",
+                "pick_address",
                 "remark",
                 "type",
                 "user_id"
@@ -1506,12 +1916,7 @@
                     "type": "number",
                     "example": 1
                 },
-                "orderCode": {
-                    "description": "商户订单编号",
-                    "type": "string",
-                    "example": "asfasgdsasfgas"
-                },
-                "pickAddress": {
+                "pick_address": {
                     "description": "收款地址",
                     "type": "string",
                     "example": "0x1243cfsadfcsd"
@@ -1647,6 +2052,62 @@
                     "description": "上级ID",
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "request.SendAdd": {
+            "type": "object",
+            "required": [
+                "amount",
+                "order_code",
+                "pick_address",
+                "remark",
+                "type",
+                "user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "数量",
+                    "type": "number",
+                    "example": 1
+                },
+                "order_code": {
+                    "description": "商户订单编号",
+                    "type": "string",
+                    "example": "asfasgdsasfgas"
+                },
+                "pick_address": {
+                    "description": "收款地址",
+                    "type": "string",
+                    "example": "0x1243cfsadfcsd"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string",
+                    "example": "备注"
+                },
+                "type": {
+                    "description": "类型 1：代发 0：提领",
+                    "type": "integer",
+                    "example": 1
+                },
+                "user_id": {
+                    "description": "用户id",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "request.SendEdit": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "description": "状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败",
+                    "type": "integer",
+                    "example": 3
                 }
             }
         },
@@ -2164,6 +2625,83 @@
                 }
             }
         },
+        "response.DetailedList": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "金额",
+                    "type": "number"
+                },
+                "charge_address": {
+                    "description": "收款地址",
+                    "type": "string"
+                },
+                "create_at": {
+                    "description": "时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "id_code": {
+                    "description": "系统编号",
+                    "type": "string"
+                },
+                "order_code": {
+                    "description": "订单编号",
+                    "type": "string"
+                },
+                "order_id": {
+                    "description": "商户订单id",
+                    "type": "integer"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 1：未绑定 2：已绑定",
+                    "type": "integer"
+                },
+                "txid": {
+                    "description": "交易hash",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "商户id",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DetailedRecordPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DetailedList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                }
+            }
+        },
         "response.FeeList": {
             "type": "object",
             "properties": {
@@ -2178,6 +2716,10 @@
                 "finish_time": {
                     "description": "完成时间",
                     "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
                 },
                 "real_name": {
                     "description": "组织名称",
@@ -2200,6 +2742,178 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.FeeList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.MerchantPickList": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "金额",
+                    "type": "number"
+                },
+                "create_at": {
+                    "description": "建立时间",
+                    "type": "string"
+                },
+                "del_money": {
+                    "description": "扣除商户余额",
+                    "type": "number"
+                },
+                "fee": {
+                    "description": "手续费",
+                    "type": "number"
+                },
+                "finish_time": {
+                    "description": "完成时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "id_code": {
+                    "description": "系统编号",
+                    "type": "string"
+                },
+                "order_code": {
+                    "description": "商户订单编号",
+                    "type": "string"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "send_address": {
+                    "description": "代发地址",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败",
+                    "type": "integer"
+                },
+                "txid": {
+                    "description": "交易hash",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "类型 1：提领，2：代发",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "商户id",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.MerchantPickSendPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.MerchantPickList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                },
+                "total_amount": {
+                    "description": "提领总额",
+                    "type": "number"
+                },
+                "total_fee": {
+                    "description": "总手续费",
+                    "type": "number"
+                },
+                "total_reduce": {
+                    "description": "总减少金额",
+                    "type": "number"
+                }
+            }
+        },
+        "response.PickList": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "金额",
+                    "type": "number"
+                },
+                "create_at": {
+                    "description": "建立时间",
+                    "type": "string"
+                },
+                "finish_time": {
+                    "description": "完成时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "id_code": {
+                    "description": "系统编号",
+                    "type": "string"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "send_address": {
+                    "description": "代发地址",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败",
+                    "type": "integer"
+                },
+                "txid": {
+                    "description": "交易hash",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "类型 1：提领，2：代发",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "商户id",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PickUpPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.PickList"
                     }
                 },
                 "per_page": {
@@ -2257,6 +2971,94 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.RoleList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.SendList": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "金额",
+                    "type": "number"
+                },
+                "create_at": {
+                    "description": "建立时间",
+                    "type": "string"
+                },
+                "del_money": {
+                    "description": "扣除商户余额",
+                    "type": "number"
+                },
+                "fee": {
+                    "description": "手续费",
+                    "type": "number"
+                },
+                "finish_time": {
+                    "description": "完成时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "id_code": {
+                    "description": "系统编号",
+                    "type": "string"
+                },
+                "order_code": {
+                    "description": "商户订单编号",
+                    "type": "string"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "send_address": {
+                    "description": "代发地址",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败",
+                    "type": "integer"
+                },
+                "txid": {
+                    "description": "交易hash",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "类型 1：提领，2：代发",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "商户id",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.SendPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SendList"
                     }
                 },
                 "per_page": {
