@@ -17,8 +17,8 @@ type Pick struct {
 	TXID        string    `gorm:"default:'';comment:'交易信息';";json:"txid"`
 	Fee         float64   `gorm:"default:0;comment:'手续费';";json:"fee"`
 	Type        int       `gorm:"default:1;comment:'类型 1：代发，0：收款';";json:"type"`
-	Remark      string    `gorm:"default:'';commit:'提领备注';";json:"remark"`
-	PickAddress string    `gorm:"default:'';commit:'提领地址';";json:"pick_address"`
+	Remark      string    `gorm:"default:'';comment:'提领备注';";json:"remark"`
+	PickAddress string    `gorm:"default:'';comment:'提领地址';";json:"pick_address"`
 	Status      int       `gorm:"default:1;comment:'状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败';";json:"status"`
 	UserId      int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
 	AdminUser   AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
@@ -44,6 +44,7 @@ func (p *Pick) GetAllPick(page, pageSize int, where ...interface{}) (response.Pi
 
 	return all, err
 }
+
 // 管理端获取所有代发订单列表
 func (p *Pick) GetAllSend(page, pageSize int, where ...interface{}) (response.SendPage, error) {
 	all := response.SendPage{
@@ -60,11 +61,12 @@ func (p *Pick) GetAllSend(page, pageSize int, where ...interface{}) (response.Se
 	}
 	for index, v := range all.Data {
 		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
-		all.Data[index].DelMoney = all.Data[index].Amount+all.Data[index].Fee
+		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
 	}
 
 	return all, err
 }
+
 // 商户端获取所有提领代发订单列表
 func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.MerchantPickSendPage, error) {
 	all := response.MerchantPickSendPage{
@@ -78,13 +80,13 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.Mercha
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := Db.Table("pick").Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.MerchantPickSendPage{}, err
 	}
 	for index, v := range all.Data {
 		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
-		all.Data[index].DelMoney = all.Data[index].Amount+all.Data[index].Fee
+		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
 		//gasFee 待完成
 	}
 	return all, err
@@ -125,9 +127,10 @@ func (p *Pick) GetSendDetail(id ...int) (res response.SendList, err error) {
 		First(&res).
 		Error
 	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
-	res.DelMoney = res.Amount+res.Fee
+	res.DelMoney = res.Amount + res.Fee
 	return
 }
+
 // 商户端根据ID获取提领代发订单详情
 func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err error) {
 	searchId := p.ID
@@ -139,21 +142,25 @@ func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err 
 		First(&res).
 		Error
 	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
-	res.DelMoney = res.Amount+res.Fee
+	res.DelMoney = res.Amount + res.Fee
 	//gasFee 待完成·
 	return
 }
 
 //取消代发 取消提领
-func (p *Pick)CancelPick(id,status int)  error{
+func (p *Pick) CancelPick(id, status int) (err error) {
 	tx := Db.Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
 	pick := GetPickByWhere("id = ?", id)
-	if err := tx.Model(&pick).
-		Updates(Pick{Status: status}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return nil
+	err = tx.Model(&pick).
+		Updates(Pick{Status: status}).Error
+	return
 }
 
 // 商户端创建提领或者代发订单
@@ -201,10 +208,8 @@ func (p *Pick) getFee() float64 {
 	return validate.Decimal(totalFee)
 }
 
-
 // 根据条件获取详情
 func GetPickByWhere(where ...interface{}) (pi Pick) {
 	Db.First(&pi, where...)
 	return
 }
-

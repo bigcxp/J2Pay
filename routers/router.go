@@ -107,7 +107,20 @@ func InitRouter() *gin.Engine {
 		r.GET("/detail", controller.DetailedList)
 		r.GET("/detail/:id", controller.DetailedDetail)
 		r.POST("/detail", controller.DetailedAdd)
-		r.PUT("/detail", controller.DetailedEdit)
+		r.PUT("/detail/:id", controller.DetailedEdit)
+	}
+	//系统参数管理
+	{
+		r.GET("/system", controller.SystemParameter)
+		r.PUT("/system/:id", controller.SystemParameterEdit)
+		r.PUT("/systemGasPrice/:id", controller.SystemGasPriceEdit)
+	}
+	//汇率管理
+	{
+		r.GET("/rate", controller.RateList)
+		r.GET("/rate/:id", controller.RateDetail)
+		r.PUT("/rate/:id", controller.RateEdit)
+
 	}
 
 	return r

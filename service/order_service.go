@@ -47,7 +47,7 @@ func OrderAdd(order request.OrderAdd) error {
 	defer casbin.ClearEnforcer()
 	o := model.Order{
 		OrderCode: order.OrderCode,
-		IdCode: util.RandString(20),
+		IdCode:    util.RandString(20),
 		Amount:    order.Amount,
 		UserId:    order.UserId,
 		Remark:    order.Remark,

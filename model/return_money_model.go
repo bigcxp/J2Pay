@@ -2,36 +2,37 @@ package model
 
 import (
 	"github.com/jinzhu/gorm"
+	"j2pay-server/model/response"
 	"time"
 )
 
 type Return struct {
 	gorm.Model
-	SystemCode     string    `gorm:"default:'';comment:'系统订单编号';"json:"system_code"`
-	OrderCode      string    `gorm:"default:'';comment:'商户订单编号';"json:"order_code"`
-	Amount         float64   `gorm:"default:0;comment:'金额';";json:"amount"`
-	FinishTime     time.Time `gorm:"comment:'完成时间';";json:"finishTime"`
-	UserId         int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
-	AdminUser      AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
-	Status         int       `gorm:"default:1;comment:'状态 1：退款等待中，2：退款中，3：退款失败，4：已退款';";json:"status"`
+	SystemCode string    `gorm:"default:'';comment:'系统订单编号';"json:"system_code"`
+	OrderCode  string    `gorm:"default:'';comment:'商户订单编号';"json:"order_code"`
+	Amount     float64   `gorm:"default:0;comment:'金额';";json:"amount"`
+	FinishTime time.Time `gorm:"comment:'完成时间';";json:"finishTime"`
+	UserId     int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
+	AdminUser  AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
+	Status     int       `gorm:"default:1;comment:'状态 1：退款等待中，2：退款中，3：退款失败，4：已退款';";json:"status"`
 }
 
 //获取所有订单列表
-func (r *Return) GetAll(page, pageSize int, where ...interface{}) (ReturnPage, error) {
-	all := ReturnPage{
-		Total:          r.GetCount(where...),
-		PerPage:        pageSize,
-		CurrentPage:    page,
-		Data:           []Return{},
+func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.ReturnPage, error) {
+	all := response.ReturnPage{
+		Total:       r.GetCount(where...),
+		PerPage:     pageSize,
+		CurrentPage: page,
+		Data:        []response.ReturnList{},
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
 	err := Db.Model(&r).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
-		return ReturnPage{}, err
+		return response.ReturnPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].AdminUser = GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
 	}
 	return all, err
 }
@@ -47,7 +48,7 @@ func (r *Return) GetCount(where ...interface{}) (count int) {
 }
 
 // 根据ID获取退款订单详情
-func (r *Return) GetDetail(id ...int) (res Return, err error) {
+func (r *Return) GetDetail(id ...int) (res response.ReturnList, err error) {
 	searchId := r.ID
 	if len(id) > 0 {
 		searchId = uint(id[0])
@@ -56,8 +57,7 @@ func (r *Return) GetDetail(id ...int) (res Return, err error) {
 		Where("id = ?", searchId).
 		First(&res).
 		Error
-	adminUser := GetUserByWhere("id = ?", res.UserId)
-	res.AdminUser = adminUser
+	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
 	return
 }
 

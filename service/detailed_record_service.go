@@ -37,10 +37,10 @@ func DetailedList(userId, status int, IdCode, address, txid, fromDate, toDate st
 func DetailedAdd(detail request.DetailedAdd) error {
 	defer casbin.ClearEnforcer()
 	d := model.DetailedRecord{
-		IdCode: util.RandString(20),
-		Amount: detail.Amount,
-		TXID: detail.TXID,
-		FromAddress: detail.FromAddress,
+		IdCode:        util.RandString(20),
+		Amount:        detail.Amount,
+		TXID:          detail.TXID,
+		FromAddress:   detail.FromAddress,
 		ChargeAddress: detail.ChargeAddress,
 	}
 	return d.DetailedAdd()

@@ -15,7 +15,7 @@ import (
 // @Param status  query int false "-1：等待中，1:执行中，2：成功，3：取消，4，失败"
 // @Param type  query int false "0：所有，1：代发，2：提领"
 // @Param orderCode    query string false "商户订单编号"
-// @Param userId query int false "商户id"
+// @Param userId query int true "商户id"
 // @Param from_date  query string false "起"
 // @Param to_date    query string false "至"
 // @Param page query int false "页码"

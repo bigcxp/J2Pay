@@ -20,7 +20,7 @@ import (
 // @Param to_date    query string false "至"
 // @Param page query int false "页码"
 // @Param pageSize query int false "每页显示多少条"
-// @Success 200 {object} model.OrderPage
+// @Success 200 {object} response.OrderPage
 // @Router /order [get]
 func OrderList(c *gin.Context) {
 	response := util.Response{c}
@@ -45,7 +45,7 @@ func OrderList(c *gin.Context) {
 // @Summary 订单详情
 // @Produce json
 // @Param id path uint true "ID"
-// @Success 200 {object} model.Order
+// @Success 200 {object} response.RealOrderList
 // @Router /order/{id} [get]
 func OrderDetail(c *gin.Context) {
 	response := util.Response{c}

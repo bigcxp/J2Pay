@@ -616,7 +616,7 @@ var doc = `{
                 "tags": [
                     "商户提领代发管理"
                 ],
-                "summary": "提领",
+                "summary": "代发",
                 "parameters": [
                     {
                         "description": "商户代发",
@@ -726,7 +726,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.OrderPage"
+                            "$ref": "#/definitions/response.OrderPage"
                         }
                     }
                 }
@@ -777,10 +777,37 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Order"
+                            "$ref": "#/definitions/response.RealOrderList"
                         }
                     }
                 }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "修改订单",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "实收订单",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OrderEdit"
+                        }
+                    }
+                ]
             }
         },
         "/pick": {
@@ -901,6 +928,80 @@ var doc = `{
                 ]
             }
         },
+        "/rate": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "汇率管理"
+                ],
+                "summary": "所有汇率列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.RatePage"
+                        }
+                    }
+                }
+            }
+        },
+        "/rate/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "汇率管理"
+                ],
+                "summary": "获取汇率详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.RateList"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "汇率管理"
+                ],
+                "summary": "更新汇率",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "汇率",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RateEdit"
+                        }
+                    }
+                ]
+            }
+        },
         "/return": {
             "get": {
                 "produces": [
@@ -952,7 +1053,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ReturnPage"
+                            "$ref": "#/definitions/response.ReturnPage"
                         }
                     }
                 }
@@ -1003,7 +1104,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Return"
+                            "$ref": "#/definitions/response.ReturnList"
                         }
                     }
                 }
@@ -1238,6 +1339,83 @@ var doc = `{
                 }
             }
         },
+        "/system": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统参数管理"
+                ],
+                "summary": "系统参数详情",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Parameter"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/{id}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统参数管理"
+                ],
+                "summary": "更新系统参数",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "系统参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ParameterEdit"
+                        }
+                    }
+                ]
+            }
+        },
+        "/systemGasPrice/{id}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统参数管理"
+                ],
+                "summary": "更新GasPrice",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "系统参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ParameterEdit"
+                        }
+                    }
+                ]
+            }
+        },
         "/systemMessage": {
             "get": {
                 "produces": [
@@ -1389,336 +1567,6 @@ var doc = `{
         }
     },
     "definitions": {
-        "model.AdminUser": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "balance": {
-                    "type": "number"
-                },
-                "createTime": {
-                    "type": "string"
-                },
-                "daiCharge": {
-                    "type": "number"
-                },
-                "daiType": {
-                    "type": "integer"
-                },
-                "daiUrl": {
-                    "type": "string"
-                },
-                "dayTotalCount": {
-                    "type": "number"
-                },
-                "examine": {
-                    "type": "number"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "isCollection": {
-                    "type": "integer"
-                },
-                "isCreation": {
-                    "type": "integer"
-                },
-                "isDai": {
-                    "type": "integer"
-                },
-                "isGas": {
-                    "type": "integer"
-                },
-                "isOpen": {
-                    "type": "integer"
-                },
-                "lastLoginTime": {
-                    "type": "string"
-                },
-                "limit": {
-                    "type": "number"
-                },
-                "maxOrderCount": {
-                    "type": "number"
-                },
-                "minOrderCount": {
-                    "type": "number"
-                },
-                "more": {
-                    "type": "integer"
-                },
-                "orderCharge": {
-                    "type": "number"
-                },
-                "orderType": {
-                    "type": "integer"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "pick": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Pick"
-                    }
-                },
-                "pid": {
-                    "type": "integer"
-                },
-                "qrcodeUrl": {
-                    "type": "string"
-                },
-                "realName": {
-                    "type": "string"
-                },
-                "remark": {
-                    "type": "string"
-                },
-                "returnCharge": {
-                    "type": "number"
-                },
-                "returnType": {
-                    "type": "integer"
-                },
-                "returnUrl": {
-                    "type": "string"
-                },
-                "secret": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "systemMessages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.SystemMessage"
-                    }
-                },
-                "tel": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "updateTime": {
-                    "type": "string"
-                },
-                "userLessTime": {
-                    "type": "integer"
-                },
-                "userName": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Order": {
-            "type": "object",
-            "properties": {
-                "admin_user": {
-                    "description": "指定关联外键",
-                    "type": "object",
-                    "$ref": "#/definitions/model.AdminUser"
-                },
-                "amount": {
-                    "type": "number"
-                },
-                "chargeAddress": {
-                    "type": "string"
-                },
-                "fee": {
-                    "type": "number"
-                },
-                "finishTime": {
-                    "type": "string"
-                },
-                "merchantAmount": {
-                    "type": "number"
-                },
-                "order_code": {
-                    "type": "string"
-                },
-                "receiptAmount": {
-                    "type": "number"
-                },
-                "remark": {
-                    "type": "string"
-                },
-                "returnAmount": {
-                    "type": "number"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "txid": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.OrderPage": {
-            "type": "object",
-            "properties": {
-                "current_page": {
-                    "description": "每页显示多少条",
-                    "type": "integer"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Order"
-                    }
-                },
-                "merchant_amount": {
-                    "description": "总商户总实收金额",
-                    "type": "number"
-                },
-                "per_page": {
-                    "description": "当前页码",
-                    "type": "integer"
-                },
-                "really_amount": {
-                    "description": "总实收金额",
-                    "type": "number"
-                },
-                "total": {
-                    "description": "总共多少页",
-                    "type": "integer"
-                },
-                "total_amount": {
-                    "description": "总订单金额",
-                    "type": "number"
-                },
-                "total_fee": {
-                    "description": "总手续费",
-                    "type": "number"
-                }
-            }
-        },
-        "model.Pick": {
-            "type": "object",
-            "properties": {
-                "admin_user": {
-                    "description": "指定关联外键",
-                    "type": "object",
-                    "$ref": "#/definitions/model.AdminUser"
-                },
-                "amount": {
-                    "type": "number"
-                },
-                "fee": {
-                    "type": "number"
-                },
-                "finishTime": {
-                    "type": "string"
-                },
-                "idCode": {
-                    "type": "string"
-                },
-                "order_code": {
-                    "type": "string"
-                },
-                "pickAddress": {
-                    "type": "string"
-                },
-                "remark": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "txid": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "integer"
-                },
-                "userId": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.Return": {
-            "type": "object",
-            "properties": {
-                "admin_user": {
-                    "description": "指定关联外键",
-                    "type": "object",
-                    "$ref": "#/definitions/model.AdminUser"
-                },
-                "amount": {
-                    "type": "number"
-                },
-                "finishTime": {
-                    "type": "string"
-                },
-                "order_code": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "system_code": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.ReturnPage": {
-            "type": "object",
-            "properties": {
-                "current_page": {
-                    "description": "每页显示多少条",
-                    "type": "integer"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Return"
-                    }
-                },
-                "per_page": {
-                    "description": "当前页码",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "总共多少页",
-                    "type": "integer"
-                }
-            }
-        },
-        "model.SystemMessage": {
-            "type": "object",
-            "properties": {
-                "adminUsers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.AdminUser"
-                    }
-                },
-                "beginTime": {
-                    "type": "string"
-                },
-                "endTime": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "request.DetailedAdd": {
             "type": "object",
             "properties": {
@@ -1920,6 +1768,59 @@ var doc = `{
                 }
             }
         },
+        "request.OrderEdit": {
+            "type": "object",
+            "required": [
+                "address",
+                "should_amount",
+                "status"
+            ],
+            "properties": {
+                "address": {
+                    "description": "收款地址",
+                    "type": "string"
+                },
+                "exprire_time": {
+                    "description": "过期时间",
+                    "type": "string"
+                },
+                "should_amount": {
+                    "description": "应收金额",
+                    "type": "number",
+                    "example": 1
+                },
+                "status": {
+                    "description": "状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：：已过期",
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "request.ParameterEdit": {
+            "type": "object",
+            "required": [
+                "confirmation",
+                "gas_limit",
+                "gas_price"
+            ],
+            "properties": {
+                "confirmation": {
+                    "description": "交易确认数",
+                    "type": "integer",
+                    "example": 12
+                },
+                "gas_limit": {
+                    "description": "gas Limit",
+                    "type": "integer",
+                    "example": 1
+                },
+                "gas_price": {
+                    "description": "GasPrice",
+                    "type": "number",
+                    "example": 88
+                }
+            }
+        },
         "request.PickAdd": {
             "type": "object",
             "required": [
@@ -1957,6 +1858,45 @@ var doc = `{
                 }
             }
         },
+        "request.RateEdit": {
+            "type": "object",
+            "required": [
+                "pay_weight_value",
+                "receive_weight_value"
+            ],
+            "properties": {
+                "pay_weight_add_or_reduce": {
+                    "description": "代发增加还是减少 0：增加 1：减少",
+                    "type": "integer",
+                    "example": 0
+                },
+                "pay_weight_type": {
+                    "description": "代发加权类型：0：百分比，1：固定",
+                    "type": "integer",
+                    "example": 0
+                },
+                "pay_weight_value": {
+                    "description": "代发加权值",
+                    "type": "number",
+                    "example": 1
+                },
+                "receive_weight_add_or_reduce": {
+                    "description": "代收增加还是减少 0：增加 1：减少",
+                    "type": "integer",
+                    "example": 0
+                },
+                "receive_weight_type": {
+                    "description": "代收加权类型：0：百分比，1：固定",
+                    "type": "integer",
+                    "example": 0
+                },
+                "receive_weight_value": {
+                    "description": "代收加权值",
+                    "type": "number",
+                    "example": 1
+                }
+            }
+        },
         "request.ReturnAdd": {
             "type": "object",
             "required": [
@@ -1966,7 +1906,7 @@ var doc = `{
             ],
             "properties": {
                 "amount": {
-                    "description": "实收金额金额",
+                    "description": "实收金额",
                     "type": "number",
                     "example": 1
                 },
@@ -2873,6 +2813,74 @@ var doc = `{
                 }
             }
         },
+        "response.OrderPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RealOrderList"
+                    }
+                },
+                "merchant_amount": {
+                    "description": "总商户总实收金额",
+                    "type": "number"
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "really_amount": {
+                    "description": "总实收金额",
+                    "type": "number"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                },
+                "total_amount": {
+                    "description": "总订单金额",
+                    "type": "number"
+                },
+                "total_fee": {
+                    "description": "总手续费",
+                    "type": "number"
+                }
+            }
+        },
+        "response.Parameter": {
+            "type": "object",
+            "properties": {
+                "confirmation": {
+                    "description": "交易确认数",
+                    "type": "integer"
+                },
+                "eth_fee": {
+                    "description": "ETH 最小矿工费",
+                    "type": "number"
+                },
+                "gas_limit": {
+                    "description": "gas Limit",
+                    "type": "integer"
+                },
+                "gas_price": {
+                    "description": "GasPrice",
+                    "type": "number"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
         "response.PickList": {
             "type": "object",
             "properties": {
@@ -2933,6 +2941,203 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.PickList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.RateList": {
+            "type": "object",
+            "properties": {
+                "collection": {
+                    "description": "代收加权",
+                    "type": "number"
+                },
+                "currency": {
+                    "description": "币别",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "original_rate": {
+                    "description": "原汇率",
+                    "type": "number"
+                },
+                "pay_weight_add_or_reduce": {
+                    "description": "代发增加还是减少 0：增加 1：减少",
+                    "type": "integer"
+                },
+                "pay_weight_type": {
+                    "description": "代发加权类型：0：百分比，1：固定",
+                    "type": "integer"
+                },
+                "pay_weight_value": {
+                    "description": "代发加权值",
+                    "type": "number"
+                },
+                "payment": {
+                    "description": "代发加权",
+                    "type": "number"
+                },
+                "receive_weight_add_or_reduce": {
+                    "description": "代收增加还是减少 0：增加 1：减少",
+                    "type": "integer"
+                },
+                "receive_weight_type": {
+                    "description": "代收加权类型：0：百分比，1：固定",
+                    "type": "integer"
+                },
+                "receive_weight_value": {
+                    "description": "代收加权值",
+                    "type": "number"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "response.RatePage": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RateList"
+                    }
+                }
+            }
+        },
+        "response.RealOrderList": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "收款地址",
+                    "type": "string"
+                },
+                "amount": {
+                    "description": "金额",
+                    "type": "number"
+                },
+                "create_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "detailed_record_id": {
+                    "description": "实收明细订单编号",
+                    "type": "number"
+                },
+                "fee": {
+                    "description": "手续费",
+                    "type": "number"
+                },
+                "finish_time": {
+                    "description": "完成时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "merchant_amount": {
+                    "description": "商户实收金额",
+                    "type": "number"
+                },
+                "order_code": {
+                    "description": "商户订单编号",
+                    "type": "string"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "receipt_amount": {
+                    "description": "实收金额",
+                    "type": "number"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "return_amount": {
+                    "description": "退款金额",
+                    "type": "number"
+                },
+                "should_amount": {
+                    "description": "应收金额",
+                    "type": "number"
+                },
+                "status": {
+                    "description": "状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：：已过期",
+                    "type": "integer"
+                },
+                "txid": {
+                    "description": "交易hash",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "商户id",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ReturnList": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "实收金额",
+                    "type": "number"
+                },
+                "finishTime": {
+                    "description": "时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "order_code": {
+                    "description": "商户订单编号",
+                    "type": "string"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 1：退款等待中，2：退款中，3：退款失败，4：已退款",
+                    "type": "integer"
+                },
+                "system_code": {
+                    "description": "系统订单编号",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "商户id",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ReturnPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ReturnList"
                     }
                 },
                 "per_page": {

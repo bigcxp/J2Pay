@@ -17,7 +17,7 @@ import (
 // @Param to_date    query string false "至"
 // @Param page query int false "页码"
 // @Param pageSize query int false "每页显示多少条"
-// @Success 200 {object} model.ReturnPage
+// @Success 200 {object} response.ReturnPage
 // @Router /return [get]
 func ReturnList(c *gin.Context) {
 	response := util.Response{c}
@@ -39,7 +39,7 @@ func ReturnList(c *gin.Context) {
 // @Summary 退款订单详情
 // @Produce json
 // @Param id path uint true "ID"
-// @Success 200 {object} model.Return
+// @Success 200 {object} response.ReturnList
 // @Router /return/{id} [get]
 func ReturnDetail(c *gin.Context) {
 	response := util.Response{c}

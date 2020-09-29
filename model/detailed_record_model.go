@@ -12,9 +12,9 @@ type DetailedRecord struct {
 	IdCode        string  `gorm:"default:'';comment:'系统订单编号';"json:"id_code"`
 	Amount        float64 `gorm:"default:0;comment:'金额';";json:"amount"`
 	TXID          string  `gorm:"default:'';comment:'交易哈希';";json:"txid"`
-	Remark        string  `gorm:"default:'';commit:'备注';";json:"remark"`
-	FromAddress   string  `gorm:"default:'';commit:'发款地址';";json:"from_address"`
-	ChargeAddress string  `gorm:"default:'';commit:'收款地址';";json:"charge_address"`
+	Remark        string  `gorm:"default:'';comment:'备注';";json:"remark"`
+	FromAddress   string  `gorm:"default:'';comment:'发款地址';";json:"from_address"`
+	ChargeAddress string  `gorm:"default:'';comment:'收款地址';";json:"charge_address"`
 	Status        int     `gorm:"default:1;comment:'状态 1：未绑定，2：已绑定';";json:"status"`
 	OrderId       uint     `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"order_id"`
 	Order         Order   `json:"order";gorm:"foreignkey:UserId"` //指定关联外键
