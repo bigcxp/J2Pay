@@ -91,22 +91,22 @@ func UserDetail(id int) (res response.AdminUserList, err error) {
 func UserAdd(user request.UserAdd) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		UserName:     user.UserName,
-		Pid:          user.Pid,
-		Tel:          user.Tel,
-		Password:     user.Password,
-		RealName:     user.RealName,
-		Secret:       validate.NewGoogleAuth().GetSecret(), //生成唯一密钥
-		Status:       user.Status,
-		Address:      user.Address,
-		ReturnUrl:    user.ReturnUrl,
-		DaiUrl:       user.DaiUrl,
-		Remark:       user.Remark,
-		IsCollection: user.IsCollection,
-		IsCreation:   user.IsCreation,
-		More:         user.More,
-		OrderType:    user.OrderType,
-		OrderCharge:  user.OrderCharge,
+		UserName:      user.UserName,
+		Pid:           user.Pid,
+		Tel:           user.Tel,
+		Password:      user.Password,
+		RealName:      user.RealName,
+		Secret:        validate.NewGoogleAuth().GetSecret(), //生成唯一密钥
+		Status:        user.Status,
+		Address:       user.Address,
+		ReturnUrl:     user.ReturnUrl,
+		DaiUrl:        user.DaiUrl,
+		Remark:        user.Remark,
+		IsCollection:  user.IsCollection,
+		IsCreation:    user.IsCreation,
+		More:          user.More,
+		OrderType:     user.OrderType,
+		OrderCharge:   user.OrderCharge,
 		ReturnType:    user.ReturnType,
 		ReturnCharge:  user.ReturnCharge,
 		IsDai:         user.IsDai,
@@ -194,15 +194,6 @@ func UserEdit(user request.UserEdit) error {
 	if hasTel := model.GetUserByWhere("tel = ? and id <> ?", user.UserName, user.Id); hasTel.Id > 0 {
 		return myerr.NewDbValidateError("手机号已存在")
 	}
-	//是否开启google双重验证
-	userName := model.GetUserByWhere("user_name = ?", user.UserName)
-	code, err2 := validate.NewGoogleAuth().VerifyCode(userName.Secret, user.Code)
-	if err2 != nil {
-		return err2
-	}
-	if !code {
-		return myerr.NewDbValidateError("动态验证码错误")
-	}
 	// 2.判断角色是否存在
 	hasRoles, err := model.GetRolesByWhere("id in (?)", user.Roles)
 	if err != nil {
@@ -224,6 +215,33 @@ func UserEdit(user request.UserEdit) error {
 	return u.Edit(user.Roles)
 }
 
+//修改密码
+func UpdatePassword(id int) (password response.Password, err error) {
+	adminUser := model.AdminUser{Id: id}
+	//随机获取密码
+	password1 := util.RandString(10)
+	userPassword := response.Password{Password: password1}
+	//加密
+	bcryptPassword, _ := bcrypt.GenerateFromPassword([]byte(password1), bcrypt.DefaultCost)
+	Password2 := string(bcryptPassword)
+	err = adminUser.UpdatePassword(id, Password2)
+	return userPassword, err
+}
+
+//开启google验证
+func OpenGoogle(google request.Google) error {
+	user := model.GetUserByWhere("id = ?", google.Id)
+	code, err2 := validate.NewGoogleAuth().VerifyCode(user.Secret, google.GoogleCode)
+	if err2 != nil {
+		return err2
+	}
+	if !code {
+		return myerr.NewDbValidateError("动态验证码错误")
+	}
+	err := user.Google(google)
+	return err
+}
+
 // 删除用户
 func UserDel(id int) error {
 	defer casbin.ClearEnforcer()
@@ -237,7 +255,7 @@ func UserDel(id int) error {
 func EditToken(token string, username string) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		UserName:      username,
+		UserName: username,
 	}
 	return u.EditToken(token, username)
 }

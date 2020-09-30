@@ -1,6 +1,7 @@
 package model
 
 import (
+	"j2pay-server/model/request"
 	"j2pay-server/model/response"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/validate"
@@ -139,9 +140,6 @@ func (u *AdminUser) Edit(roles []int) error {
 		"tel":         u.Tel,
 		"update_time": time.Now(),
 	}
-	if u.Password != "" {
-		updateInfo["password"] = u.Password
-	}
 	if err := tx.Model(&AdminUser{Id: u.Id}).
 		Updates(updateInfo).Error; err != nil {
 		tx.Rollback()
@@ -164,6 +162,38 @@ func (u *AdminUser) Edit(roles []int) error {
 	}
 	tx.Commit()
 	return nil
+}
+
+//修改密码
+func (u *AdminUser) UpdatePassword(id int, password string) (err error) {
+	tx := Db.Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	user := GetUserByWhere("id = ?", id)
+	err = tx.Model(&user).
+		Updates(AdminUser{Password: password}).Error
+	return
+}
+
+//是否开启google验证
+func (u *AdminUser) Google(google request.Google) (err error) {
+	tx := Db.Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	user := GetUserByWhere("id = ?", google.Id)
+	err = tx.Model(&user).
+		Updates(AdminUser{IsOpen:google.IsOpen }).Error
+	return
 }
 
 // 删除用户
@@ -253,7 +283,7 @@ func (u *AdminUser) EditToken(token string, username string) error {
 	tx := Db.Begin()
 	adminUser := GetUserByWhere("user_name = ?", username)
 	if err := tx.Model(&adminUser).
-		Updates(AdminUser{Token: token,LastLoginTime: time.Now(),QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username,adminUser.Secret)}).Error; err != nil {
+		Updates(AdminUser{Token: token, LastLoginTime: time.Now(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, adminUser.Secret)}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

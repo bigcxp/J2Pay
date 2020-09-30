@@ -41,6 +41,19 @@ definitions:
         description: 状态 1：执行中 2：已完成
         type: integer
     type: object
+  request.Google:
+    properties:
+      google_code:
+        description: google验证码
+        example: "852079"
+        type: string
+      is_open:
+        description: 是否开启google双重验证 默认0：不开启 1：开启
+        example: 1
+        type: integer
+    required:
+    - google_code
+    type: object
   request.LoginUser:
     properties:
       google_code:
@@ -178,6 +191,9 @@ definitions:
         description: 交易确认数
         example: 12
         type: integer
+      create_at:
+        description: 更新时间
+        type: string
       gas_limit:
         description: gas Limit
         example: 1
@@ -186,10 +202,6 @@ definitions:
         description: GasPrice
         example: 88
         type: number
-    required:
-    - confirmation
-    - gas_limit
-    - gas_price
     type: object
   request.PickAdd:
     properties:
@@ -892,7 +904,7 @@ definitions:
         description: 扣除商户余额
         type: number
       fee:
-        description: 手续费
+        description: Gas手续费
         type: number
       finish_time:
         description: 完成时间
@@ -1002,6 +1014,12 @@ definitions:
         description: 更新时间
         type: string
     type: object
+  response.Password:
+    properties:
+      password:
+        description: 密码
+        type: string
+    type: object
   response.PickList:
     properties:
       amount:
@@ -1054,7 +1072,7 @@ definitions:
         description: 总共多少页
         type: integer
     type: object
-  response.RateList:
+  response.Rate:
     properties:
       collection:
         description: 代收加权
@@ -1097,7 +1115,7 @@ definitions:
     properties:
       data:
         items:
-          $ref: '#/definitions/response.RateList'
+          $ref: '#/definitions/response.Rate'
         type: array
     type: object
   response.RealOrderList:
@@ -1627,6 +1645,25 @@ paths:
       summary: 结账
       tags:
       - 手续费结账
+  /google/{id}:
+    put:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: google参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.Google'
+      produces:
+      - application/json
+      summary: 开启google验证
+      tags:
+      - 管理员首页
   /index:
     get:
       produces:
@@ -1636,6 +1673,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.SystemMessagePage'
+      summary: 首页数据
       tags:
       - 管理员首页
   /login:
@@ -1672,6 +1710,7 @@ paths:
       - description: 商户id
         in: query
         name: userId
+        required: true
         type: integer
       - description: 起
         in: query
@@ -1864,6 +1903,24 @@ paths:
       summary: 修改订单
       tags:
       - 订单管理
+  /password/{id}:
+    put:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Password'
+      summary: 修改密码
+      tags:
+      - 管理员首页
   /pick:
     get:
       parameters:
@@ -1967,7 +2024,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.RateList'
+            $ref: '#/definitions/response.Rate'
       summary: 获取汇率详情
       tags:
       - 汇率管理

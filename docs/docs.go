@@ -445,6 +445,35 @@ var doc = `{
                 ]
             }
         },
+        "/google/{id}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理员首页"
+                ],
+                "summary": "开启google验证",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "google参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Google"
+                        }
+                    }
+                ]
+            }
+        },
         "/index": {
             "get": {
                 "produces": [
@@ -453,6 +482,7 @@ var doc = `{
                 "tags": [
                     "管理员首页"
                 ],
+                "summary": "首页数据",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -520,7 +550,8 @@ var doc = `{
                         "type": "integer",
                         "description": "商户id",
                         "name": "userId",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -810,6 +841,34 @@ var doc = `{
                 ]
             }
         },
+        "/password/{id}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理员首页"
+                ],
+                "summary": "修改密码",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Password"
+                        }
+                    }
+                }
+            }
+        },
         "/pick": {
             "get": {
                 "produces": [
@@ -969,7 +1028,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.RateList"
+                            "$ref": "#/definitions/response.Rate"
                         }
                     }
                 }
@@ -1626,6 +1685,24 @@ var doc = `{
                 }
             }
         },
+        "request.Google": {
+            "type": "object",
+            "required": [
+                "google_code"
+            ],
+            "properties": {
+                "google_code": {
+                    "description": "google验证码",
+                    "type": "string",
+                    "example": "852079"
+                },
+                "is_open": {
+                    "description": "是否开启google双重验证 默认0：不开启 1：开启",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "request.LoginUser": {
             "type": "object",
             "required": [
@@ -1798,16 +1875,15 @@ var doc = `{
         },
         "request.ParameterEdit": {
             "type": "object",
-            "required": [
-                "confirmation",
-                "gas_limit",
-                "gas_price"
-            ],
             "properties": {
                 "confirmation": {
                     "description": "交易确认数",
                     "type": "integer",
                     "example": 12
+                },
+                "create_at": {
+                    "description": "更新时间",
+                    "type": "string"
                 },
                 "gas_limit": {
                     "description": "gas Limit",
@@ -2729,7 +2805,7 @@ var doc = `{
                     "type": "number"
                 },
                 "fee": {
-                    "description": "手续费",
+                    "description": "Gas手续费",
                     "type": "number"
                 },
                 "finish_time": {
@@ -2881,6 +2957,15 @@ var doc = `{
                 }
             }
         },
+        "response.Password": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                }
+            }
+        },
         "response.PickList": {
             "type": "object",
             "properties": {
@@ -2953,7 +3038,7 @@ var doc = `{
                 }
             }
         },
-        "response.RateList": {
+        "response.Rate": {
             "type": "object",
             "properties": {
                 "collection": {
@@ -3012,7 +3097,7 @@ var doc = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.RateList"
+                        "$ref": "#/definitions/response.Rate"
                     }
                 }
             }

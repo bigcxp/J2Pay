@@ -23,7 +23,7 @@ func RateList(c *gin.Context) {
 // @Summary 获取汇率详情
 // @Produce json
 // @Param id path int true "ID"
-// @Success 200 {object} response.RateList
+// @Success 200 {object} response.Rate
 // @Router /rate/{id} [get]
 func RateDetail(c *gin.Context) {
 	response := util.Response{c}

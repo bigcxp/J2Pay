@@ -21,6 +21,12 @@ type UserEdit struct {
 
 }
 
+type Google struct {
+	Id         int    `json:"-"`
+	IsOpen     int    `json:"is_open" binding:"oneof=0 1" example:"1"`                 //是否开启google双重验证 默认0：不开启 1：开启
+	GoogleCode string `json:"google_code" binding:"required,max=255" example:"852079"` //google验证码
+}
+
 type CommonUser struct {
 	UserName      string  `json:"user_name" binding:"required,max=255" example:"test"`  // 账号
 	RealName      string  `json:"real_name" binding:"required,max=255" example:"test"`  // 组织名称

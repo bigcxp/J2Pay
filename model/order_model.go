@@ -94,7 +94,7 @@ func (o *Order) Create() error {
 	tx := Db.Begin()
 	o.CreatedAt = time.Now()
 	o.FinishTime = time.Now()
-	o.ExprireTime = time.Now().Add(7200)
+	o.ExprireTime = time.Now().Add(time.Hour * 2)
 	if err := tx.Create(o).Error; err != nil {
 		tx.Rollback()
 		return err

@@ -65,6 +65,8 @@ func InitRouter() *gin.Engine {
 	//首页
 	{
 		r.GET("/index", controller.IndexSystem)
+		r.PUT("/password/:id", controller.UpdatePassword)
+		r.PUT("/google/:id", controller.GoogleValidate)
 	}
 	//商户提领 代发
 	{

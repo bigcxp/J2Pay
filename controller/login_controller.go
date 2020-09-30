@@ -36,8 +36,8 @@ func Login(c *gin.Context) {
 		return
 	}
 	//更新用户信息
-	service.EditToken(token,user.Username)
-	c.SetCookie(middleware.JwtName, token, setting.JwtConf.ExpTime*3600, "/", setting.ApplicationConf.Doamin, false, true)
+	service.EditToken(token, user.Username)
+	c.SetCookie(middleware.JwtName, token, setting.JwtConf.ExpTime*3600, "/", setting.ApplicationConf.Domain, false, true)
 	response.SuccessData(token)
 }
 

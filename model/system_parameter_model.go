@@ -62,3 +62,10 @@ func GetParameterByWhere(where ...interface{}) (pa Parameter) {
 	Db.First(&pa, where...)
 	return
 }
+
+//查询GasFee
+func GetGasFeeDetail() response.Parameter {
+	var parameter response.Parameter
+	Db.First(&parameter)
+	return parameter
+}

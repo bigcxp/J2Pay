@@ -77,7 +77,7 @@ type MerchantPickList struct {
 	SendAddress string    `json:"send_address"` //代发地址
 	Amount      float64   `json:"amount"`       //金额
 	Fee         float64   `json:"fee"`          //手续费
-	GasFee      float64   `json:"fee"`          //手续费
+	GasFee      float64   `json:"fee"`          //Gas手续费
 	DelMoney    float64   `json:"del_money"`    //扣除商户余额
 	TXID        string    `json:"txid"`         //交易hash
 	CreateAt    time.Time `json:"create_at"`    //建立时间

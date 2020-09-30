@@ -87,7 +87,7 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.Mercha
 	for index, v := range all.Data {
 		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
 		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
-		//gasFee 待完成
+		all.Data[index].GasFee  = GetGasFeeDetail().EthFee
 	}
 	return all, err
 }

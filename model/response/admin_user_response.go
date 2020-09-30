@@ -52,3 +52,7 @@ type AdminUserMessageList struct {
 	UserName       string               `json:"user_name"`      //用户名
 	SystemMessages []AdminSystemMessage `json:"systemMessages"` //系统公告
 }
+
+type Password struct {
+	Password       string          `json:"password"` //密码
+}
