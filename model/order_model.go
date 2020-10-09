@@ -112,6 +112,7 @@ func (o *Order) UpdateOrder(order request.OrderEdit) error {
 		tx.Rollback()
 		return err
 	}
+	tx.Commit()
 	return nil
 }
 

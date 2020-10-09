@@ -47,5 +47,6 @@ jwt:
 
 # eth 配置
 eth:
-# url: http://127.0.0.1:8545
-  url: https://ropsten.infura.io/v3/fca54f064a584d378cfedff40eabeef5
+# url: http://127.0.0.1:8545 #本地网络
+# url: https://mainnet.infura.io/v3/fca54f064a584d378cfedff40eabeef5 #以太坊主网络
+  url: https://ropsten.infura.io/v3/fca54f064a584d378cfedff40eabeef5 #ropsten测试网络

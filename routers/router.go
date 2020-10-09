@@ -92,6 +92,7 @@ func InitRouter() *gin.Engine {
 		r.POST("/order",controller.OrderAdd)
 		r.GET("/order/:id",controller.OrderDetail)
 		r.PUT("/order/:id",controller.OrderEdit)
+		r.POST("/orderNotify",controller.OrderNotify)
 	}
 	//订单退款
 	{

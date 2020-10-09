@@ -80,7 +80,7 @@ func AutoMigrate() {
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '实收明细记录'").AutoMigrate(&DetailedRecord{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统参数设定'").AutoMigrate(&Parameter{})
 	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '汇率表'").AutoMigrate(&Rate{})
-
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '收款地址表'").AutoMigrate(&Address{})
 }
 
 func InitSql() {

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"j2pay-server/model"
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
@@ -97,6 +98,21 @@ func OrderEdit(c *gin.Context) {
 		response.SetOtherError(err)
 		return
 	}
+	response.SuccessMsg("成功")
+}
+
+// @Tags 订单管理
+// @Summary 通知
+// @Produce json
+// @Param token  query string true "token"
+// @Success 302
+// @Router /orderNotify [post]
+func OrderNotify(c *gin.Context)  {
+	response := util.Response{c}
+	token := c.Query("token")
+	adminUser := model.GetUserByWhere("token =?", token)
+	c.Redirect(302, adminUser.ReturnUrl)
+	c.Abort()
 	response.SuccessMsg("成功")
 }
 

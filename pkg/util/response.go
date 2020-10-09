@@ -77,6 +77,15 @@ func (g *Response) Error(msg ...string) {
 	})
 }
 
+//自定义错误
+func (g *Response) SelfError(msg ...error) {
+	g.C.JSON(200, gin.H{
+		"code": 0,
+		"data": "",
+		"msg":  msg,
+	})
+}
+
 // 验证错误
 func (g *Response) SetValidateError(err error) *gin.Error {
 	return g.C.Error(err).SetType(gin.ErrorTypeBind)
