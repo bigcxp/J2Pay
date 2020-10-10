@@ -14,7 +14,7 @@ import (
 // @Produce json
 // @Router /adminUserIndex [get]
 func AdminUserIndex(c *gin.Context) {
-	c.HTML(200,"admin-user.html" ,gin.H{
+	c.HTML(200,"adminUser.html" ,gin.H{
 		"code": http.StatusOK,
 	})
 }
