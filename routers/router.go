@@ -8,6 +8,7 @@ import (
 	_ "j2pay-server/docs"
 	"j2pay-server/middleware"
 	"j2pay-server/pkg/setting"
+	"net/http"
 )
 
 func InitRouter() *gin.Engine {
@@ -17,6 +18,10 @@ func InitRouter() *gin.Engine {
 	if setting.ApplicationConf.Env == "debug" {
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
+
+	//静态文件处理
+	r.LoadHTMLGlob("views/**/*")
+	r.StaticFS("/static", http.Dir("./static"))
 
 	// 加入通用中间件
 	r.Use(
@@ -64,7 +69,8 @@ func InitRouter() *gin.Engine {
 	}
 	//首页
 	{
-		r.GET("/index", controller.IndexSystem)
+		r.GET("/index", controller.Index)
+		r.GET("/systemIndex", controller.SystemIndex)
 		r.PUT("/password/:id", controller.UpdatePassword)
 		r.PUT("/google/:id", controller.GoogleValidate)
 	}

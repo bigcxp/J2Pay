@@ -191,7 +191,15 @@ func (u *AdminUser) Google(google request.Google) (err error) {
 		}
 	}()
 	user := GetUserByWhere("id = ?", google.Id)
-	err = tx.Model(&user).Updates(AdminUser{IsOpen: google.IsOpen}).Error
+	isOpen := google.IsOpen
+	if isOpen == 0 {
+		err = tx.Model(&AdminUser{Id: user.Id}).
+			Updates(AdminUser{IsOpen: 0}).Error
+	} else {
+		err = tx.Model(&AdminUser{Id: user.Id}).
+			Updates(AdminUser{IsOpen: 1}).Error
+	}
+
 	return
 }
 

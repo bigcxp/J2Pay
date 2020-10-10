@@ -134,7 +134,6 @@ func (r *Role) Del() error {
 		tx.Rollback()
 		return err
 	}
-
 	// 2.删除casbin表
 	key := "role:" + strconv.Itoa(r.Id)
 	if err := tx.Where("p_type = 'g' and (v0 = ? or v1 = ?)", key, key).Delete(CasbinRule{}).Error; err != nil {

@@ -8,12 +8,22 @@ import (
 	"strconv"
 )
 
+
+// @Tags 管理员首页
+// @Summary 系统首页
+// @Produce json
+// @Router /systemIndex [get]
+func Index(c *gin.Context) {
+	response := util.Response{c}
+	response.Index("登录")
+}
+
 // @Tags 管理员首页
 // @Summary 首页数据
 // @Produce json
 // @Success 200 {object} response.SystemMessagePage
 // @Router /index [get]
-func IndexSystem(c *gin.Context) {
+func SystemIndex(c *gin.Context) {
 	response := util.Response{c}
 	response.SuccessData("待写")
 }

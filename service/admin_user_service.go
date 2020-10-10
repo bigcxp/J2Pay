@@ -217,6 +217,7 @@ func UserEdit(user request.UserEdit) error {
 
 //修改密码
 func UpdatePassword(id int) (password response.Password, err error) {
+	defer casbin.ClearEnforcer()
 	adminUser := model.AdminUser{Id: id}
 	//随机获取密码
 	password1 := util.RandString(10)
@@ -229,7 +230,8 @@ func UpdatePassword(id int) (password response.Password, err error) {
 }
 
 //开启google验证
-func OpenGoogle(google request.Google) error {
+func OpenGoogle(google request.Google) (err error) {
+	defer casbin.ClearEnforcer()
 	user := model.GetUserByWhere("id = ?", google.Id)
 	code, err2 := validate.NewGoogleAuth().VerifyCode(user.Secret, google.GoogleCode)
 	if err2 != nil {
@@ -238,7 +240,7 @@ func OpenGoogle(google request.Google) error {
 	if !code {
 		return myerr.NewDbValidateError("动态验证码错误")
 	}
-	err := user.Google(google)
+	err = user.Google(google)
 	return err
 }
 

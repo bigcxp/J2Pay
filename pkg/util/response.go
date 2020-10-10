@@ -3,12 +3,21 @@ package util
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strings"
 )
 
 type Response struct {
 	C *gin.Context
 }
+
+func (g *Response) Index(data interface{}) {
+	g.C.HTML(200,"index.html" ,gin.H{
+		"code": http.StatusOK,
+		"data": data,
+	})
+}
+
 
 func (g *Response) Send(code int, message string, data interface{}) {
 	g.C.JSON(200, gin.H{
