@@ -58,6 +58,14 @@ func (g *Response) ErrorMsg(message string) {
 		"msg":  message,
 	})
 }
+func (g *Response) LoginSuccessData(data interface{}) {
+	g.C.JSON(200, gin.H{
+		"code": 1,
+		"data": data,
+		"msg":  "",
+	})
+}
+
 
 func (g *Response) SuccessData(data interface{}) {
 	g.C.JSON(200, gin.H{

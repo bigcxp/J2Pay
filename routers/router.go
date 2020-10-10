@@ -37,6 +37,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/login",controller.LoginIndex)
 	r.GET("/index", controller.Index)
 	r.GET("/", controller.Indexs)
+
 	// 加入鉴权中间件
 	r.Use(middleware.JWT())
 	r.GET("/userInfo", controller.UserInfo)
