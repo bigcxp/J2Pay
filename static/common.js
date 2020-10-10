@@ -2,45 +2,27 @@ const API_HOST = '/';
 
 
 
-
-function postjson(form,url,datas,fn){
-	if(!url){url=location.href;}
-	if(!data){data=form2json($('form'));}
-	if(typeof(data)=='object'){data=JSON.stringify(data);}
-	$.ajax({
-		'crossDomain':true,
-		'xhrFields':{'withCredentials':true},
-		'url':url,
-		'processData':false,
-		'type':'POST',
-		'data':data,
-		'contentType': 'application/json',
-		success:function(res){
-			if(typeof(fn)=='function'){fn(res);}
-		}
-	})
-}
 function postform(form,url,datas,fn,isjson){
 	var data,$form;
 	if(!form){form=$('form').get(0);}
 	$form=$(form);
 	if(!datas){
-		data = isjson ? form2json($form) : $form.serialize();
+		data = (true==isjson) ? JSON.stringify(form2json(form)) : trim_data($form.serialize());
 	}else{
 		if(typeof(data)=='object'){data=JSON.stringify(data);}
 	}
-	data=trim_data(data);
 	if(!url && !!form['action']){url=form.action;}
 	if(!url){url=location.href;}
 	$.ajax({
 		'crossDomain':true,
 		'xhrFields':{'withCredentials':true},
+		'processData':(true==isjson)?false:true,
 		'url':url,
 		'type':'POST',
 		'data':data,
 		success:function(res){
-			if(typeof(fn)=='function'){fn(res);}
-			if(res.code=='0'){
+			if(typeof(fn)=='function'){fn(res);return;}
+			if(res.code=='200'){
 				alertok(res.msg);
 			}else{
 				alerterr(res.msg);

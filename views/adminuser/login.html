@@ -133,8 +133,14 @@ layui.use(['form'], function () {
 
 	// 进行登录操作
 	form.on('submit(login)', function (data) {
-		postform(null,API_HOST+'login',null,function(res){
-			console.log(res)
+		postform(null,null,null,function(res){
+			if(res.code=='200'){
+				layer.msg('登录成功', function () {
+					window.location = '/main';
+				});
+			}else{
+				alerterr(res.msg);
+			}
 		},true);
 		/*layer.msg('登录成功', function () {
 			window.location = 'main.html';
