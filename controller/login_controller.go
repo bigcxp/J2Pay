@@ -8,7 +8,18 @@ import (
 	"j2pay-server/pkg/setting"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 )
+
+// @Tags 登录操作
+// @Summary 登录操作
+// @Produce json
+// @Router /login [get]
+func LoginIndex(c *gin.Context) {
+	c.HTML(200,"login.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 登录操作
 // @Summary 登录操作

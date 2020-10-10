@@ -5,17 +5,28 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
 
+// @Tags 管理员首页
+// @Summary 系统首页
+// @Produce json
+// @Router / [get]
+func Indexs(c *gin.Context) {
+	c.HTML(200,"index.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 管理员首页
 // @Summary 系统首页
 // @Produce json
 // @Router /systemIndex [get]
 func Index(c *gin.Context) {
-	response := util.Response{c}
-	response.Index("登录")
+	c.HTML(200,"index.html" ,gin.H{
+		"code": http.StatusOK,
+	})
 }
 
 // @Tags 管理员首页

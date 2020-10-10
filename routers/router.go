@@ -34,7 +34,9 @@ func InitRouter() *gin.Engine {
 
 	r.GET("/captcha", controller.Captcha)
 	r.POST("/login", controller.Login)
-
+	r.GET("/login",controller.LoginIndex)
+	r.GET("/index", controller.Index)
+	r.GET("/", controller.Indexs)
 	// 加入鉴权中间件
 	r.Use(middleware.JWT())
 	r.GET("/userInfo", controller.UserInfo)
@@ -69,7 +71,6 @@ func InitRouter() *gin.Engine {
 	}
 	//首页
 	{
-		r.GET("/index", controller.Index)
 		r.GET("/systemIndex", controller.SystemIndex)
 		r.PUT("/password/:id", controller.UpdatePassword)
 		r.PUT("/google/:id", controller.GoogleValidate)
