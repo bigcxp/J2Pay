@@ -5,8 +5,19 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+// @Tags 汇率管理
+// @Summary 汇率管理
+// @Produce json
+// @Router /rateIndex [get]
+func RateIndex(c *gin.Context) {
+	c.HTML(200,"rate.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 汇率管理
 // @Summary 所有汇率列表

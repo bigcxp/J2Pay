@@ -6,8 +6,19 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+// @Tags 商户提领代发管理
+// @Summary 商户提领代发管理
+// @Produce json
+// @Router /pickIndex [get]
+func IndexPick(c *gin.Context) {
+	c.HTML(200,"pick.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 商户提领代发管理
 // @Summary 商户提领、代发列表

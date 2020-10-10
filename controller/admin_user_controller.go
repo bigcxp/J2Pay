@@ -5,8 +5,19 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+// @Tags 账户管理
+// @Summary 账户管理
+// @Produce json
+// @Router /adminUserIndex [get]
+func AdminUserIndex(c *gin.Context) {
+	c.HTML(200,"admin-user.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 账户管理
 // @Summary 获取账户列表

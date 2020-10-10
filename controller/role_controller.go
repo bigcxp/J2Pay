@@ -5,8 +5,19 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+// @Tags 角色管理
+// @Summary 角色管理
+// @Produce json
+// @Router /roleIndex [get]
+func IndexRole(c *gin.Context) {
+	c.HTML(200,"role.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 角色管理
 // @Summary 获取所有角色

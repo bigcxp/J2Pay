@@ -5,8 +5,20 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+
+// @Tags 实收明细记录
+// @Summary 实收明细记录
+// @Produce json
+// @Router /detailedRecordIndex [get]
+func DetailedRecordIndex(c *gin.Context) {
+	c.HTML(200,"detailed.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 实收明细记录
 // @Summary 实收明细记录列表

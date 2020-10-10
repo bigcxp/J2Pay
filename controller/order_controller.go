@@ -6,8 +6,19 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+// @Tags 订单管理
+// @Summary 订单管理
+// @Produce json
+// @Router /orderIndex [get]
+func OrderIndex(c *gin.Context) {
+	c.HTML(200,"order.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 订单管理
 // @Summary 订单列表

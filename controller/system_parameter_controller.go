@@ -5,8 +5,20 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+
+// @Tags 系统参数管理
+// @Summary 系统参数管理
+// @Produce json
+// @Router /parameterIndex [get]
+func ParameterIndex(c *gin.Context) {
+	c.HTML(200,"parameter.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 系统参数管理
 // @Summary 系统参数详情

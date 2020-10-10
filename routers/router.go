@@ -31,12 +31,23 @@ func InitRouter() *gin.Engine {
 		middleware.MakeSession(), // session支持
 		middleware.ErrorHandle(), // 错误处理
 	)
-
+	//不需要授权
 	r.GET("/captcha", controller.Captcha)
 	r.POST("/login", controller.Login)
 	r.GET("/login",controller.LoginIndex)
 	r.GET("/index", controller.Index)
 	r.GET("/", controller.Indexs)
+	r.GET("adminUserIndex", controller.AdminUserIndex)
+	r.GET("/roleIndex", controller.IndexRole)
+	r.GET("/systemMessageIndex", controller.SystemMessageIndex)
+	r.GET("/systemIndex", controller.SystemIndex)
+	r.GET("/pickIndex",controller.IndexPick)
+	r.GET("rateIndex", controller.RateIndex)
+	r.GET("/parameterIndex", controller.ParameterIndex)
+	r.GET("/detailedRecordIndex", controller.DetailedRecordIndex)
+	r.GET("/returnIndex",controller.ReturnIndex)
+	r.GET("/orderIndex",controller.OrderIndex)
+
 
 	// 加入鉴权中间件
 	r.Use(middleware.JWT())
@@ -44,6 +55,8 @@ func InitRouter() *gin.Engine {
 	r.Use(middleware.Authentication())
 	// 用户
 	{
+
+
 		r.GET("/auth/role", controller.RoleTree)
 		r.GET("/adminUser", controller.UserIndex)
 		r.GET("/adminUser/:id", controller.UserDetail)
@@ -54,6 +67,7 @@ func InitRouter() *gin.Engine {
 
 	// 角色
 	{
+
 		r.GET("/auth/tree", controller.AuthTree)
 		r.GET("/role", controller.RoleIndex)
 		r.GET("/role/:id", controller.RoleDetail)
@@ -63,6 +77,8 @@ func InitRouter() *gin.Engine {
 	}
 	//公告
 	{
+
+
 		r.GET("/systemMessage", controller.SystemMessage)
 		r.GET("/systemMessageByUser", controller.SystemMessageByUserId)
 		r.POST("/systemMessage", controller.SystemMessageAdd)
@@ -72,12 +88,14 @@ func InitRouter() *gin.Engine {
 	}
 	//首页
 	{
-		r.GET("/systemIndex", controller.SystemIndex)
+
 		r.PUT("/password/:id", controller.UpdatePassword)
 		r.PUT("/google/:id", controller.GoogleValidate)
 	}
 	//商户提领 代发
 	{
+
+
 		r.GET("/merchantPick",controller.MerchantPickIndex)
 		r.GET("/merchantPick/:id",controller.MerchantPickDetail)
 
@@ -96,6 +114,7 @@ func InitRouter() *gin.Engine {
 	}
 	//订单
 	{
+
 		r.GET("/order",controller.OrderList)
 		r.POST("/order",controller.OrderAdd)
 		r.GET("/order/:id",controller.OrderDetail)
@@ -104,17 +123,20 @@ func InitRouter() *gin.Engine {
 	}
 	//订单退款
 	{
+
 		r.GET("/return",controller.ReturnList)
 		r.POST("/return",controller.ReturnAdd)
 		r.GET("/return/:id",controller.ReturnDetail)
 	}
 	//手续费结账
 	{
+		r.GET("/feeIndex",controller.FeeIndex)
 		r.GET("/fee",controller.FeeList)
 		r.POST("/fee",controller.Settle)
 	}
 	//实收明细记录
 	{
+
 		r.GET("/detail", controller.DetailedList)
 		r.GET("/detail/:id", controller.DetailedDetail)
 		r.POST("/detail", controller.DetailedAdd)
@@ -122,12 +144,14 @@ func InitRouter() *gin.Engine {
 	}
 	//系统参数管理
 	{
+
 		r.GET("/system", controller.SystemParameter)
 		r.PUT("/system/:id", controller.SystemParameterEdit)
 		r.PUT("/systemGasPrice/:id", controller.SystemGasPriceEdit)
 	}
 	//汇率管理
 	{
+
 		r.GET("/rate", controller.RateList)
 		r.GET("/rate/:id", controller.RateDetail)
 		r.PUT("/rate/:id", controller.RateEdit)

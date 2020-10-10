@@ -5,8 +5,19 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 )
+
+// @Tags 手续费结账
+// @Summary 手续费结账
+// @Produce json
+// @Router /feeIndex [get]
+func FeeIndex(c *gin.Context) {
+	c.HTML(200,"fee.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 手续费结账
 // @Summary 手续费列表

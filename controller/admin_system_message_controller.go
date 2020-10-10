@@ -5,9 +5,22 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
 	"j2pay-server/service"
+	"net/http"
 	"strconv"
 	"unicode/utf8"
 )
+
+
+
+// @Tags 系统公告
+// @Summary 系统公告
+// @Produce json
+// @Router /systemMessageIndex [get]
+func SystemMessageIndex(c *gin.Context) {
+	c.HTML(200,"systemMessage.html" ,gin.H{
+		"code": http.StatusOK,
+	})
+}
 
 // @Tags 系统公告
 // @Summary 获取系统公告列表
