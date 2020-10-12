@@ -2,6 +2,7 @@ package model
 
 import (
 	"j2pay-server/model/response"
+	"j2pay-server/xenv"
 	"strconv"
 )
 
@@ -20,8 +21,8 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 		CurrentPage: pageSize,
 		Data:        []response.RoleList{},
 	}
-	offset := GetOffset(page, pageSize)
-	scope := Db.Table("role").
+	offset := xenv.GetOffset(page, pageSize)
+	scope := xenv.Db.Table("role").
 		Select([]string{"role.id", "role.pid", "role.name", "p_role.name as parent_name"}).
 		Joins("left join role as p_role on role.pid = p_role.id").
 		Order("role.id desc")
@@ -32,7 +33,7 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 func GetAllRole() (mapping map[int]response.CasRole) {
 	var roles []response.CasRole
 	mapping = make(map[int]response.CasRole)
-	Db.Table("role").Select("id,name").Order("id desc").Find(&roles)
+	xenv.Db.Table("role").Select("id,name").Order("id desc").Find(&roles)
 	for _, role := range roles {
 		mapping[role.Id] = role
 	}
@@ -45,7 +46,7 @@ func (r *Role) Detail(id ...int) (res response.RoleList, err error) {
 	if len(id) > 0 {
 		searchId = id[0]
 	}
-	err = Db.Table("role").
+	err = xenv.Db.Table("role").
 		Select([]string{"role.id", "role.pid", "role.name", "p_role.name as parent_name", "role.auth as auths"}).
 		Joins("left join role as p_role on role.pid = p_role.id").
 		Where("role.id = ?", searchId).
@@ -57,7 +58,7 @@ func (r *Role) Detail(id ...int) (res response.RoleList, err error) {
 // 创建角色
 func (r *Role) Create(all []Auth) error {
 	// 执行事务处理
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	if err := tx.Create(&r).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -85,7 +86,7 @@ func (r *Role) Create(all []Auth) error {
 // 编辑角色
 func (r *Role) Edit(all []Auth) error {
 	// 执行事务处理
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 
 	// 1.更新角色表
 	if err := tx.Model(&Role{Id: r.Id}).
@@ -127,7 +128,7 @@ func (r *Role) Edit(all []Auth) error {
 
 // 删除角色
 func (r *Role) Del() error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 
 	// 1.删除角色表
 	if err := tx.Where("id = ?", r.Id).Delete(r).Error; err != nil {
@@ -146,24 +147,24 @@ func (r *Role) Del() error {
 
 // 获取角色条数
 func (r *Role) getCount() (total int) {
-	Db.Model(&r).Count(&total)
+	xenv.Db.Model(&r).Count(&total)
 	return
 }
 
 // 根据条件获取角色
 func GetRoleByWhere(where ...interface{}) (res Role, err error) {
-	err = Db.First(&res, where...).Error
+	err = xenv.Db.First(&res, where...).Error
 	return
 }
 
 // 根据条件获取多个角色
 func GetRolesByWhere(where ...interface{}) (res []Role, err error) {
-	err = Db.Find(&res, where...).Error
+	err = xenv.Db.Find(&res, where...).Error
 	return
 }
 
 // 根据条件获取多个角色
 func GetRoleTreeByWhere(where ...interface{}) (res []response.Roles, err error) {
-	err = Db.Table("role").Find(&res, where...).Error
+	err = xenv.Db.Table("role").Find(&res, where...).Error
 	return
 }

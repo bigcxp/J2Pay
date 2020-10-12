@@ -5,6 +5,7 @@ import (
 	"j2pay-server/model/response"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/validate"
+	"j2pay-server/xenv"
 	"strconv"
 	"strings"
 	"time"
@@ -59,8 +60,8 @@ func (u *AdminUser) GetAll(page, pageSize int, where ...interface{}) (response.A
 		CurrentPage: page,
 		Data:        []response.AdminUserList{},
 	}
-	offset := GetOffset(page, pageSize)
-	err := Db.Table("admin_user").
+	offset := xenv.GetOffset(page, pageSize)
+	err := xenv.Db.Table("admin_user").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&all.Data, where...).Error
@@ -73,7 +74,7 @@ func (u *AdminUser) GetAll(page, pageSize int, where ...interface{}) (response.A
 // 获取用户所有系统公告
 func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (response.AdminUserMessagePage, error) {
 	user := &response.AdminUserMessageList{}
-	Db.Where("id = ?", 1).Preload("system_message").Find(&user)
+	xenv.Db.Where("id = ?", 1).Preload("system_message").Find(&user)
 	logger.Logger.Println(user)
 
 	all := response.AdminUserMessagePage{
@@ -82,8 +83,8 @@ func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (res
 		CurrentPage: page,
 		Data:        []response.AdminUserMessageList{},
 	}
-	offset := GetOffset(page, pageSize)
-	err := Db.Table("admin_user").
+	offset := xenv.GetOffset(page, pageSize)
+	err := xenv.Db.Table("admin_user").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&all.Data, where...).Error
@@ -99,7 +100,7 @@ func (u *AdminUser) Detail(id ...int) (res response.AdminUserList, err error) {
 	if len(id) > 0 {
 		searchId = id[0]
 	}
-	err = Db.Table("admin_user").
+	err = xenv.Db.Table("admin_user").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -108,7 +109,7 @@ func (u *AdminUser) Detail(id ...int) (res response.AdminUserList, err error) {
 
 // 创建
 func (u *AdminUser) Create(roles []int) error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	u.CreateTime = time.Now()
 	if err := tx.Create(u).Error; err != nil {
 		tx.Rollback()
@@ -132,7 +133,7 @@ func (u *AdminUser) Create(roles []int) error {
 
 // 编辑用户
 func (u *AdminUser) Edit(roles []int) error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	updateInfo := map[string]interface{}{
 		"user_name":   u.UserName,
 		"real_name":   u.RealName,
@@ -166,7 +167,7 @@ func (u *AdminUser) Edit(roles []int) error {
 
 //修改密码
 func (u *AdminUser) UpdatePassword(id int, password string) (err error) {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -182,7 +183,7 @@ func (u *AdminUser) UpdatePassword(id int, password string) (err error) {
 
 //是否开启google验证
 func (u *AdminUser) Google(google request.Google) (err error) {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -205,7 +206,7 @@ func (u *AdminUser) Google(google request.Google) (err error) {
 
 // 删除用户
 func (u *AdminUser) Del() error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	if err := tx.Delete(u, "id = ?", u.Id).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -220,17 +221,17 @@ func (u *AdminUser) Del() error {
 
 // 根据条件获取用户详情
 func GetUserByWhere(where ...interface{}) (au AdminUser) {
-	Db.First(&au, where...)
+	xenv.Db.First(&au, where...)
 	return
 }
 
 // 获取所有后台用户数量
 func (u *AdminUser) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Db.Model(&u).Count(&count)
+		xenv.Db.Model(&u).Count(&count)
 		return
 	}
-	Db.Model(&u).Where(where[0], where[1:]...).Count(&count)
+	xenv.Db.Model(&u).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
@@ -261,18 +262,18 @@ func GetUserAuth(userId int) (auth []Auth) {
 	}
 	var dbRole []Role
 	var whereAuthId []string
-	Db.Model(Role{}).Select("auth").Find(&dbRole, "id in (?)", roleId)
+	xenv.Db.Model(Role{}).Select("auth").Find(&dbRole, "id in (?)", roleId)
 	for _, v := range dbRole {
 		whereAuthId = append(whereAuthId, v.Auth)
 	}
-	Db.Find(&auth, "id in (?)", strings.Split(strings.Join(whereAuthId, ","), ","))
+	xenv.Db.Find(&auth, "id in (?)", strings.Split(strings.Join(whereAuthId, ","), ","))
 	return
 }
 
 func GetAllUser() (mapping map[int]response.UserNames) {
 	var users []response.UserNames
 	mapping = make(map[int]response.UserNames)
-	Db.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
+	xenv.Db.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
 	for _, user := range users {
 		mapping[user.Id] = user
 	}
@@ -281,13 +282,13 @@ func GetAllUser() (mapping map[int]response.UserNames) {
 
 // 根据条件获取多个角色
 func GetUsersByWhere(where ...interface{}) (res []AdminUser, err error) {
-	err = Db.Find(&res, where...).Error
+	err = xenv.Db.Find(&res, where...).Error
 	return
 }
 
 // 编辑用户
 func (u *AdminUser) EditToken(token string, username string) error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	adminUser := GetUserByWhere("user_name = ?", username)
 	if err := tx.Model(&adminUser).
 		Updates(AdminUser{Token: token, LastLoginTime: time.Now(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, adminUser.Secret)}).Error; err != nil {

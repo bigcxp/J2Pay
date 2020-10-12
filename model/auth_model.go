@@ -2,6 +2,7 @@ package model
 
 import (
 	"j2pay-server/model/response"
+	"j2pay-server/xenv"
 )
 
 type Auth struct {
@@ -16,13 +17,13 @@ type Auth struct {
 
 // 查询所有权限
 func GetAllAuth(where ...interface{}) (res []response.Auth) {
-	Db.Model(Auth{}).Find(&res, where...)
+	xenv.Db.Model(Auth{}).Find(&res, where...)
 	return
 }
 
 // 查询所有权限
 func GetAllBaseAuth(where ...interface{}) (res []Auth) {
-	Db.Model(Auth{}).
+	xenv.Db.Model(Auth{}).
 		Order("id asc").
 		Find(&res, where...)
 	return

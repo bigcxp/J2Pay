@@ -53,3 +53,13 @@ type Jwt struct {
 type Eth struct {
 	Url string
 }
+
+// AesKey 配置
+type Aes struct {
+	Key string
+}
+
+// Sqlx 配置
+type Sqlx struct {
+	Name string
+}

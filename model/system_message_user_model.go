@@ -1,5 +1,7 @@
 package model
 
+import "j2pay-server/xenv"
+
 type SystemMessageUser struct {
 	AdminUserId     int
 	SystemMessageId int
@@ -9,7 +11,7 @@ type SystemMessageUser struct {
 // [系统消息ID] => [用户ID_1, 用户ID_2, 用户ID_3]
 func GetMessageUserMapping() map[int][]int {
 	var all []SystemMessageUser
-	Db.Select([]string{"system_message_id", "admin_user_id"}).
+	xenv.Db.Select([]string{"system_message_id", "admin_user_id"}).
 		Where("system_message_id !=0 ").
 		Find(&all)
 
@@ -34,7 +36,7 @@ func GetMessageUserMapping() map[int][]int {
 // [用户ID] => [公告ID_1, 公告ID_2, 公告ID_3]
 func GetUserMessageMapping() map[int][]int {
 	var all []SystemMessageUser
-	Db.Select([]string{"system_message_id", "admin_user_id"}).
+	xenv.Db.Select([]string{"system_message_id", "admin_user_id"}).
 		Where("admin_user_id != 0 ").
 		Find(&all)
 	hash := make(map[int][]int)

@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/jinzhu/gorm"
 	"j2pay-server/model/response"
+	"j2pay-server/xenv"
 	"time"
 )
 
@@ -24,8 +25,8 @@ func (f *Fee) GetAll(page, pageSize int, where ...interface{}) (response.FeePage
 		Data:        []response.FeeList{},
 	}
 	//分页查询
-	offset := GetOffset(page, pageSize)
-	err := Db.Model(&f).Order("id desc").Limit(pageSize).Offset(offset).Select("user.real_name, fee.*").Joins("inner join admin_user as user on fee.user_id = user.id").Find(&all.Data, where...).Error
+	offset := xenv.GetOffset(page, pageSize)
+	err := xenv.Db.Model(&f).Order("id desc").Limit(pageSize).Offset(offset).Select("user.real_name, fee.*").Joins("inner join admin_user as user on fee.user_id = user.id").Find(&all.Data, where...).Error
 	if err != nil {
 		return response.FeePage{}, err
 	}
@@ -34,7 +35,7 @@ func (f *Fee) GetAll(page, pageSize int, where ...interface{}) (response.FeePage
 
 //手续费结账
 func (f *Fee) Settlement(id uint) error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	fee := GetFeeByWhere("id = ?", id)
 	if err := tx.Model(&fee).
 		Updates(Fee{Status: 2}).Error; err != nil {
@@ -47,7 +48,7 @@ func (f *Fee) Settlement(id uint) error {
 
 //创建手续费记录
 func (f *Fee) Create() error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	f.CreatedAt = time.Now()
 	if err := tx.Create(f).Error; err != nil {
 		tx.Rollback()
@@ -61,16 +62,16 @@ func (f *Fee) Create() error {
 // 获取所有手续费列表数量
 func (f *Fee) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Db.Model(&f).Count(&count)
+		xenv.Db.Model(&f).Count(&count)
 		return
 	}
-	Db.Model(&f).Where(where[0], where[1:]...).Count(&count)
+	xenv.Db.Model(&f).Where(where[0], where[1:]...).Count(&count)
 	return
 
 }
 
 // 根据条件获取详情
 func GetFeeByWhere(where ...interface{}) (fe Fee) {
-	Db.First(&fe, where...)
+	xenv.Db.First(&fe, where...)
 	return
 }

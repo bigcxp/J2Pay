@@ -13,6 +13,8 @@ var (
 	JwtConf         = Jwt{}
 	CaptchaConf     = Captcha{}
 	EthConf         = Eth{}
+	AesConf         = Aes{}
+	SqlxConf           = Sqlx{}
 )
 
 func Setup() {
@@ -46,6 +48,13 @@ func Setup() {
 	}
 	if err := viper.UnmarshalKey("eth", &EthConf); err != nil {
 		log.Panic("eth配置文件格式错误", err)
+	}
+
+	if err := viper.UnmarshalKey("Aes", &AesConf); err != nil {
+		log.Panic("Aes配置文件格式错误", err)
+	}
+	if err := viper.UnmarshalKey("sqlx", &SqlxConf); err != nil {
+		log.Panic("Aes配置文件格式错误", err)
 	}
 
 }

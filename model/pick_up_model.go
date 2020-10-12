@@ -4,6 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"j2pay-server/model/response"
 	"j2pay-server/validate"
+	"j2pay-server/xenv"
 	"time"
 )
 
@@ -33,8 +34,8 @@ func (p *Pick) GetAllPick(page, pageSize int, where ...interface{}) (response.Pi
 		Data:        []response.PickList{},
 	}
 	//分页查询
-	offset := GetOffset(page, pageSize)
-	err := Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	offset := xenv.GetOffset(page, pageSize)
+	err := xenv.Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.PickUpPage{}, err
 	}
@@ -54,8 +55,8 @@ func (p *Pick) GetAllSend(page, pageSize int, where ...interface{}) (response.Se
 		Data:        []response.SendList{},
 	}
 	//分页查询
-	offset := GetOffset(page, pageSize)
-	err := Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	offset := xenv.GetOffset(page, pageSize)
+	err := xenv.Db.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.SendPage{}, err
 	}
@@ -79,8 +80,8 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.Mercha
 		Data:        []response.MerchantPickList{},
 	}
 	//分页查询
-	offset := GetOffset(page, pageSize)
-	err := Db.Table("pick").Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	offset := xenv.GetOffset(page, pageSize)
+	err := xenv.Db.Table("pick").Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.MerchantPickSendPage{}, err
 	}
@@ -95,10 +96,10 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.Mercha
 // 获取所有提领订单数量
 func (p *Pick) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Db.Model(&p).Count(&count)
+		xenv.Db.Model(&p).Count(&count)
 		return
 	}
-	Db.Model(&p).Where(where[0], where[1:]...).Count(&count)
+	xenv.Db.Model(&p).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
@@ -108,7 +109,7 @@ func (p *Pick) GetPickDetail(id ...int) (res response.PickList, err error) {
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = Db.Table("pick").
+	err = xenv.Db.Table("pick").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -122,7 +123,7 @@ func (p *Pick) GetSendDetail(id ...int) (res response.SendList, err error) {
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = Db.Table("pick").
+	err = xenv.Db.Table("pick").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -137,7 +138,7 @@ func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err 
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = Db.Table("pick").
+	err = xenv.Db.Table("pick").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -149,7 +150,7 @@ func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err 
 
 //取消代发 取消提领
 func (p *Pick) CancelPick(id, status int) (err error) {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -165,7 +166,7 @@ func (p *Pick) CancelPick(id, status int) (err error) {
 
 // 商户端创建提领或者代发订单
 func (p *Pick) Create() error {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	p.CreatedAt = time.Now()
 	p.FinishTime = time.Now()
 	if err := tx.Create(p).Error; err != nil {
@@ -182,7 +183,7 @@ func (p *Pick) getAmount() float64 {
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
-	err := Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
+	err := xenv.Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -198,7 +199,7 @@ func (p *Pick) getFee() float64 {
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
-	err := Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
+	err := xenv.Db.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -210,6 +211,6 @@ func (p *Pick) getFee() float64 {
 
 // 根据条件获取详情
 func GetPickByWhere(where ...interface{}) (pi Pick) {
-	Db.First(&pi, where...)
+	xenv.Db.First(&pi, where...)
 	return
 }

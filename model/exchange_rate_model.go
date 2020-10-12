@@ -4,6 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"j2pay-server/model/request"
 	"j2pay-server/model/response"
+	"j2pay-server/xenv"
 )
 
 //汇率表
@@ -26,7 +27,7 @@ func (r *Rate) GetAllRate() response.RatePage {
 	all := response.RatePage{
 		Data: []response.Rate{},
 	}
-	Db.Find(&all.Data)
+	xenv.Db.Find(&all.Data)
 	return all
 }
 
@@ -36,7 +37,7 @@ func (r *Rate) Detail(id ...int) (res response.Rate, err error) {
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = Db.Table("rate").
+	err = xenv.Db.Table("rate").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -45,7 +46,7 @@ func (r *Rate) Detail(id ...int) (res response.Rate, err error) {
 
 //修改代收、代发加权
 func (r *Rate) Update(rate request.RateEdit) (err error) {
-	tx := Db.Begin()
+	tx := xenv.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -64,6 +65,6 @@ func (r *Rate) Update(rate request.RateEdit) (err error) {
 
 // 根据条件获取详情
 func GetRateByWhere(where ...interface{}) (ra Rate) {
-	Db.First(&ra, where...)
+	xenv.Db.First(&ra, where...)
 	return
 }
