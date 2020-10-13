@@ -3,8 +3,8 @@ package casbin
 import (
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v2"
+	"j2pay-server/model"
 	"j2pay-server/pkg/setting"
-	"j2pay-server/xenv"
 	"os"
 )
 
@@ -19,7 +19,7 @@ func InitCasbin() (*casbin.Enforcer, error) {
 	if Enforcer != nil {
 		return Enforcer, nil
 	}
-	adapter, err := gormadapter.NewAdapterByDB(xenv.Db)
+	adapter, err := gormadapter.NewAdapterByDB(model.Db)
 	if err != nil {
 		return nil, err
 	}

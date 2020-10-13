@@ -5,20 +5,17 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"j2pay-server/app"
-	"j2pay-server/app/model"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/shopspring/decimal"
+	"j2pay-server/common"
 	"j2pay-server/ethclient"
 	"j2pay-server/hcommon"
+	model2 "j2pay-server/model"
 	"j2pay-server/pkg/setting"
 	"math/big"
 	"regexp"
 	"strings"
-
-	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/shopspring/decimal"
-
-	"github.com/ethereum/go-ethereum/common"
 )
 
 const (
@@ -46,7 +43,7 @@ func GetNonce(tx hcommon.DbExeAble, address string) (int64, error) {
 		return 0, err
 	}
 	// 获取db nonce
-	dbNonce, err := app.SQLGetTSendMaxNonce(
+	dbNonce, err := common.SQLGetTSendMaxNonce(
 		context.Background(),
 		tx,
 		address,
@@ -139,13 +136,13 @@ func TokenWeiBigIntToEthStr(wei *big.Int, tokenDecimals int64) (string, error) {
 // GetPKMapOfAddresses 获取地址私钥
 func GetPKMapOfAddresses(ctx context.Context, db hcommon.DbExeAble, addresses []string) (map[string]*ecdsa.PrivateKey, error) {
 	addressPKMap := make(map[string]*ecdsa.PrivateKey)
-	addressKeyMap, err := app.SQLGetAddressKeyMap(
+	addressKeyMap, err := common.SQLGetAddressKeyMap(
 		ctx,
 		db,
 		[]string{
-			model.DBColTAddressKeyID,
-			model.DBColTAddressKeyAddress,
-			model.DBColTAddressKeyPwd,
+			model2.DBColTAddressKeyID,
+			model2.DBColTAddressKeyAddress,
+			model2.DBColTAddressKeyPwd,
 		},
 		addresses,
 	)
@@ -175,11 +172,11 @@ func GetPKMapOfAddresses(ctx context.Context, db hcommon.DbExeAble, addresses []
 // GetPkOfAddress 获取地址私钥
 func GetPkOfAddress(ctx context.Context, db hcommon.DbExeAble, address string) (*ecdsa.PrivateKey, error) {
 	// 获取私钥
-	keyRow, err := app.SQLGetTAddressKeyColByAddress(
+	keyRow, err := common.SQLGetTAddressKeyColByAddress(
 		ctx,
 		db,
 		[]string{
-			model.DBColTAddressKeyPwd,
+			model2.DBColTAddressKeyPwd,
 		},
 		address,
 	)

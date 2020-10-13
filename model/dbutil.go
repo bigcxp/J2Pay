@@ -1,9 +1,8 @@
-package db
+package model
 import (
-"fmt"
+	"fmt"
 "github.com/jinzhu/gorm"
 _ "github.com/jinzhu/gorm/dialects/mysql"
-	"j2pay-server/model"
 	"j2pay-server/pkg/setting"
 "log"
 )
@@ -30,7 +29,7 @@ func Setup() {
 
 	Db.SingularTable(true)
 	Db.LogMode(true)
-	Db.SetLogger(&model.GormLogger{})
+	Db.SetLogger(&GormLogger{})
 	Db.DB().SetMaxIdleConns(setting.MysqlConf.MaxIdle)
 	Db.DB().SetMaxOpenConns(setting.MysqlConf.MaxActive)
 	AutoMigrate()
@@ -39,14 +38,6 @@ func Setup() {
 		InitSql()
 	}
 }
-
-// EnvDestroy 销毁运行环境
-func EnvDestroy() {
-	if Db != nil {
-		_ = Db.Close()
-	}
-}
-
 // 通用分页获取偏移量
 func GetOffset(page, pageSize int) int {
 	if page <= 1 {
@@ -74,19 +65,19 @@ func MultiOr(where ...interface{}) func(*gorm.DB) *gorm.DB {
 
 // 自动创建修改表
 func AutoMigrate() {
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '后台用户'").AutoMigrate(&model.AdminUser{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '角色'").AutoMigrate(&model.Role{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '权限'").AutoMigrate(&model.Auth{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT 'casbin policy 配置'").AutoMigrate(&model.CasbinRule{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统公告'").AutoMigrate(&model.SystemMessage{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商户提领'").AutoMigrate(&model.Pick{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '订单'").AutoMigrate(&model.Order{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '退款订单'").AutoMigrate(&model.Return{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '手续费结账'").AutoMigrate(&model.Fee{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '实收明细记录'").AutoMigrate(&model.DetailedRecord{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统参数设定'").AutoMigrate(&model.Parameter{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '汇率表'").AutoMigrate(&model.Rate{})
-	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '收款地址表'").AutoMigrate(&model.Address{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '后台用户'").AutoMigrate(&AdminUser{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '角色'").AutoMigrate(&Role{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '权限'").AutoMigrate(&Auth{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商户提领'").AutoMigrate(&Pick{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '订单'").AutoMigrate(&Order{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '退款订单'").AutoMigrate(&Return{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '手续费结账'").AutoMigrate(&Fee{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '实收明细记录'").AutoMigrate(&DetailedRecord{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统参数设定'").AutoMigrate(&Parameter{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '汇率表'").AutoMigrate(&Rate{})
+	Db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '收款地址表'").AutoMigrate(&Address{})
 }
 
 func InitSql() {

@@ -7,19 +7,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"j2pay-server/app"
-	"j2pay-server/app/model"
+	"github.com/parnurzeal/gorequest"
+
 	"j2pay-server/ethclient"
 	"j2pay-server/hcommon"
+	"j2pay-server/model"
 	"j2pay-server/pkg/setting"
-	"j2pay-server/xenv"
 	"math"
 	"math/big"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/parnurzeal/gorequest"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
@@ -91,9 +89,9 @@ func CreateHotAddress(num int64) ([]string, error) {
 // CheckAddressFree 检测是否有充足的备用地址
 func CheckAddressFree() {
 	lockKey := "EthCheckAddressFree"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		// 获取配置 允许的最小剩余地址数
-		minFreeCount, err := app.SQLGetTAppConfigIntValueByK(
+		minFreeCount, err := common.SQLGetTAppConfigIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"min_free_address",
@@ -103,7 +101,7 @@ func CheckAddressFree() {
 			return
 		}
 		// 获取当前剩余可用地址数
-		freeCount, err := app.SQLGetTAddressKeyFreeCount(
+		freeCount, err := common.SQLGetTAddressKeyFreeCount(
 			context.Background(),
 			xenv.DbCon,
 			CoinSymbol,
@@ -146,9 +144,9 @@ func CheckAddressFree() {
 // CheckBlockSeek 检测到账
 func CheckBlockSeek() {
 	lockKey := "EthCheckBlockSeek"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		// 获取配置 延迟确认数
-		confirmValue, err := app.SQLGetTAppConfigIntValueByK(
+		confirmValue, err := common.SQLGetTAppConfigIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"block_confirm_num",
@@ -158,7 +156,7 @@ func CheckBlockSeek() {
 			return
 		}
 		// 获取状态 当前处理完成的最新的block number
-		seekValue, err := app.SQLGetTAppStatusIntValueByK(
+		seekValue, err := common.SQLGetTAppStatusIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"seek_num",
@@ -177,7 +175,7 @@ func CheckBlockSeek() {
 		endI := rpcBlockNum - confirmValue + 1
 		if startI < endI {
 			// 手续费钱包列表
-			feeAddressValue, err := app.SQLGetTAppConfigStrValueByK(
+			feeAddressValue, err := common.SQLGetTAppConfigStrValueByK(
 				context.Background(),
 				xenv.DbCon,
 				"fee_wallet_address_list",
@@ -228,7 +226,7 @@ func CheckBlockSeek() {
 					}
 				}
 				// 从db中查询这些地址是否是冲币地址中的地址
-				dbAddressRows, err := app.SQLSelectTAddressKeyColByAddress(
+				dbAddressRows, err := common.SQLSelectTAddressKeyColByAddress(
 					context.Background(),
 					xenv.DbCon,
 					[]string{
@@ -277,10 +275,10 @@ func CheckBlockSeek() {
 							ToAddress:    toAddress,
 							BalanceReal:  balanceReal,
 							CreateTime:   now,
-							HandleStatus: app.TxStatusInit,
+							HandleStatus: common.TxStatusInit,
 							HandleMsg:    "",
 							HandleTime:   now,
-							OrgStatus:    app.TxOrgStatusInit,
+							OrgStatus:    common.TxOrgStatusInit,
 							OrgMsg:       "",
 							OrgTime:      now,
 						})
@@ -297,7 +295,7 @@ func CheckBlockSeek() {
 					return
 				}
 				// 更新检查到的最新区块数
-				_, err = app.SQLUpdateTAppStatusIntByKGreater(
+				_, err = common.SQLUpdateTAppStatusIntByKGreater(
 					context.Background(),
 					xenv.DbCon,
 					&model.DBTAppStatusInt{
@@ -317,9 +315,9 @@ func CheckBlockSeek() {
 // CheckAddressOrg 零钱整理到冷钱包
 func CheckAddressOrg() {
 	lockKey := "EthCheckAddressOrg"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		// 获取冷钱包地址
-		coldAddressValue, err := app.SQLGetTAppConfigStrValueByK(
+		coldAddressValue, err := common.SQLGetTAppConfigStrValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"cold_wallet_address",
@@ -346,7 +344,7 @@ func CheckAddressOrg() {
 			}
 		}()
 		// 获取待整理的交易列表
-		txRows, err := app.SQLSelectTTxColByOrgForUpdate(
+		txRows, err := common.SQLSelectTTxColByOrgForUpdate(
 			context.Background(),
 			dbTx,
 			[]string{
@@ -354,7 +352,7 @@ func CheckAddressOrg() {
 				model.DBColTTxToAddress,
 				model.DBColTTxBalanceReal,
 			},
-			app.TxOrgStatusInit,
+			common.TxOrgStatusInit,
 		)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -365,7 +363,7 @@ func CheckAddressOrg() {
 			return
 		}
 		// 获取gap price
-		gasPriceValue, err := app.SQLGetTAppStatusIntValueByK(
+		gasPriceValue, err := common.SQLGetTAppStatusIntValueByK(
 			context.Background(),
 			dbTx,
 			"to_cold_gas_price",
@@ -476,7 +474,7 @@ func CheckAddressOrg() {
 				if rowIndex == 0 {
 					// 只有第一条数据需要发送，其余数据为占位数据
 					sendRows = append(sendRows, &model.DBTSend{
-						RelatedType:  app.SendRelationTypeTx,
+						RelatedType:  common.SendRelationTypeTx,
 						RelatedID:    rowID,
 						TxID:         txHash,
 						FromAddress:  address,
@@ -487,14 +485,14 @@ func CheckAddressOrg() {
 						Nonce:        nonce,
 						Hex:          rawTxHex,
 						CreateTime:   now,
-						HandleStatus: app.SendStatusInit,
+						HandleStatus: common.SendStatusInit,
 						HandleMsg:    "",
 						HandleTime:   now,
 					})
 				} else {
 					// 占位数据
 					sendRows = append(sendRows, &model.DBTSend{
-						RelatedType:  app.SendRelationTypeTx,
+						RelatedType:  common.SendRelationTypeTx,
 						RelatedID:    rowID,
 						TxID:         txHash,
 						FromAddress:  address,
@@ -505,7 +503,7 @@ func CheckAddressOrg() {
 						Nonce:        -1,
 						Hex:          "",
 						CreateTime:   now,
-						HandleStatus: app.SendStatusInit,
+						HandleStatus: common.SendStatusInit,
 						HandleMsg:    "",
 						HandleTime:   now,
 					})
@@ -522,12 +520,12 @@ func CheckAddressOrg() {
 				return
 			}
 			// 更改tx整理状态
-			_, err = app.SQLUpdateTTxOrgStatusByIDs(
+			_, err = common.SQLUpdateTTxOrgStatusByIDs(
 				context.Background(),
 				dbTx,
 				info.RowIDs,
 				model.DBTTx{
-					OrgStatus: app.TxOrgStatusHex,
+					OrgStatus: common.TxOrgStatusHex,
 					OrgMsg:    "gen raw tx",
 					OrgTime:   now,
 				},
@@ -550,9 +548,9 @@ func CheckAddressOrg() {
 // CheckRawTxSend 发送交易
 func CheckRawTxSend() {
 	lockKey := "EthCheckRawTxSend"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		// 获取待发送的数据
-		sendRows, err := app.SQLSelectTSendColByStatus(
+		sendRows, err := common.SQLSelectTSendColByStatus(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -562,7 +560,7 @@ func CheckRawTxSend() {
 				model.DBColTSendRelatedType,
 				model.DBColTSendRelatedID,
 			},
-			app.SendStatusInit,
+			common.SendStatusInit,
 		)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -572,13 +570,13 @@ func CheckRawTxSend() {
 		var withdrawIDs []int64
 		for _, sendRow := range sendRows {
 			switch sendRow.RelatedType {
-			case app.SendRelationTypeWithdraw:
+			case common.SendRelationTypeWithdraw:
 				if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 					withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 				}
 			}
 		}
-		withdrawMap, err := app.SQLGetWithdrawMap(
+		withdrawMap, err := common.SQLGetWithdrawMap(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -598,7 +596,7 @@ func CheckRawTxSend() {
 				productIDs = append(productIDs, withdrawRow.ProductID)
 			}
 		}
-		productMap, err := app.SQLGetProductMap(
+		productMap, err := common.SQLGetProductMap(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -625,25 +623,25 @@ func CheckRawTxSend() {
 				sendIDs = append(sendIDs, sendRow.ID)
 			}
 			switch sendRow.RelatedType {
-			case app.SendRelationTypeTx:
+			case common.SendRelationTypeTx:
 				if !hcommon.IsIntInSlice(txIDs, sendRow.RelatedID) {
 					txIDs = append(txIDs, sendRow.RelatedID)
 				}
-			case app.SendRelationTypeWithdraw:
+			case common.SendRelationTypeWithdraw:
 				if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 					withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 				}
-			case app.SendRelationTypeTxErc20:
+			case common.SendRelationTypeTxErc20:
 				if !hcommon.IsIntInSlice(erc20TxIDs, sendRow.RelatedID) {
 					erc20TxIDs = append(erc20TxIDs, sendRow.RelatedID)
 				}
-			case app.SendRelationTypeTxErc20Fee:
+			case common.SendRelationTypeTxErc20Fee:
 				if !hcommon.IsIntInSlice(erc20TxFeeIDs, sendRow.RelatedID) {
 					erc20TxFeeIDs = append(erc20TxFeeIDs, sendRow.RelatedID)
 				}
 			}
 			// 如果是提币，创建通知信息
-			if sendRow.RelatedType == app.SendRelationTypeWithdraw {
+			if sendRow.RelatedType == common.SendRelationTypeWithdraw {
 				withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 				if !ok {
 					hcommon.Log.Errorf("withdrawMap no: %d", sendRow.RelatedID)
@@ -662,7 +660,7 @@ func CheckRawTxSend() {
 					"out_serial":  withdrawRow.OutSerial,
 					"address":     withdrawRow.ToAddress,
 					"symbol":      withdrawRow.Symbol,
-					"notify_type": app.NotifyTypeWithdrawSend,
+					"notify_type": common.NotifyTypeWithdrawSend,
 				}
 				reqObj["sign"] = hcommon.GetSign(productRow.AppSk, reqObj)
 				req, err := json.Marshal(reqObj)
@@ -673,13 +671,13 @@ func CheckRawTxSend() {
 				notifyRows = append(notifyRows, &model.DBTProductNotify{
 					Nonce:        nonce,
 					ProductID:    withdrawRow.ProductID,
-					ItemType:     app.SendRelationTypeWithdraw,
+					ItemType:     common.SendRelationTypeWithdraw,
 					ItemID:       withdrawRow.ID,
-					NotifyType:   app.NotifyTypeWithdrawSend,
+					NotifyType:   common.NotifyTypeWithdrawSend,
 					TokenSymbol:  withdrawRow.Symbol,
 					URL:          productRow.CbURL,
 					Msg:          string(req),
-					HandleStatus: app.NotifyStatusInit,
+					HandleStatus: common.NotifyStatusInit,
 					HandleMsg:    "",
 					CreateTime:   now,
 					UpdateTime:   now,
@@ -737,12 +735,12 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新提币状态
-		_, err = app.SQLUpdateTWithdrawStatusByIDs(
+		_, err = common.SQLUpdateTWithdrawStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			withdrawIDs,
 			&model.DBTWithdraw{
-				HandleStatus: app.WithdrawStatusSend,
+				HandleStatus: common.WithdrawStatusSend,
 				HandleMsg:    "send",
 				HandleTime:   now,
 			},
@@ -752,12 +750,12 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新eth零钱整理状态
-		_, err = app.SQLUpdateTTxOrgStatusByIDs(
+		_, err = common.SQLUpdateTTxOrgStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			txIDs,
 			model.DBTTx{
-				OrgStatus: app.TxOrgStatusSend,
+				OrgStatus: common.TxOrgStatusSend,
 				OrgMsg:    "send",
 				OrgTime:   now,
 			},
@@ -767,12 +765,12 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新erc20零钱整理状态
-		_, err = app.SQLUpdateTTxErc20OrgStatusByIDs(
+		_, err = common.SQLUpdateTTxErc20OrgStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			erc20TxIDs,
 			model.DBTTxErc20{
-				OrgStatus: app.TxOrgStatusSend,
+				OrgStatus: common.TxOrgStatusSend,
 				OrgMsg:    "send",
 				OrgTime:   now,
 			},
@@ -782,12 +780,12 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新erc20手续费状态
-		_, err = app.SQLUpdateTTxErc20OrgStatusByIDs(
+		_, err = common.SQLUpdateTTxErc20OrgStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			erc20TxFeeIDs,
 			model.DBTTxErc20{
-				OrgStatus: app.TxOrgStatusFeeSend,
+				OrgStatus: common.TxOrgStatusFeeSend,
 				OrgMsg:    "send",
 				OrgTime:   now,
 			},
@@ -797,12 +795,12 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新发送状态
-		_, err = app.SQLUpdateTSendStatusByIDs(
+		_, err = common.SQLUpdateTSendStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			sendIDs,
 			model.DBTSend{
-				HandleStatus: app.SendStatusSend,
+				HandleStatus: common.SendStatusSend,
 				HandleMsg:    "send",
 				HandleTime:   now,
 			},
@@ -817,8 +815,8 @@ func CheckRawTxSend() {
 // CheckRawTxConfirm 确认tx是否打包完成
 func CheckRawTxConfirm() {
 	lockKey := "EthCheckRawTxConfirm"
-	app.LockWrap(lockKey, func() {
-		sendRows, err := app.SQLSelectTSendColByStatus(
+	common.LockWrap(lockKey, func() {
+		sendRows, err := common.SQLSelectTSendColByStatus(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -828,7 +826,7 @@ func CheckRawTxConfirm() {
 				model.DBColTSendID,
 				model.DBColTSendTxID,
 			},
-			app.SendStatusSend,
+			common.SendStatusSend,
 		)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -836,14 +834,14 @@ func CheckRawTxConfirm() {
 		}
 		var withdrawIDs []int64
 		for _, sendRow := range sendRows {
-			if sendRow.RelatedType == app.SendRelationTypeWithdraw {
+			if sendRow.RelatedType == common.SendRelationTypeWithdraw {
 				// 提币
 				if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 					withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 				}
 			}
 		}
-		withdrawMap, err := app.SQLGetWithdrawMap(
+		withdrawMap, err := common.SQLGetWithdrawMap(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -866,7 +864,7 @@ func CheckRawTxConfirm() {
 				productIDs = append(productIDs, withdrawRow.ProductID)
 			}
 		}
-		productMap, err := app.SQLGetProductMap(
+		productMap, err := common.SQLGetProductMap(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -905,7 +903,7 @@ func CheckRawTxConfirm() {
 				}
 				sendHashes = append(sendHashes, sendRow.TxID)
 			}
-			if sendRow.RelatedType == app.SendRelationTypeWithdraw {
+			if sendRow.RelatedType == common.SendRelationTypeWithdraw {
 				// 提币
 				withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 				if !ok {
@@ -925,7 +923,7 @@ func CheckRawTxConfirm() {
 					"out_serial":  withdrawRow.OutSerial,
 					"address":     withdrawRow.ToAddress,
 					"symbol":      withdrawRow.Symbol,
-					"notify_type": app.NotifyTypeWithdrawConfirm,
+					"notify_type": common.NotifyTypeWithdrawConfirm,
 				}
 				reqObj["sign"] = hcommon.GetSign(productRow.AppSk, reqObj)
 				req, err := json.Marshal(reqObj)
@@ -936,13 +934,13 @@ func CheckRawTxConfirm() {
 				notifyRows = append(notifyRows, &model.DBTProductNotify{
 					Nonce:        nonce,
 					ProductID:    withdrawRow.ProductID,
-					ItemType:     app.SendRelationTypeWithdraw,
+					ItemType:     common.SendRelationTypeWithdraw,
 					ItemID:       withdrawRow.ID,
-					NotifyType:   app.NotifyTypeWithdrawConfirm,
+					NotifyType:   common.NotifyTypeWithdrawConfirm,
 					TokenSymbol:  withdrawRow.Symbol,
 					URL:          productRow.CbURL,
 					Msg:          string(req),
-					HandleStatus: app.NotifyStatusInit,
+					HandleStatus: common.NotifyStatusInit,
 					HandleMsg:    "",
 					CreateTime:   now,
 					UpdateTime:   now,
@@ -954,19 +952,19 @@ func CheckRawTxConfirm() {
 				sendIDs = append(sendIDs, sendRow.ID)
 			}
 			switch sendRow.RelatedType {
-			case app.SendRelationTypeTx:
+			case common.SendRelationTypeTx:
 				if !hcommon.IsIntInSlice(txIDs, sendRow.RelatedID) {
 					txIDs = append(txIDs, sendRow.RelatedID)
 				}
-			case app.SendRelationTypeWithdraw:
+			case common.SendRelationTypeWithdraw:
 				if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 					withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 				}
-			case app.SendRelationTypeTxErc20:
+			case common.SendRelationTypeTxErc20:
 				if !hcommon.IsIntInSlice(erc20TxIDs, sendRow.RelatedID) {
 					erc20TxIDs = append(erc20TxIDs, sendRow.RelatedID)
 				}
-			case app.SendRelationTypeTxErc20Fee:
+			case common.SendRelationTypeTxErc20Fee:
 				if !hcommon.IsIntInSlice(erc20TxFeeIDs, sendRow.RelatedID) {
 					erc20TxFeeIDs = append(erc20TxFeeIDs, sendRow.RelatedID)
 				}
@@ -983,12 +981,12 @@ func CheckRawTxConfirm() {
 			return
 		}
 		// 更新提币状态
-		_, err = app.SQLUpdateTWithdrawStatusByIDs(
+		_, err = common.SQLUpdateTWithdrawStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			withdrawIDs,
 			&model.DBTWithdraw{
-				HandleStatus: app.WithdrawStatusConfirm,
+				HandleStatus: common.WithdrawStatusConfirm,
 				HandleMsg:    "confirmed",
 				HandleTime:   now,
 			},
@@ -998,12 +996,12 @@ func CheckRawTxConfirm() {
 			return
 		}
 		// 更新eth零钱整理状态
-		_, err = app.SQLUpdateTTxOrgStatusByIDs(
+		_, err = common.SQLUpdateTTxOrgStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			txIDs,
 			model.DBTTx{
-				OrgStatus: app.TxOrgStatusConfirm,
+				OrgStatus: common.TxOrgStatusConfirm,
 				OrgMsg:    "confirm",
 				OrgTime:   now,
 			},
@@ -1013,12 +1011,12 @@ func CheckRawTxConfirm() {
 			return
 		}
 		// 更新erc20零钱整理状态
-		_, err = app.SQLUpdateTTxErc20OrgStatusByIDs(
+		_, err = common.SQLUpdateTTxErc20OrgStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			erc20TxIDs,
 			model.DBTTxErc20{
-				OrgStatus: app.TxOrgStatusConfirm,
+				OrgStatus: common.TxOrgStatusConfirm,
 				OrgMsg:    "confirm",
 				OrgTime:   now,
 			},
@@ -1028,12 +1026,12 @@ func CheckRawTxConfirm() {
 			return
 		}
 		// 更新erc20零钱整理eth手续费状态
-		_, err = app.SQLUpdateTTxErc20OrgStatusByIDs(
+		_, err = common.SQLUpdateTTxErc20OrgStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			erc20TxFeeIDs,
 			model.DBTTxErc20{
-				OrgStatus: app.TxOrgStatusFeeConfirm,
+				OrgStatus: common.TxOrgStatusFeeConfirm,
 				OrgMsg:    "eth fee confirmed",
 				OrgTime:   now,
 			},
@@ -1043,12 +1041,12 @@ func CheckRawTxConfirm() {
 			return
 		}
 		// 更新发送状态
-		_, err = app.SQLUpdateTSendStatusByIDs(
+		_, err = common.SQLUpdateTSendStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			sendIDs,
 			model.DBTSend{
-				HandleStatus: app.SendStatusConfirm,
+				HandleStatus: common.SendStatusConfirm,
 				HandleMsg:    "confirmed",
 				HandleTime:   now,
 			},
@@ -1059,15 +1057,15 @@ func CheckRawTxConfirm() {
 // CheckWithdraw 检测提现
 func CheckWithdraw() {
 	lockKey := "EthCheckWithdraw"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		// 获取需要处理的提币数据
-		withdrawRows, err := app.SQLSelectTWithdrawColByStatus(
+		withdrawRows, err := common.SQLSelectTWithdrawColByStatus(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
 				model.DBColTWithdrawID,
 			},
-			app.WithdrawStatusInit,
+			common.WithdrawStatusInit,
 			[]string{CoinSymbol},
 		)
 		if err != nil {
@@ -1079,7 +1077,7 @@ func CheckWithdraw() {
 			return
 		}
 		// 获取热钱包地址
-		hotAddressValue, err := app.SQLGetTAppConfigStrValueByK(
+		hotAddressValue, err := common.SQLGetTAppConfigStrValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"hot_wallet_address",
@@ -1112,7 +1110,7 @@ func CheckWithdraw() {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
-		pendingBalanceRealStr, err := app.SQLGetTSendPendingBalanceReal(
+		pendingBalanceRealStr, err := common.SQLGetTSendPendingBalanceReal(
 			context.Background(),
 			xenv.DbCon,
 			hotAddressValue,
@@ -1128,7 +1126,7 @@ func CheckWithdraw() {
 		}
 		hotAddressBalance.Sub(hotAddressBalance, pendingBalance)
 		// 获取gap price
-		gasPriceValue, err := app.SQLGetTAppStatusIntValueByK(
+		gasPriceValue, err := common.SQLGetTAppStatusIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"to_user_gas_price",
@@ -1167,7 +1165,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 		}
 	}()
 	// 处理业务
-	withdrawRow, err := app.SQLGetTWithdrawColForUpdate(
+	withdrawRow, err := common.SQLGetTWithdrawColForUpdate(
 		context.Background(),
 		dbTx,
 		[]string{
@@ -1176,7 +1174,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 			model.DBColTWithdrawToAddress,
 		},
 		withdrawID,
-		app.WithdrawStatusInit,
+		common.WithdrawStatusInit,
 	)
 	if err != nil {
 		return err
@@ -1227,13 +1225,13 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	rawTxHex := hex.EncodeToString(rawTxBytes)
 	txHash := strings.ToLower(signedTx.Hash().Hex())
 	now := time.Now().Unix()
-	_, err = app.SQLUpdateTWithdrawGenTx(
+	_, err = common.SQLUpdateTWithdrawGenTx(
 		context.Background(),
 		dbTx,
 		&model.DBTWithdraw{
 			ID:           withdrawID,
 			TxHash:       txHash,
-			HandleStatus: app.WithdrawStatusHex,
+			HandleStatus: common.WithdrawStatusHex,
 			HandleMsg:    "gen tx hex",
 			HandleTime:   now,
 		},
@@ -1245,7 +1243,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 		context.Background(),
 		dbTx,
 		&model.DBTSend{
-			RelatedType:  app.SendRelationTypeWithdraw,
+			RelatedType:  common.SendRelationTypeWithdraw,
 			RelatedID:    withdrawID,
 			TxID:         txHash,
 			FromAddress:  hotAddress,
@@ -1255,7 +1253,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 			GasPrice:     gasPrice,
 			Nonce:        nonce,
 			Hex:          rawTxHex,
-			HandleStatus: app.SendStatusInit,
+			HandleStatus: common.SendStatusInit,
 			HandleMsg:    "init",
 			HandleTime:   now,
 		},
@@ -1275,8 +1273,8 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 // CheckTxNotify 创建eth冲币通知
 func CheckTxNotify() {
 	lockKey := "EthCheckTxNotify"
-	app.LockWrap(lockKey, func() {
-		txRows, err := app.SQLSelectTTxColByStatus(
+	common.LockWrap(lockKey, func() {
+		txRows, err := common.SQLSelectTTxColByStatus(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -1286,7 +1284,7 @@ func CheckTxNotify() {
 				model.DBColTTxToAddress,
 				model.DBColTTxBalanceReal,
 			},
-			app.TxStatusInit,
+			common.TxStatusInit,
 		)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -1298,7 +1296,7 @@ func CheckTxNotify() {
 				productIDs = append(productIDs, txRow.ProductID)
 			}
 		}
-		productMap, err := app.SQLGetProductMap(
+		productMap, err := common.SQLGetProductMap(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -1331,7 +1329,7 @@ func CheckTxNotify() {
 				"address":     txRow.ToAddress,
 				"balance":     txRow.BalanceReal,
 				"symbol":      CoinSymbol,
-				"notify_type": app.NotifyTypeTx,
+				"notify_type": common.NotifyTypeTx,
 			}
 			reqObj["sign"] = hcommon.GetSign(productRow.AppSk, reqObj)
 			req, err := json.Marshal(reqObj)
@@ -1342,13 +1340,13 @@ func CheckTxNotify() {
 			notifyRows = append(notifyRows, &model.DBTProductNotify{
 				Nonce:        nonce,
 				ProductID:    txRow.ProductID,
-				ItemType:     app.SendRelationTypeTx,
+				ItemType:     common.SendRelationTypeTx,
 				ItemID:       txRow.ID,
-				NotifyType:   app.NotifyTypeTx,
+				NotifyType:   common.NotifyTypeTx,
 				TokenSymbol:  CoinSymbol,
 				URL:          productRow.CbURL,
 				Msg:          string(req),
-				HandleStatus: app.NotifyStatusInit,
+				HandleStatus: common.NotifyStatusInit,
 				HandleMsg:    "",
 				CreateTime:   now,
 				UpdateTime:   now,
@@ -1364,12 +1362,12 @@ func CheckTxNotify() {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
-		_, err = app.SQLUpdateTTxStatusByIDs(
+		_, err = common.SQLUpdateTTxStatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			notifyTxIDs,
 			model.DBTTx{
-				HandleStatus: app.TxStatusNotify,
+				HandleStatus: common.TxStatusNotify,
 				HandleMsg:    "notify",
 				HandleTime:   now,
 			},
@@ -1384,9 +1382,9 @@ func CheckTxNotify() {
 // CheckErc20BlockSeek 检测erc20到账
 func CheckErc20BlockSeek() {
 	lockKey := "Erc20CheckBlockSeek"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		// 获取配置 延迟确认数
-		confirmValue, err := app.SQLGetTAppConfigIntValueByK(
+		confirmValue, err := common.SQLGetTAppConfigIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"block_confirm_num",
@@ -1396,7 +1394,7 @@ func CheckErc20BlockSeek() {
 			return
 		}
 		// 获取状态 当前处理完成的最新的block number
-		seekValue, err := app.SQLGetTAppStatusIntValueByK(
+		seekValue, err := common.SQLGetTAppStatusIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"erc20_seek_num",
@@ -1428,7 +1426,7 @@ func CheckErc20BlockSeek() {
 			// 获取所有token
 			var configTokenRowAddresses []string
 			configTokenRowMap := make(map[string]*model.DBTAppConfigToken)
-			configTokenRows, err := app.SQLSelectTAppConfigTokenColAll(
+			configTokenRows, err := common.SQLSelectTAppConfigTokenColAll(
 				context.Background(),
 				xenv.DbCon,
 				[]string{
@@ -1477,7 +1475,7 @@ func CheckErc20BlockSeek() {
 						toAddressLogMap[toAddress] = append(toAddressLogMap[toAddress], log)
 					}
 					// 从db中查询这些地址是否是冲币地址中的地址
-					dbAddressRows, err := app.SQLSelectTAddressKeyColByAddress(
+					dbAddressRows, err := common.SQLSelectTAddressKeyColByAddress(
 						context.Background(),
 						xenv.DbCon,
 						[]string{
@@ -1576,10 +1574,10 @@ func CheckErc20BlockSeek() {
 								ToAddress:    transferEvent.To,
 								BalanceReal:  balanceReal,
 								CreateTime:   now,
-								HandleStatus: app.TxStatusInit,
+								HandleStatus: common.TxStatusInit,
 								HandleMsg:    "",
 								HandleTime:   now,
-								OrgStatus:    app.TxOrgStatusInit,
+								OrgStatus:    common.TxOrgStatusInit,
 								OrgMsg:       "",
 								OrgTime:      now,
 							})
@@ -1596,7 +1594,7 @@ func CheckErc20BlockSeek() {
 					}
 				}
 				// 更新检查到的最新区块数
-				_, err = app.SQLUpdateTAppStatusIntByKGreater(
+				_, err = common.SQLUpdateTAppStatusIntByKGreater(
 					context.Background(),
 					xenv.DbCon,
 					&model.DBTAppStatusInt{
@@ -1616,8 +1614,8 @@ func CheckErc20BlockSeek() {
 // CheckErc20TxNotify 创建erc20冲币通知
 func CheckErc20TxNotify() {
 	lockKey := "Erc20CheckTxNotify"
-	app.LockWrap(lockKey, func() {
-		txRows, err := app.SQLSelectTTxErc20ColByStatus(
+	common.LockWrap(lockKey, func() {
+		txRows, err := common.SQLSelectTTxErc20ColByStatus(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -1628,7 +1626,7 @@ func CheckErc20TxNotify() {
 				model.DBColTTxErc20ToAddress,
 				model.DBColTTxErc20BalanceReal,
 			},
-			app.TxStatusInit,
+			common.TxStatusInit,
 		)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -1644,7 +1642,7 @@ func CheckErc20TxNotify() {
 				tokenIDs = append(tokenIDs, txRow.TokenID)
 			}
 		}
-		productMap, err := app.SQLGetProductMap(
+		productMap, err := common.SQLGetProductMap(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -1659,7 +1657,7 @@ func CheckErc20TxNotify() {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
-		tokenMap, err := app.SQLGetAppConfigTokenMap(
+		tokenMap, err := common.SQLGetAppConfigTokenMap(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -1695,7 +1693,7 @@ func CheckErc20TxNotify() {
 				"address":     txRow.ToAddress,
 				"balance":     txRow.BalanceReal,
 				"symbol":      tokenRow.TokenSymbol,
-				"notify_type": app.NotifyTypeTx,
+				"notify_type": common.NotifyTypeTx,
 			}
 			reqObj["sign"] = hcommon.GetSign(productRow.AppSk, reqObj)
 			req, err := json.Marshal(reqObj)
@@ -1706,13 +1704,13 @@ func CheckErc20TxNotify() {
 			notifyRows = append(notifyRows, &model.DBTProductNotify{
 				Nonce:        nonce,
 				ProductID:    txRow.ProductID,
-				ItemType:     app.SendRelationTypeTx,
+				ItemType:     common.SendRelationTypeTx,
 				ItemID:       txRow.ID,
-				NotifyType:   app.NotifyTypeTx,
+				NotifyType:   common.NotifyTypeTx,
 				TokenSymbol:  tokenRow.TokenSymbol,
 				URL:          productRow.CbURL,
 				Msg:          string(req),
-				HandleStatus: app.NotifyStatusInit,
+				HandleStatus: common.NotifyStatusInit,
 				HandleMsg:    "",
 				CreateTime:   now,
 				UpdateTime:   now,
@@ -1728,12 +1726,12 @@ func CheckErc20TxNotify() {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
-		_, err = app.SQLUpdateTTxErc20StatusByIDs(
+		_, err = common.SQLUpdateTTxErc20StatusByIDs(
 			context.Background(),
 			xenv.DbCon,
 			notifyTxIDs,
 			model.DBTTxErc20{
-				HandleStatus: app.TxStatusNotify,
+				HandleStatus: common.TxStatusNotify,
 				HandleMsg:    "notify",
 				HandleTime:   now,
 			},
@@ -1748,9 +1746,9 @@ func CheckErc20TxNotify() {
 // CheckErc20TxOrg erc20零钱整理
 func CheckErc20TxOrg() {
 	lockKey := "Erc20CheckTxOrg"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		// 计算转账token所需的手续费
-		erc20GasUseValue, err := app.SQLGetTAppConfigIntValueByK(
+		erc20GasUseValue, err := common.SQLGetTAppConfigIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"erc20_gas_use",
@@ -1759,7 +1757,7 @@ func CheckErc20TxOrg() {
 			hcommon.Log.Warnf("err: [%T] %s", err, err.Error())
 			return
 		}
-		gasPriceValue, err := app.SQLGetTAppStatusIntValueByK(
+		gasPriceValue, err := common.SQLGetTAppStatusIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"to_cold_gas_price",
@@ -1791,7 +1789,7 @@ func CheckErc20TxOrg() {
 			}
 		}()
 		// 查询需要处理的交易
-		txRows, err := app.SQLSelectTTxErc20ColByOrgForUpdate(
+		txRows, err := common.SQLSelectTTxErc20ColByOrgForUpdate(
 			context.Background(),
 			dbTx,
 			[]string{
@@ -1801,7 +1799,7 @@ func CheckErc20TxOrg() {
 				model.DBColTTxErc20ToAddress,
 				model.DBColTTxErc20BalanceReal,
 			},
-			[]int64{app.TxOrgStatusInit, app.TxOrgStatusFeeConfirm},
+			[]int64{common.TxOrgStatusInit, common.TxOrgStatusFeeConfirm},
 		)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -1824,7 +1822,7 @@ func CheckErc20TxOrg() {
 				tokenIDs = append(tokenIDs, txRow.TokenID)
 			}
 		}
-		tokenMap, err := app.SQLGetAppConfigTokenMap(
+		tokenMap, err := common.SQLGetAppConfigTokenMap(
 			context.Background(),
 			dbTx,
 			[]string{
@@ -1986,7 +1984,7 @@ func CheckErc20TxOrg() {
 			for rowIndex, txID := range orgInfo.TxIDs {
 				if rowIndex == 0 {
 					sendRows = append(sendRows, &model.DBTSend{
-						RelatedType:  app.SendRelationTypeTxErc20,
+						RelatedType:  common.SendRelationTypeTxErc20,
 						RelatedID:    txID,
 						TokenID:      orgInfo.TokenID,
 						TxID:         txHash,
@@ -1998,13 +1996,13 @@ func CheckErc20TxOrg() {
 						Nonce:        nonce,
 						Hex:          rawTxHex,
 						CreateTime:   now,
-						HandleStatus: app.SendStatusInit,
+						HandleStatus: common.SendStatusInit,
 						HandleMsg:    "",
 						HandleTime:   now,
 					})
 				} else {
 					sendRows = append(sendRows, &model.DBTSend{
-						RelatedType:  app.SendRelationTypeTxErc20,
+						RelatedType:  common.SendRelationTypeTxErc20,
 						RelatedID:    txID,
 						TokenID:      orgInfo.TokenID,
 						TxID:         txHash,
@@ -2016,7 +2014,7 @@ func CheckErc20TxOrg() {
 						Nonce:        -1,
 						Hex:          "",
 						CreateTime:   now,
-						HandleStatus: app.SendStatusInit,
+						HandleStatus: common.SendStatusInit,
 						HandleMsg:    "",
 						HandleTime:   now,
 					})
@@ -2033,12 +2031,12 @@ func CheckErc20TxOrg() {
 				return
 			}
 			// 更新整理状态
-			_, err = app.SQLUpdateTTxErc20OrgStatusByIDs(
+			_, err = common.SQLUpdateTTxErc20OrgStatusByIDs(
 				context.Background(),
 				dbTx,
 				orgInfo.TxIDs,
 				model.DBTTxErc20{
-					OrgStatus: app.TxOrgStatusHex,
+					OrgStatus: common.TxOrgStatusHex,
 					OrgMsg:    "hex",
 					OrgTime:   now,
 				},
@@ -2051,7 +2049,7 @@ func CheckErc20TxOrg() {
 		// 生成eth转账
 		if len(needEthFeeMap) > 0 {
 			// 获取热钱包地址
-			feeAddressValue, err := app.SQLGetTAppConfigStrValueByK(
+			feeAddressValue, err := common.SQLGetTAppConfigStrValueByK(
 				context.Background(),
 				dbTx,
 				"fee_wallet_address",
@@ -2083,7 +2081,7 @@ func CheckErc20TxOrg() {
 				hcommon.Log.Errorf("RpcBalanceAt err: [%T] %s", err, err.Error())
 				return
 			}
-			pendingBalanceReal, err := app.SQLGetTSendPendingBalanceReal(
+			pendingBalanceReal, err := common.SQLGetTSendPendingBalanceReal(
 				context.Background(),
 				dbTx,
 				feeAddressValue,
@@ -2145,7 +2143,7 @@ func CheckErc20TxOrg() {
 				for rowIndex, txID := range orgInfo.TxIDs {
 					if rowIndex == 0 {
 						sendRows = append(sendRows, &model.DBTSend{
-							RelatedType:  app.SendRelationTypeTxErc20Fee,
+							RelatedType:  common.SendRelationTypeTxErc20Fee,
 							RelatedID:    txID,
 							TokenID:      0,
 							TxID:         txHash,
@@ -2157,13 +2155,13 @@ func CheckErc20TxOrg() {
 							Nonce:        nonce,
 							Hex:          rawTxHex,
 							CreateTime:   now,
-							HandleStatus: app.SendStatusInit,
+							HandleStatus: common.SendStatusInit,
 							HandleMsg:    "",
 							HandleTime:   now,
 						})
 					} else {
 						sendRows = append(sendRows, &model.DBTSend{
-							RelatedType:  app.SendRelationTypeTxErc20Fee,
+							RelatedType:  common.SendRelationTypeTxErc20Fee,
 							RelatedID:    txID,
 							TokenID:      0,
 							TxID:         txHash,
@@ -2175,7 +2173,7 @@ func CheckErc20TxOrg() {
 							Nonce:        -1,
 							Hex:          "",
 							CreateTime:   now,
-							HandleStatus: app.SendStatusInit,
+							HandleStatus: common.SendStatusInit,
 							HandleMsg:    "",
 							HandleTime:   now,
 						})
@@ -2192,12 +2190,12 @@ func CheckErc20TxOrg() {
 					return
 				}
 				// 更新整理状态
-				_, err = app.SQLUpdateTTxErc20OrgStatusByIDs(
+				_, err = common.SQLUpdateTTxErc20OrgStatusByIDs(
 					context.Background(),
 					dbTx,
 					orgInfo.TxIDs,
 					model.DBTTxErc20{
-						OrgStatus: app.TxOrgStatusFeeHex,
+						OrgStatus: common.TxOrgStatusFeeHex,
 						OrgMsg:    "fee hex",
 						OrgTime:   now,
 					},
@@ -2221,13 +2219,13 @@ func CheckErc20TxOrg() {
 // CheckErc20Withdraw erc20提币
 func CheckErc20Withdraw() {
 	lockKey := "Erc20CheckWithdraw"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		var tokenSymbols []string
 		tokenMap := make(map[string]*model.DBTAppConfigToken)
 		addressKeyMap := make(map[string]*ecdsa.PrivateKey)
 		addressEthBalanceMap := make(map[string]*big.Int)
 		addressTokenBalanceMap := make(map[string]*big.Int)
-		tokenRows, err := app.SQLSelectTAppConfigTokenColAll(
+		tokenRows, err := common.SQLSelectTAppConfigTokenColAll(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
@@ -2257,7 +2255,7 @@ func CheckErc20Withdraw() {
 			_, ok := addressKeyMap[hotAddress]
 			if !ok {
 				// 获取私钥
-				keyRow, err := app.SQLGetTAddressKeyColByAddress(
+				keyRow, err := common.SQLGetTAddressKeyColByAddress(
 					context.Background(),
 					xenv.DbCon,
 					[]string{
@@ -2273,7 +2271,7 @@ func CheckErc20Withdraw() {
 					hcommon.Log.Errorf("no key of: %s", hotAddress)
 					return
 				}
-				key := hcommon.AesDecrypt(keyRow.Pwd,fmt.Sprintf("%s",setting.AesConf.Key))
+				key := hcommon.AesDecrypt(keyRow.Pwd, xenv.Cfg.AESKey)
 				if len(key) == 0 {
 					hcommon.Log.Errorf("error key of: %s", hotAddress)
 					return
@@ -2298,7 +2296,7 @@ func CheckErc20Withdraw() {
 					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 					return
 				}
-				pendingBalanceReal, err := app.SQLGetTSendPendingBalanceReal(
+				pendingBalanceReal, err := common.SQLGetTSendPendingBalanceReal(
 					context.Background(),
 					xenv.DbCon,
 					hotAddress,
@@ -2330,14 +2328,14 @@ func CheckErc20Withdraw() {
 				addressTokenBalanceMap[tokenBalanceKey] = tokenBalance
 			}
 		}
-		withdrawRows, err := app.SQLSelectTWithdrawColByStatus(
+		withdrawRows, err := common.SQLSelectTWithdrawColByStatus(
 			context.Background(),
 			xenv.DbCon,
 			[]string{
 				model.DBColTWithdrawID,
 				model.DBColTWithdrawSymbol,
 			},
-			app.WithdrawStatusInit,
+			common.WithdrawStatusInit,
 			tokenSymbols,
 		)
 		if err != nil {
@@ -2348,7 +2346,7 @@ func CheckErc20Withdraw() {
 			return
 		}
 		// 获取gap price
-		gasPriceValue, err := app.SQLGetTAppStatusIntValueByK(
+		gasPriceValue, err := common.SQLGetTAppStatusIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"to_user_gas_price",
@@ -2358,7 +2356,7 @@ func CheckErc20Withdraw() {
 			return
 		}
 		gasPrice := gasPriceValue
-		erc20GasUseValue, err := app.SQLGetTAppConfigIntValueByK(
+		erc20GasUseValue, err := common.SQLGetTAppConfigIntValueByK(
 			context.Background(),
 			xenv.DbCon,
 			"erc20_gas_use",
@@ -2397,7 +2395,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		}
 	}()
 	// 处理业务
-	withdrawRow, err := app.SQLGetTWithdrawColForUpdate(
+	withdrawRow, err := common.SQLGetTWithdrawColForUpdate(
 		context.Background(),
 		dbTx,
 		[]string{
@@ -2407,7 +2405,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 			model.DBColTWithdrawSymbol,
 		},
 		withdrawID,
-		app.WithdrawStatusInit,
+		common.WithdrawStatusInit,
 	)
 	if err != nil {
 		return err
@@ -2484,13 +2482,13 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	rawTxHex := hex.EncodeToString(rawTxBytes)
 	txHash := strings.ToLower(signedTx.Hash().Hex())
 	now := time.Now().Unix()
-	_, err = app.SQLUpdateTWithdrawGenTx(
+	_, err = common.SQLUpdateTWithdrawGenTx(
 		context.Background(),
 		dbTx,
 		&model.DBTWithdraw{
 			ID:           withdrawID,
 			TxHash:       txHash,
-			HandleStatus: app.WithdrawStatusHex,
+			HandleStatus: common.WithdrawStatusHex,
 			HandleMsg:    "gen tx hex",
 			HandleTime:   now,
 		},
@@ -2502,7 +2500,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		context.Background(),
 		dbTx,
 		&model.DBTSend{
-			RelatedType:  app.SendRelationTypeWithdraw,
+			RelatedType:  common.SendRelationTypeWithdraw,
 			RelatedID:    withdrawID,
 			TxID:         txHash,
 			FromAddress:  hotAddress,
@@ -2512,7 +2510,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 			GasPrice:     gasPrice,
 			Nonce:        nonce,
 			Hex:          rawTxHex,
-			HandleStatus: app.SendStatusInit,
+			HandleStatus: common.SendStatusInit,
 			HandleMsg:    "init",
 			HandleTime:   now,
 		},
@@ -2532,7 +2530,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 // CheckGasPrice 检测gas price
 func CheckGasPrice() {
 	lockKey := "EthCheckGasPrice"
-	app.LockWrap(lockKey, func() {
+	common.LockWrap(lockKey, func() {
 		type StRespGasPrice struct {
 			Fast        int64   `json:"fast"`
 			Fastest     int64   `json:"fastest"`
@@ -2567,7 +2565,7 @@ func CheckGasPrice() {
 		}
 		toUserGasPrice := resp.Fast * int64(math.Pow10(8))
 		toColdGasPrice := resp.Average * int64(math.Pow10(8))
-		_, err = app.SQLUpdateTAppStatusIntByK(
+		_, err = common.SQLUpdateTAppStatusIntByK(
 			context.Background(),
 			xenv.DbCon,
 			&model.DBTAppStatusInt{
@@ -2579,7 +2577,7 @@ func CheckGasPrice() {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
-		_, err = app.SQLUpdateTAppStatusIntByK(
+		_, err = common.SQLUpdateTAppStatusIntByK(
 			context.Background(),
 			xenv.DbCon,
 			&model.DBTAppStatusInt{

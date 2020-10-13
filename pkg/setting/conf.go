@@ -1,6 +1,6 @@
 package setting
 
-// app 配置
+// common 配置
 type Application struct {
 	Env        string
 	Host       string

@@ -5,7 +5,6 @@ import (
 	"j2pay-server/model/request"
 	"j2pay-server/model/response"
 	"j2pay-server/validate"
-	"j2pay-server/xenv"
 )
 
 //系统参数
@@ -20,13 +19,13 @@ type Parameter struct {
 //查询系统参数数据
 func (p *Parameter) GetDetail() response.Parameter {
 	var parameter response.Parameter
-	xenv.Db.First(&parameter)
+	Db.First(&parameter)
 	return parameter
 }
 
 //更新系统参数
 func (p *Parameter) UpdateParameter(edit request.ParameterEdit) (err error) {
-	tx := xenv.Db.Begin()
+	tx := Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -43,7 +42,7 @@ func (p *Parameter) UpdateParameter(edit request.ParameterEdit) (err error) {
 
 //更新gasPrice
 func (p *Parameter) UpdateGasPrice(edit request.ParameterEdit) (err error) {
-	tx := xenv.Db.Begin()
+	tx := Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -60,13 +59,13 @@ func (p *Parameter) UpdateGasPrice(edit request.ParameterEdit) (err error) {
 
 // 根据条件获取详情
 func GetParameterByWhere(where ...interface{}) (pa Parameter) {
-	xenv.Db.First(&pa, where...)
+	Db.First(&pa, where...)
 	return
 }
 
 //查询GasFee
 func GetGasFeeDetail() response.Parameter {
 	var parameter response.Parameter
-	xenv.Db.First(&parameter)
+	Db.First(&parameter)
 	return parameter
 }

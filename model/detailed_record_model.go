@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/jinzhu/gorm"
 	"j2pay-server/model/response"
-	"j2pay-server/xenv"
+
 	"time"
 )
 
@@ -32,8 +32,8 @@ func (d *DetailedRecord) GetAll(page, pageSize int, where ...interface{}) (respo
 		Data:        []response.DetailedList{},
 	}
 	//分页查询
-	offset := xenv.GetOffset(page, pageSize)
-	err := xenv.Db.Model(&d).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	offset := GetOffset(page, pageSize)
+	err := Db.Model(&d).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.DetailedRecordPage{}, err
 	}
@@ -50,7 +50,7 @@ func (d *DetailedRecord) GetAll(page, pageSize int, where ...interface{}) (respo
 
 //新增实收明细记录
 func (d *DetailedRecord) DetailedAdd() error {
-	tx := xenv.Db.Begin()
+	tx := Db.Begin()
 	d.CreatedAt = time.Now()
 	if err := tx.Create(d).Error; err != nil {
 		tx.Rollback()
@@ -66,7 +66,7 @@ func (d *DetailedRecord) GetDetail(id ...int) (res response.DetailedList, err er
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = xenv.Db.Table("detail").
+	err = Db.Table("detail").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -82,7 +82,7 @@ func (d *DetailedRecord) GetDetail(id ...int) (res response.DetailedList, err er
 
 //解绑 绑定
 func (d *DetailedRecord) Binding(id uint, orderCode string, isBind int) error {
-	tx := xenv.Db.Begin()
+	tx := Db.Begin()
 	detailedRecord := GetDetailByWhere("id = ?", id)
 	//解绑
 	if isBind == 1 {
@@ -107,15 +107,15 @@ func (d *DetailedRecord) Binding(id uint, orderCode string, isBind int) error {
 // 获取所有实收明细记录数量
 func (d *DetailedRecord) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		xenv.Db.Model(&d).Count(&count)
+		Db.Model(&d).Count(&count)
 		return
 	}
-	xenv.Db.Model(&d).Where(where[0], where[1:]...).Count(&count)
+	Db.Model(&d).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
 // 根据条件获取详情
 func GetDetailByWhere(where ...interface{}) (de DetailedRecord) {
-	xenv.Db.First(&de, where...)
+	Db.First(&de, where...)
 	return
 }

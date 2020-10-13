@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/jinzhu/gorm"
 	"j2pay-server/model/response"
-	"j2pay-server/xenv"
+
 	"time"
 )
 
@@ -27,8 +27,8 @@ func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.Retu
 		Data:        []response.ReturnList{},
 	}
 	//分页查询
-	offset := xenv.GetOffset(page, pageSize)
-	err := xenv.Db.Model(&r).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	offset := GetOffset(page, pageSize)
+	err := Db.Model(&r).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.ReturnPage{}, err
 	}
@@ -41,10 +41,10 @@ func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.Retu
 // 获取所有退款订单数量
 func (r *Return) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		xenv.Db.Model(&r).Count(&count)
+		Db.Model(&r).Count(&count)
 		return
 	}
-	xenv.Db.Model(&r).Where(where[0], where[1:]...).Count(&count)
+	Db.Model(&r).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
@@ -54,7 +54,7 @@ func (r *Return) GetDetail(id ...int) (res response.ReturnList, err error) {
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = xenv.Db.Table("return").
+	err = Db.Table("return").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -64,7 +64,7 @@ func (r *Return) GetDetail(id ...int) (res response.ReturnList, err error) {
 
 // 创建退款订单
 func (r *Return) Create() error {
-	tx := xenv.Db.Begin()
+	tx := Db.Begin()
 	r.CreatedAt = time.Now()
 	if err := tx.Create(r).Error; err != nil {
 		tx.Rollback()
@@ -76,6 +76,6 @@ func (r *Return) Create() error {
 
 // 根据条件获取订单详情
 func GetReturnByWhere(where ...interface{}) (r Return) {
-	xenv.Db.First(&r, where...)
+	Db.First(&r, where...)
 	return
 }

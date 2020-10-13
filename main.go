@@ -9,7 +9,6 @@ import (
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/setting"
 	"j2pay-server/routers"
-	"j2pay-server/xenv"
 )
 
 func main() {
@@ -20,7 +19,6 @@ func main() {
 	//以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
 	logger.Setup()
-	xenv.Setup()
 	router := routers.InitRouter()
 	//client := util.EthClient()
 	////util.GetUserAddress("123456")
