@@ -9,7 +9,7 @@ type AddressEdit struct {
 //启用停用
 type OpenOrStopAddress struct {
 	Id         int `json:"-"`
-	HandStatus int `json:"hand_status" binding:"oneof=1 2" example:"1：启用，2：停用"` //是否启用
+	UseTag int64 `json:"hand_status" binding:"oneof=0 1" example:"0：停用，1：启用"` //是否启用
 }
 
 //储值

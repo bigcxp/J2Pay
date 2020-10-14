@@ -4,9 +4,9 @@ import "time"
 
 //返回收款地址列表
 type AddressPage struct {
-	Total       int             `json:"total"`        // 总共多少页
-	PerPage     int             `json:"per_page"`     // 当前页码
-	CurrentPage int             `json:"current_page"` // 每页显示多少条
+	Total       int           `json:"total"`        // 总共多少页
+	PerPage     int           `json:"per_page"`     // 当前页码
+	CurrentPage int           `json:"current_page"` // 每页显示多少条
 	Data        []AddressList `json:"data"`
 }
 
@@ -20,7 +20,7 @@ type AddressList struct {
 	UsdtAmount  float64   `json:"usdt_amount"`  //泰达币余额
 	UpdateAt    time.Time `json:"update_at"`    //创建时间
 	SearchTime  time.Time `json:"search_time"`  //最后查询余额时间
-	Status      int       `json:"status"`       //状态 0：所有，1：已完成，2：执行中，3：结账中
-	HandStatus  int       `json:"status"`       //指派状态 0：所有，1：启用，2：停用
+	Status      int       `json:"status"`       //状态 1：已完成，2：执行中，3：结账中
+	UserTag     int       `json:"user_tag"`     //占用状态 0：停用，1：启用
 
 }

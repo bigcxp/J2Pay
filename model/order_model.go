@@ -44,7 +44,7 @@ func (o *Order) GetAllMerchantOrder(page, pageSize int, where ...interface{}) (r
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Db.Model(&o).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := Getdb().Model(&o).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.OrderPage{}, err
 	}
@@ -64,10 +64,10 @@ func (o *Order) GetAllMerchantOrder(page, pageSize int, where ...interface{}) (r
 // 获取所有订单数量
 func (o *Order) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Db.Model(&o).Count(&count)
+		Getdb().Model(&o).Count(&count)
 		return
 	}
-	Db.Model(&o).Where(where[0], where[1:]...).Count(&count)
+	Getdb().Model(&o).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
@@ -77,7 +77,7 @@ func (o *Order) GetDetail(id ...int) (res response.RealOrderList, err error) {
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = Db.Table("order").
+	err = Getdb().Table("order").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -92,7 +92,7 @@ func (o *Order) GetDetail(id ...int) (res response.RealOrderList, err error) {
 
 // 创建订单
 func (o *Order) Create() error {
-	tx := Db.Begin()
+	tx := Getdb().Begin()
 	o.CreatedAt = time.Now()
 	o.FinishTime = time.Now()
 	o.ExprireTime = time.Now().Add(time.Hour * 2)
@@ -106,7 +106,7 @@ func (o *Order) Create() error {
 
 //修改订单
 func (o *Order) UpdateOrder(order request.OrderEdit) error {
-	tx := Db.Begin()
+	tx := Getdb().Begin()
 	orders := GetOrderByWhere("id = ?", order.Id)
 	if err := tx.Model(&orders).
 		Updates(Order{Status: order.Status, Address: order.Address, ShouldAmount: order.ShouldAmount, ExprireTime: order.ExprireTime}).Error; err != nil {
@@ -119,7 +119,7 @@ func (o *Order) UpdateOrder(order request.OrderEdit) error {
 
 // 根据条件获取订单详情
 func GetOrderByWhere(where ...interface{}) (o Order) {
-	Db.First(&o, where...)
+	Getdb().First(&o, where...)
 	return
 }
 
@@ -129,7 +129,7 @@ func (o *Order) getTotalAmount() float64 {
 	all := response.OrderPage{
 		Data: []response.RealOrderList{},
 	}
-	err := Db.Model(&o).Order("id desc").Find(&all.Data).Error
+	err := Getdb().Model(&o).Order("id desc").Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -145,7 +145,7 @@ func (o *Order) getMerchantAmount() float64 {
 	all := response.OrderPage{
 		Data: []response.RealOrderList{},
 	}
-	err := Db.Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
+	err := Getdb().Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -161,7 +161,7 @@ func (o *Order) getReceiptAmount() float64 {
 	all := response.OrderPage{
 		Data: []response.RealOrderList{},
 	}
-	err := Db.Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
+	err := Getdb().Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -177,7 +177,7 @@ func (o *Order) getTotalFee() float64 {
 	all := response.OrderPage{
 		Data: []response.RealOrderList{},
 	}
-	err := Db.Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
+	err := Getdb().Model(&o).Order("id desc").Where("status = ?", 1).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}

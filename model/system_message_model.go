@@ -24,7 +24,7 @@ func (s *SystemMessage) GetAll(page, pageSize int, where ...interface{}) (respon
 		Data:        []response.SystemMessageList{},
 	}
 	offset := GetOffset(page, pageSize)
-	err := Db.Table("system_message").
+	err := Getdb().Table("system_message").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&all.Data, where...).Error
@@ -40,7 +40,7 @@ func (s *SystemMessage) Detail(id ...int) (res response.SystemMessageList, err e
 	if len(id) > 0 {
 		searchId = id[0]
 	}
-	err = Db.Table("system_message").
+	err = Getdb().Table("system_message").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -49,9 +49,9 @@ func (s *SystemMessage) Detail(id ...int) (res response.SystemMessageList, err e
 
 //新增公告
 func (s *SystemMessage) Create(user []int) error {
-	Db.Save(&s)
+	Getdb().Save(&s)
 	for _,v  := range user {
-			Db.Save(&SystemMessageUser{
+			Getdb().Save(&SystemMessageUser{
 				SystemMessageId: s.Id,
 				AdminUserId: v,
 			})
@@ -61,7 +61,7 @@ func (s *SystemMessage) Create(user []int) error {
 
 // 编辑系统公告
 func (s *SystemMessage) Edit(users []int) error {
-	tx := Db.Begin()
+	tx := Getdb().Begin()
 	updateInfo := map[string]interface{}{
 		"title":      s.Title,
 		"begin_time": s.BeginTime,
@@ -96,7 +96,7 @@ func (s *SystemMessage) Edit(users []int) error {
 
 // 删除系统公告
 func (s *SystemMessage) Del() error {
-	tx := Db.Begin()
+	tx := Getdb().Begin()
 	if err := tx.Delete(s, "id = ?", s.Id).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -112,10 +112,10 @@ func (s *SystemMessage) Del() error {
 // 获取所有系统公告数量
 func (s *SystemMessage) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Db.Model(&s).Count(&count)
+		Getdb().Model(&s).Count(&count)
 		return
 	}
-	Db.Model(&s).Where(where[0], where[1:]...).Count(&count)
+	Getdb().Model(&s).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
@@ -123,7 +123,7 @@ func GetAllMessage() (mapping map[int]response.AdminSystemMessage) {
 	var systemMessages []response.AdminSystemMessage
 
 	mapping = make(map[int]response.AdminSystemMessage)
-	Db.Table("system_message").Select("id,title,begin_time,end_time").Order("id desc").Find(&systemMessages)
+	Getdb().Table("system_message").Select("id,title,begin_time,end_time").Order("id desc").Find(&systemMessages)
 	for _, systemMessage := range systemMessages {
 		mapping[systemMessage.Id] = systemMessage
 	}

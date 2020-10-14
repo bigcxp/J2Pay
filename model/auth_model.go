@@ -16,13 +16,13 @@ type Auth struct {
 
 // 查询所有权限
 func GetAllAuth(where ...interface{}) (res []response.Auth) {
-	Db.Model(Auth{}).Find(&res, where...)
+	Getdb().Model(Auth{}).Find(&res, where...)
 	return
 }
 
 // 查询所有权限
 func GetAllBaseAuth(where ...interface{}) (res []Auth) {
-	Db.Model(Auth{}).
+	Getdb().Model(Auth{}).
 		Order("id asc").
 		Find(&res, where...)
 	return

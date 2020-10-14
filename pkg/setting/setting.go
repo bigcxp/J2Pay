@@ -54,7 +54,7 @@ func Setup() {
 		log.Panic("Aes配置文件格式错误", err)
 	}
 	if err := viper.UnmarshalKey("sqlx", &SqlxConf); err != nil {
-		log.Panic("Aes配置文件格式错误", err)
+		log.Panic("sqlx配置文件格式错误", err)
 	}
 
 }

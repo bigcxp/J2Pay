@@ -26,7 +26,7 @@ func (r *Rate) GetAllRate() response.RatePage {
 	all := response.RatePage{
 		Data: []response.Rate{},
 	}
-	Db.Find(&all.Data)
+	Getdb().Find(&all.Data)
 	return all
 }
 
@@ -36,7 +36,7 @@ func (r *Rate) Detail(id ...int) (res response.Rate, err error) {
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = Db.Table("rate").
+	err = Getdb().Table("rate").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -45,7 +45,7 @@ func (r *Rate) Detail(id ...int) (res response.Rate, err error) {
 
 //修改代收、代发加权
 func (r *Rate) Update(rate request.RateEdit) (err error) {
-	tx := Db.Begin()
+	tx := Getdb().Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -64,6 +64,6 @@ func (r *Rate) Update(rate request.RateEdit) (err error) {
 
 // 根据条件获取详情
 func GetRateByWhere(where ...interface{}) (ra Rate) {
-	Db.First(&ra, where...)
+	Getdb().First(&ra, where...)
 	return
 }

@@ -19,7 +19,7 @@ func InitCasbin() (*casbin.Enforcer, error) {
 	if Enforcer != nil {
 		return Enforcer, nil
 	}
-	adapter, err := gormadapter.NewAdapterByDB(model.Db)
+	adapter, err := gormadapter.NewAdapterByDB(model.Getdb())
 	if err != nil {
 		return nil, err
 	}
