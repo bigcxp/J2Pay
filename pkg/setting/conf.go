@@ -1,6 +1,6 @@
 package setting
 
-// app 配置
+// common 配置
 type Application struct {
 	Env        string
 	Host       string
@@ -52,4 +52,14 @@ type Jwt struct {
 // eth 配置
 type Eth struct {
 	Url string
+}
+
+// AesKey 配置
+type Aes struct {
+	Key string
+}
+
+// Sqlx 配置
+type Sqlx struct {
+	Name string
 }

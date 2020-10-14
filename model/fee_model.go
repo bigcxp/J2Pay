@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/jinzhu/gorm"
 	"j2pay-server/model/response"
+
 	"time"
 )
 

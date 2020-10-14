@@ -1,11 +1,10 @@
 package model
-
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+"github.com/jinzhu/gorm"
+_ "github.com/jinzhu/gorm/dialects/mysql"
 	"j2pay-server/pkg/setting"
-	"log"
+"log"
 )
 
 var Db *gorm.DB
@@ -33,14 +32,12 @@ func Setup() {
 	Db.SetLogger(&GormLogger{})
 	Db.DB().SetMaxIdleConns(setting.MysqlConf.MaxIdle)
 	Db.DB().SetMaxOpenConns(setting.MysqlConf.MaxActive)
- 	AutoMigrate()
+	AutoMigrate()
 	// 设置程序启动参数 -init | -init=true
 	if setting.Init {
 		InitSql()
 	}
 }
-
-
 // 通用分页获取偏移量
 func GetOffset(page, pageSize int) int {
 	if page <= 1 {

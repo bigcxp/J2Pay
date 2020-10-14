@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/ethereum/go-ethereum/accounts/keystore"
-	"j2pay-server/model"
+	"j2pay-server/ethclient"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/setting"
 	"j2pay-server/routers"
@@ -16,8 +16,9 @@ func main() {
 
 	// 初始化操作 (因为 init 方法无法保证我们想要的顺序)
 	setting.Setup()
+	//以太坊节点
+	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
 	logger.Setup()
-	model.Setup()
 	router := routers.InitRouter()
 	//client := util.EthClient()
 	////util.GetUserAddress("123456")
