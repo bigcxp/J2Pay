@@ -8,4 +8,4 @@ log
 dist
 /address
 j2pay-server.exe
-config.yaml
+/conf

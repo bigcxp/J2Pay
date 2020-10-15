@@ -1,30 +1,35 @@
 package heth
 
 import (
-	_ "context"
+	"context"
 	"crypto/ecdsa"
 	_ "encoding/hex"
 	_ "encoding/json"
 	"errors"
 	"fmt"
 	_ "github.com/ethereum/go-ethereum/accounts/abi"
-	_ "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	_ "github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 	_ "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	_ "github.com/ethereum/go-ethereum/rlp"
 	_ "github.com/gin-gonic/gin"
 	_ "github.com/parnurzeal/gorequest"
+	"j2pay-server/ethclient"
 	_ "j2pay-server/ethclient"
 	"j2pay-server/hcommon"
 	"j2pay-server/model"
 	"j2pay-server/pkg/setting"
+	"j2pay-server/pkg/util"
 	_ "math"
 	_ "math/big"
 	_ "net/http"
+	"strings"
 	_ "strings"
 	"time"
 )
+
 //获取地址和私钥
 func genAddressAndAesKey() (string, string, error) {
 	// 生成私钥
@@ -50,6 +55,8 @@ func genAddressAndAesKey() (string, string, error) {
 // CreateHotAddress 创建自用地址 热钱包
 func CreateHotAddress(num int64) ([]string, error) {
 	var rows []*model.Address
+	// 当前时间
+	now := time.Now().Unix()
 	var userAddresses []string
 	// 遍历差值次数
 	for i := int64(0); i < num; i++ {
@@ -59,22 +66,19 @@ func CreateHotAddress(num int64) ([]string, error) {
 		}
 		// 存入待添加队列
 		rows = append(rows, &model.Address{
-			Symbol:  CoinSymbol,
+			Symbol:      CoinSymbol,
 			UserAddress: address,
-			Pwd:     privateKeyStrEn,
-			UseTag:  -1,
-			UserId: 0,
-			UsdtAmount: 0,
-			EthAmount: 0,
-			SearchTime: time.Now(),
-			Status: 0,
+			Pwd:         privateKeyStrEn,
+			UseTag:      -1,
+			UserId:      0,
+			UsdtAmount:  0,
+			EthAmount:   0,
+			Status:      0,
+			CreateTime:  now,
+			UpdateTime:  now,
 		})
 		userAddresses = append(userAddresses, address)
-
-
 	}
-
-	fmt.Println("待传入的rows",rows)
 	// 一次性将生成的地址存入数据库
 	_, err := model.AddMoreAddress(rows)
 	if err != nil {
@@ -83,231 +87,173 @@ func CreateHotAddress(num int64) ([]string, error) {
 	return userAddresses, nil
 }
 
-//// CheckAddressFree 检测是否有充足的备用地址
-//func CheckAddressFree() {
-//	lockKey := "EthCheckAddressFree"
-//	common.LockWrap(lockKey, func() {
-//		// 获取配置 允许的最小剩余地址数
-//		minFreeCount, err := common.SQLGetTAppConfigIntValueByK(
-//			context.Background(),
-//			xenv.DbCon,
-//			"min_free_address",
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		// 获取当前剩余可用地址数
-//		freeCount, err := common.SQLGetTAddressKeyFreeCount(
-//			context.Background(),
-//			xenv.DbCon,
-//			CoinSymbol,
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		// 如果数据库中剩余可用地址小于最小允许可用地址
-//		if freeCount < minFreeCount {
-//			var rows []*model.DBTAddressKey
-//			// 遍历差值次数
-//			for i := int64(0); i < minFreeCount-freeCount; i++ {
-//				address, privateKeyStrEn, err := genAddressAndAesKey()
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//				}
-//				// 存入待添加队列
-//				rows = append(rows, &model.DBTAddressKey{
-//					Symbol:  CoinSymbol,
-//					Address: address,
-//					Pwd:     privateKeyStrEn,
-//					UseTag:  0,
-//				})
-//			}
-//			// 一次性将生成的地址存入数据库
-//			_, err = model.SQLCreateIgnoreManyTAddressKey(
-//				context.Background(),
-//				xenv.DbCon,
-//				rows,
-//			)
-//			if err != nil {
-//				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//				return
-//			}
-//		}
-//	})
-//}
-//
-//// CheckBlockSeek 检测到账
-//func CheckBlockSeek() {
-//	lockKey := "EthCheckBlockSeek"
-//	common.LockWrap(lockKey, func() {
-//		// 获取配置 延迟确认数
-//		confirmValue, err := common.SQLGetTAppConfigIntValueByK(
-//			context.Background(),
-//			xenv.DbCon,
-//			"block_confirm_num",
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		// 获取状态 当前处理完成的最新的block number
-//		seekValue, err := common.SQLGetTAppStatusIntValueByK(
-//			context.Background(),
-//			xenv.DbCon,
-//			"seek_num",
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		// rpc 获取当前最新区块数
-//		rpcBlockNum, err := ethclient.RpcBlockNumber(context.Background())
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		startI := seekValue + 1
-//		endI := rpcBlockNum - confirmValue + 1
-//		if startI < endI {
-//			// 手续费钱包列表
-//			feeAddressValue, err := common.SQLGetTAppConfigStrValueByK(
-//				context.Background(),
-//				xenv.DbCon,
-//				"fee_wallet_address_list",
-//			)
-//			if err != nil {
-//				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//				return
-//			}
-//			addresses := strings.Split(feeAddressValue, ",")
-//			var feeAddresses []string
-//			for _, address := range addresses {
-//				if address == "" {
-//					continue
-//				}
-//				feeAddresses = append(feeAddresses, address)
-//			}
-//			// 遍历获取需要查询的block信息
-//			for i := startI; i < endI; i++ {
-//				// rpc获取block信息
-//				//hcommon.Log.Debugf("eth check block: %d", i)
-//				rpcBlock, err := ethclient.RpcBlockByNum(context.Background(), i)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				// 接收地址列表
-//				var toAddresses []string
-//				// map[接收地址] => []交易信息
-//				toAddressTxMap := make(map[string][]*types.Transaction)
-//				// 遍历block中的tx
-//				for _, rpcTx := range rpcBlock.Transactions() {
-//					// 转账数额大于0 and 不是创建合约交易
-//					if rpcTx.Value().Int64() > 0 && rpcTx.To() != nil {
-//						msg, err := rpcTx.AsMessage(types.NewEIP155Signer(rpcTx.ChainId()))
-//						if err != nil {
-//							hcommon.Log.Errorf("AsMessage err: [%T] %s", err, err.Error())
-//							return
-//						}
-//						if hcommon.IsStringInSlice(feeAddresses, AddressBytesToStr(msg.From())) {
-//							// 如果打币地址在手续费热钱包地址则不处理
-//							continue
-//						}
-//						toAddress := AddressBytesToStr(*(rpcTx.To()))
-//						toAddressTxMap[toAddress] = append(toAddressTxMap[toAddress], rpcTx)
-//						if !hcommon.IsStringInSlice(toAddresses, toAddress) {
-//							toAddresses = append(toAddresses, toAddress)
-//						}
-//					}
-//				}
-//				// 从db中查询这些地址是否是冲币地址中的地址
-//				dbAddressRows, err := common.SQLSelectTAddressKeyColByAddress(
-//					context.Background(),
-//					xenv.DbCon,
-//					[]string{
-//						model.DBColTAddressKeyAddress,
-//						model.DBColTAddressKeyUseTag,
-//					},
-//					toAddresses,
-//				)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				// 待插入数据
-//				var dbTxRows []*model.DBTTx
-//				// map[接收地址] => 产品id
-//				addressProductMap := make(map[string]int64)
-//				for _, dbAddressRow := range dbAddressRows {
-//					addressProductMap[dbAddressRow.Address] = dbAddressRow.UseTag
-//				}
-//				// 时间
-//				now := time.Now().Unix()
-//				// 遍历数据库中有交易的地址
-//				for _, dbAddressRow := range dbAddressRows {
-//					if dbAddressRow.UseTag < 0 {
-//						continue
-//					}
-//					// 获取地址对应的交易列表
-//					txes := toAddressTxMap[dbAddressRow.Address]
-//					for _, tx := range txes {
-//						msg, err := tx.AsMessage(types.NewEIP155Signer(tx.ChainId()))
-//						if err != nil {
-//							hcommon.Log.Errorf("AsMessage err: [%T] %s", err, err.Error())
-//							return
-//						}
-//						fromAddress := AddressBytesToStr(msg.From())
-//						toAddress := AddressBytesToStr(*(tx.To()))
-//						balanceReal, err := WeiBigIntToEthStr(tx.Value())
-//						if err != nil {
-//							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//							return
-//						}
-//						dbTxRows = append(dbTxRows, &model.DBTTx{
-//							ProductID:    addressProductMap[toAddress],
-//							TxID:         tx.Hash().String(),
-//							FromAddress:  fromAddress,
-//							ToAddress:    toAddress,
-//							BalanceReal:  balanceReal,
-//							CreateTime:   now,
-//							HandleStatus: common.TxStatusInit,
-//							HandleMsg:    "",
-//							HandleTime:   now,
-//							OrgStatus:    common.TxOrgStatusInit,
-//							OrgMsg:       "",
-//							OrgTime:      now,
-//						})
-//					}
-//				}
-//				// 插入交易数据
-//				_, err = model.SQLCreateIgnoreManyTTx(
-//					context.Background(),
-//					xenv.DbCon,
-//					dbTxRows,
-//				)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				// 更新检查到的最新区块数
-//				_, err = common.SQLUpdateTAppStatusIntByKGreater(
-//					context.Background(),
-//					xenv.DbCon,
-//					&model.DBTAppStatusInt{
-//						K: "seek_num",
-//						V: i,
-//					},
-//				)
-//				if err != nil {
-//					hcommon.Log.Errorf("SQLUpdateTAppStatusIntByK err: [%T] %s", err, err.Error())
-//					return
-//				}
-//			}
-//		}
-//	})
-//}
+// CheckAddressFree 检测是否有充足的备用地址
+func CheckAddressFree() ([]string, error) {
+	// 当前时间
+	now := time.Now().Unix()
+	//地址
+	var userAddresses []string
+	// 获取配置 允许的最小剩余地址数
+	appConfig := model.SQLGetTAppConfigIntValueByK("k = ?", "min_free_address")
+	// 获取当前剩余可用地址数
+	count := model.GetAddressCount("use_tag = ?", 0)
+	// 如果数据库中剩余可用地址小于最小允许可用地址
+	if count < appConfig.V {
+		var rows []*model.Address
+		// 遍历差值次数
+		for i := int64(0); i < appConfig.V-count; i++ {
+			address, privateKeyStrEn, err := genAddressAndAesKey()
+			if err != nil {
+				return nil, err
+			}
+			// 存入待添加队列
+			rows = append(rows, &model.Address{
+				Symbol:      CoinSymbol,
+				UserAddress: address,
+				Pwd:         privateKeyStrEn,
+				UseTag:      0,
+				UserId:      0,
+				UsdtAmount:  0,
+				EthAmount:   0,
+				Status:      0,
+				CreateTime:  now,
+				UpdateTime:  now,
+			})
+			userAddresses = append(userAddresses, address)
+		}
+		// 一次性将生成的地址存入数据库
+		_, err := model.AddMoreAddress(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return userAddresses, nil
+}
+
+// CheckBlockSeek 检测到账
+func CheckBlockSeek() {
+		// 获取配置 延迟确认数
+		confirmValue := model.SQLGetTAppConfigIntValueByK("k = ?", "block_confirm_num")
+
+		// 获取状态 当前处理完成的最新的block number
+		seek := model.SQLGetTAppStatusIntValueByK("k = ?","seek_num")
+
+		// rpc 获取当前最新区块数
+		rpcBlockNum, err := ethclient.RpcBlockNumber(context.Background())
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		startI := seek.V + 1
+		endI := rpcBlockNum - confirmValue.V + 1
+		if startI < endI {
+			// 手续费钱包列表
+			feeAddressValue := model.SQLGetTAppConfigStrValueByK("k = ?","fee_wallet_address_list")
+			addresses := strings.Split(feeAddressValue.V, ",")
+			var feeAddresses []string
+			for _, address := range addresses {
+				if address == "" {
+					continue
+				}
+				feeAddresses = append(feeAddresses, address)
+			}
+			// 遍历获取需要查询的block信息
+			for i := startI; i < endI; i++ {
+				// rpc获取block信息
+				rpcBlock, err := ethclient.RpcBlockByNum(context.Background(), i)
+				if err != nil {
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+					return
+				}
+				// 接收地址列表
+				var toAddresses []string
+				// map[接收地址] => []交易信息
+				toAddressTxMap := make(map[string][]*types.Transaction)
+				// 遍历block中的tx
+				for _, rpcTx := range rpcBlock.Transactions() {
+					// 转账数额大于0 and 不是创建合约交易
+					if rpcTx.Value().Int64() > 0 && rpcTx.To() != nil {
+						msg, err := rpcTx.AsMessage(types.NewEIP155Signer(rpcTx.ChainId()))
+						if err != nil {
+							hcommon.Log.Errorf("AsMessage err: [%T] %s", err, err.Error())
+							return
+						}
+						if hcommon.IsStringInSlice(feeAddresses, AddressBytesToStr(msg.From())) {
+							// 如果打币地址在手续费热钱包地址则不处理
+							continue
+						}
+						toAddress := AddressBytesToStr(*(rpcTx.To()))
+						toAddressTxMap[toAddress] = append(toAddressTxMap[toAddress], rpcTx)
+						if !hcommon.IsStringInSlice(toAddresses, toAddress) {
+							toAddresses = append(toAddresses, toAddress)
+						}
+					}
+				}
+				//从db中查询这些地址是否是冲币地址中的地址
+				dbAddressRows,err := model.SQLSelectTAddressKeyColByAddress(toAddresses)
+				if err != nil {
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+					return
+				}
+				// 待插入数据
+				var dbTxRows []*model.TTx
+				// 时间
+				now := time.Now().Unix()
+				// 遍历数据库中有交易的地址
+				for _, dbAddressRow := range dbAddressRows {
+					if dbAddressRow.UseTag < 0 {
+						continue
+					}
+					// 获取地址对应的交易列表
+					txes := toAddressTxMap[dbAddressRow.UserAddress]
+					for _, tx := range txes {
+						msg, err := tx.AsMessage(types.NewEIP155Signer(tx.ChainId()))
+						if err != nil {
+							hcommon.Log.Errorf("AsMessage err: [%T] %s", err, err.Error())
+							return
+						}
+						fromAddress := AddressBytesToStr(msg.From())
+						toAddress := AddressBytesToStr(*(tx.To()))
+						balanceReal, err := WeiBigIntToEthStr(tx.Value())
+						if err != nil {
+							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+							return
+						}
+						dbTxRows = append(dbTxRows, &model.TTx{
+							SystemID:    util.RandString(12),
+							TxID:         tx.Hash().String(),
+							FromAddress:  fromAddress,
+							ToAddress:    toAddress,
+							BalanceReal:  balanceReal,
+							CreateTime:   now,
+							HandleStatus: model.TxStatusInit,
+							HandleMsg:    "",
+							HandleTime:   now,
+							OrgStatus:    model.TxOrgStatusInit,
+							OrgMsg:       "",
+							OrgTime:      now,
+						})
+					}
+				}
+				// 插入交易数据
+				_, err = model.SQLCreateIgnoreManyTTx(dbTxRows)
+				if err != nil {
+					return
+				}
+				// 更新检查到的最新区块数
+				 err = model.SQLUpdateTAppStatusIntByKGreater(
+					&model.TAppStatusInt{
+						K: "seek_num",
+						V: i,
+					},
+				)
+				if err != nil {
+					return
+				}
+			}
+		}
+
+}
 //
 //// CheckAddressOrg 零钱整理到冷钱包
 //func CheckAddressOrg() {

@@ -1,25 +1,24 @@
 package model
 
 import (
-	"fmt"
-	"github.com/jinzhu/gorm"
 	"j2pay-server/model/request"
 	"j2pay-server/model/response"
 	"time"
 )
 
 type Address struct {
-	gorm.Model
-	UserAddress string    `gorm:"default:'';comment:'钱包地址';"json:"user_address"`                           //地址
+	ID          int64
+	UserAddress string    `gorm:"unique;comment:'钱包地址';"json:"user_address"`                           //地址
 	EthAmount   float64   `gorm:"default:0;comment:'以太币余额';";json:"eth_amount"`                            //以太币余额
 	UsdtAmount  float64   `gorm:"default:0;comment:'泰达币余额';";json:"usdt_amount"`                           //泰达币余额
 	UserId      int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`                              //组织id
 	AdminUser   AdminUser `json:"admin_user";gorm:"foreignkey:UserId"`                                     //指定关联外键
-	SearchTime  time.Time `gorm:"comment:'完成时间';";json:"search_time"`                                      //最后查询余额时间
 	Symbol      string    `gorm:"default:'eth';comment:'币种';"json:"symbol"`                                // 币种
 	Pwd         string    `gorm:"default:'';comment:'加密私钥'";json:"pwd"`                                    // 加密私钥
-	Status      int       `gorm:"default:1;comment:'状态 0：所有，1：已完成，2：执行中，3：结账中';";json:"status"`            //状态
+	Status      int       `gorm:"default:1;comment:'状态 0：所有，1：已完成，2：执行中，3：结账中';";json:"status"`            //状态 状态 0：所有，1：已完成，2：执行中，3：结账中
 	UseTag      int64     `gorm:"default:0;comment:'占用标志 -1 作为热钱包占用-0 未占用->其他 作为用户冲币地址占用'";json:"use_tag"` // 占用标志 -1 作为热钱包占用-0 未占用->0 作为用户冲币地址占用
+	CreateTime  int64     `gorm:"default:0;comment:'创建时间戳'";json:"create_time"`                            //创建时间戳
+	UpdateTime  int64     `gorm:"default:0;comment:'更新时间戳'";json:"update_time"`                            //更新时间戳
 }
 
 //查询所有收款地址
@@ -55,21 +54,18 @@ func (a *Address) AddAddress() error {
 
 //创建多个钱包地址
 func AddMoreAddress(rows []*Address) (int64, error) {
+	tx := Getdb().Begin()
 	if len(rows) == 0 {
 		return 0, nil
 	}
-
-	fmt.Println(len(rows))
-	fmt.Println("已经传入的rows",rows)
-
-	for i,v :=range rows{
-		fmt.Println(i,v.UserAddress)
-			if err := Getdb().Model(&Address{}).Create(v).Error; err != nil {
-				return 0, err
-			}
-
+	for _, v := range rows {
+		if err := Getdb().Model(&Address{}).Create(v).Error; err != nil {
+			tx.Rollback()
+			return 0, err
+		}
 	}
-	return 0 ,nil
+	tx.Commit()
+	return 0, nil
 }
 
 //编辑用户收款地址
@@ -139,9 +135,10 @@ func (a *Address) Col(address request.Math) error {
 
 //更新余额
 func Update(ids request.UpdateAmount) (addresses []Address, err error) {
+	now := time.Now().Unix()
 	for _, v := range ids.Id {
 		address := GetAddressByWhere("id = ?", v)
-		if err := Getdb().Model(&address).Updates(Address{SearchTime: time.Now()}).Error; err != nil {
+		if err := Getdb().Model(&address).Updates(Address{UpdateTime: now}).Error; err != nil {
 			return nil, err
 		}
 		addresses = append(addresses, address)
@@ -160,7 +157,18 @@ func (a *Address) GetCount(where ...interface{}) (count int) {
 	return
 }
 
-// 根据条件获取收款地址看详情
+// 获取所有收款地址数量
+func  GetAddressCount(where ...interface{}) (count int64) {
+	if len(where) == 0 {
+		Getdb().Model(&Address{}).Count(&count)
+		return
+	}
+	Getdb().Model(&Address{}).Where(where[0], where[1:]...).Count(&count)
+	return
+}
+
+
+// 根据条件获取钱包地址
 func GetAddressByWhere(where ...interface{}) (a Address) {
 	Getdb().First(&a, where...)
 	return

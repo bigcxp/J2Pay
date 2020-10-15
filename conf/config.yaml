@@ -13,7 +13,7 @@ mysql:
   host: 127.0.0.1
   port: 3306
   user: root
-  pwd: root
+  pwd: pxichen
   db: j2pay
   prefix:
   max_idle: 10
@@ -54,7 +54,3 @@ eth:
 # AES key
 aes:
   key: jspay
-
-#Sqlx
-sqlx:
-  name: root:pxichen@tcp(127.0.0.1:3306)/j2pay?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_unicode_ci&transaction_isolation='READ-COMMITTED'&sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'

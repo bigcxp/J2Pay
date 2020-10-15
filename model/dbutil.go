@@ -92,6 +92,10 @@ func AutoMigrate() {
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '系统参数设定'").AutoMigrate(&Parameter{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '汇率表'").AutoMigrate(&Rate{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '收款地址表'").AutoMigrate(&Address{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '默认配置表'").AutoMigrate(&TAppConfigInt{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '程序状态表'").AutoMigrate(&TAppStatusInt{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '程序状态表'").AutoMigrate(&TAppConfigStr{})
+
 }
 
 func InitSql() {
