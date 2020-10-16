@@ -27,14 +27,20 @@ func main() {
 	//}
 	//fmt.Println(address)
 	//检测充币
-	heth.CheckBlockSeek()
+	//heth.CheckBlockSeek()
+	//发送交易
+	heth.CheckRawTxSend()
+	//确认tx是否打包
+	heth.CheckRawTxConfirm()
+	//零钱整理到冷钱包
+	//heth.CheckAddressOrg()
 
 	//生成备用地址
-	free, err := heth.CheckAddressFree()
-	if err != nil {
-		return
-	}
-	fmt.Println(free)
+	//free, err := heth.CheckAddressFree()
+	//if err != nil {
+	//	return
+	//}
+	//fmt.Println(free)
 	//网关
 	router := routers.InitRouter()
 	//启动

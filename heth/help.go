@@ -1,16 +1,23 @@
 package heth
 
 import (
+	"context"
 	_ "context"
+	"crypto/ecdsa"
 	_ "crypto/ecdsa"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	_ "github.com/ethereum/go-ethereum/crypto"
 	"github.com/shopspring/decimal"
+	"j2pay-server/ethclient"
 	_ "j2pay-server/ethclient"
+	"j2pay-server/hcommon"
 	_ "j2pay-server/hcommon"
+	"j2pay-server/model"
 	_ "j2pay-server/model"
+	"j2pay-server/pkg/setting"
 	_ "j2pay-server/pkg/setting"
 	"math/big"
 	"regexp"
@@ -31,30 +38,26 @@ func init() {
 	ethToWeiDecimal = decimal.NewFromInt(EthToWei)
 }
 
-//// GetNonce 获取nonce值
-//func GetNonce(tx hcommon.DbExeAble, address string) (int64, error) {
-//	// 通过rpc获取
-//	rpcNonce, err := ethclient.RpcNonceAt(
-//		context.Background(),
-//		address,
-//	)
-//	if nil != err {
-//		return 0, err
-//	}
-//	// 获取db nonce
-//	dbNonce, err := model2.SQLGetTSendMaxNonce(
-//		context.Background(),
-//		tx,
-//		address,
-//	)
-//	if nil != err {
-//		return 0, err
-//	}
-//	if dbNonce > rpcNonce {
-//		rpcNonce = dbNonce
-//	}
-//	return rpcNonce, nil
-//}
+// GetNonce 获取nonce值
+func GetNonce(address string) (int64, error) {
+	// 通过rpc获取
+	rpcNonce, err := ethclient.RpcNonceAt(
+		context.Background(),
+		address,
+	)
+	if nil != err {
+		return 0, err
+	}
+	// 获取db nonce
+	dbNonce, err := model.SQLGetTSendMaxNonce(address)
+	if nil != err {
+		return 0, err
+	}
+	if dbNonce > rpcNonce {
+		rpcNonce = dbNonce
+	}
+	return rpcNonce, nil
+}
 
 // IsValidAddress validate hex address
 func IsValidAddress(iaddress interface{}) bool {
@@ -133,41 +136,31 @@ func TokenWeiBigIntToEthStr(wei *big.Int, tokenDecimals int64) (string, error) {
 }
 
 // GetPKMapOfAddresses 获取地址私钥
-//func GetPKMapOfAddresses(ctx context.Context, db hcommon.DbExeAble, addresses []string) (map[string]*ecdsa.PrivateKey, error) {
-//	addressPKMap := make(map[string]*ecdsa.PrivateKey)
-//	addressKeyMap, err := common.SQLGetAddressKeyMap(
-//		ctx,
-//		db,
-//		[]string{
-//			model2.DBColTAddressKeyID,
-//			model2.DBColTAddressKeyAddress,
-//			model2.DBColTAddressKeyPwd,
-//		},
-//		addresses,
-//	)
-//	if err != nil {
-//		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//		return nil, err
-//	}
-//	for k, v := range addressKeyMap {
-//		key := hcommon.AesDecrypt(v.Pwd, fmt.Sprintf("%s",setting.AesConf.Key))
-//		if len(key) == 0 {
-//			hcommon.Log.Errorf("error key of: %s", k)
-//			continue
-//		}
-//		if strings.HasPrefix(key, "0x") {
-//			key = key[2:]
-//		}
-//		privateKey, err := crypto.HexToECDSA(key)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			continue
-//		}
-//		addressPKMap[k] = privateKey
-//	}
-//	return addressPKMap, nil
-//}
-//
+func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey,error) {
+	addressPKMap := make(map[string]*ecdsa.PrivateKey)
+	addressKeyMap ,err:= model.SQLGetAddressKeyMap(addresses)
+	if err != nil {
+		return nil,err
+	}
+	for k, v := range addressKeyMap {
+		key := hcommon.AesDecrypt(v.Pwd, fmt.Sprintf("%s",setting.AesConf.Key))
+		if len(key) == 0 {
+			hcommon.Log.Errorf("error key of: %s", k)
+			continue
+		}
+		if strings.HasPrefix(key, "0x") {
+			key = key[2:]
+		}
+		privateKey, err := crypto.HexToECDSA(key)
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			continue
+		}
+		addressPKMap[k] = privateKey
+	}
+	return addressPKMap, nil
+}
+
 //// GetPkOfAddress 获取地址私钥
 //func GetPkOfAddress(ctx context.Context, db hcommon.DbExeAble, address string) (*ecdsa.PrivateKey, error) {
 //	// 获取私钥
