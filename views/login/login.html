@@ -88,11 +88,11 @@ html{height:100%;}
 				</div>-->
 
 			</div>
-			<div class="tip">
+			<!--<div class="tip">
 				<span class="icon-nocheck"></span>
 				<span class="login-tip">保持登录</span>
 				<a href="javascript:" class="forget-password">忘记密码？</a>
-			</div>
+			</div>-->
 			<div class="layui-form-item" style="text-align:center; width:100%;height:100%;margin:0px;">
 				<button type="submit" class="login-btn" lay-submit="" lay-filter="login">立即登录</button>
 			</div>
@@ -133,15 +133,16 @@ layui.use(['form'], function () {
 
 	// 进行登录操作
 	form.on('submit(login)', function (data) {
-		postform(null,null,null,function(res){
-			if(res.code=='200'){
-				layer.msg('登录成功', function () {
+		postjson(function(res){
+			if(res.code=='1'){
+				sessionStorage.setItem('token',res.data);
+				layer.msg('登录成功',{icon:1},function (){
 					window.location = '/main';
 				});
 			}else{
 				alerterr(res.msg);
 			}
-		},true);
+		});
 		/*layer.msg('登录成功', function () {
 			window.location = 'main.html';
 		});*/
