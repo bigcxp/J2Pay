@@ -1,7 +1,6 @@
 const API_HOST = '/';
 
 
-
 function postform(form,url,datas,fn,isjson){
 	var data,$form;
 	if(!form){form=$('form').get(0);}
@@ -22,13 +21,16 @@ function postform(form,url,datas,fn,isjson){
 		'data':data,
 		success:function(res){
 			if(typeof(fn)=='function'){fn(res);return;}
-			if(res.code=='200'){
+			if(res.code=='1'){
 				alertok(res.msg);
 			}else{
 				alerterr(res.msg);
 			}
 		}
 	});
+}
+function postjson(fn,form,url,datas){
+	postform(form,url,datas,fn,true);
 }
 
 function msgok(str){layer.msg(str,{icon:1});}
