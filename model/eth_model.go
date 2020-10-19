@@ -82,6 +82,7 @@ type TSend struct {
 	RelatedType  int64  `gorm:"default:0;comment:'关联类型 1 零钱整理 2 提币'";json:"related_type"` // 关联类型 1 零钱整理 2 提币
 	RelatedID    int64  `gorm:"default:0;comment:'管理id'";json:"related_id"`               // 关联id
 	TxID         string `gorm:"default:'';comment:'tx hash'";json:"tx_id"`                // tx hash
+	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`           //合约id
 	FromAddress  string `gorm:"default:'';comment:'打币地址'";json:"from_address"`            // 打币地址
 	ToAddress    string `gorm:"default:'';comment:'收币地址'";json:"to_address"`              // 收币地址
 	BalanceReal  string `gorm:"default:'';comment:'打币金额 ether'";json:"balance_real"`      // 打币金额 Ether
@@ -166,25 +167,31 @@ func SQLSelectTSendColByStatus(where ...interface{}) (ts []*TSend) {
 	return
 }
 
-
-//根据ids查询
+//根据ids查询地址
 func SQLSelectTAddressKeyColByAddress(addresses []string) ([]*Address, error) {
 	var rows []*Address
-	err := Getdb().Find(&rows, "id in (?)", strings.Split(strings.Join(addresses, ","), ",")).Error
+	err := Getdb().Model(&Address{}).Find(&rows, "id in (?)", strings.Split(strings.Join(addresses, ","), ",")).Error
 	return rows, err
 }
 
 //根据status 、id查询
 func SQLGetTWithdrawColForUpdate(id int64, status int) (*TWithdraw, error) {
 	var rows *TWithdraw
-	err := Getdb().Find(&rows, "handle_status = ? and id = ?", status, id).Error
+	err := Getdb().Model(&TWithdraw{}).Find(&rows, "handle_status = ? and id = ?", status, id).Error
 	return rows, err
 }
 
 //根据status 查询需要处理的提币数据
 func SQLSelectTWithdrawColByStatus(twithdraws int) ([]*TWithdraw, error) {
 	var rows []*TWithdraw
-	err := Getdb().Find(&rows, "handle_status = ?", twithdraws).Error
+	err := Getdb().Model(&TWithdraw{}).Find(&rows, "handle_status = ?", twithdraws).Error
+	return rows, err
+}
+
+//获取token配置
+func SQLSelectTAppConfigTokenColAll() ([]*TAppConfigToken, error) {
+	var rows []*TAppConfigToken
+	err := Getdb().Model(&TAppConfigToken{}).Find(&rows).Error
 	return rows, err
 }
 
@@ -239,6 +246,19 @@ func SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
 	return itemMap, nil
 }
 
+//  获取erc代币map
+func SQLGetAppConfigTokenMap(ids []int64) (map[int64]*TAppConfigToken, error) {
+	itemMap := make(map[int64]*TAppConfigToken)
+	err := Getdb().Where("id in (?)", ids).Find(&itemMap).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, itemRow := range itemMap {
+		itemMap[itemRow.ID] = itemRow
+	}
+	return itemMap, nil
+}
+
 //获取nonce
 func SQLGetTSendMaxNonce(address string) (int64, error) {
 	var i int64
@@ -258,6 +278,20 @@ func SQLGetTSendPendingBalanceReal(address string) (string, error) {
 	}
 	return i, nil
 }
+
+//根据状态获取Erc20条约
+func SQLSelectTTxErc20ColByStatus(status int64) ([]*TTxErc20,error) {
+	var rows []*TTxErc20
+	err := Getdb().Model(&TTxErc20{}).Find(&rows, "handle_status = ?", status).Error
+	return rows ,err
+}
+
+func SQLSelectTTxErc20ColByOrgForUpdate(orgStatuses []int64) ([]*TTxErc20, error) {
+	var rows []*TTxErc20
+	err := Getdb().Model(&TTxErc20{}).Find(&rows, "org_status = ?", orgStatuses).Error
+	return rows, err
+}
+
 
 //创建多个交易
 func SQLCreateIgnoreManyTTx(rows []*TTx) (int64, error) {
@@ -312,6 +346,22 @@ func SQLCreateIgnoreManyTProductNotify(rows []*TProductNotify) (int64, error) {
 	}
 	for _, v := range rows {
 		if err := Getdb().Model(&TProductNotify{}).Create(v).Error; err != nil {
+			tx.Rollback()
+			return 0, err
+		}
+	}
+	tx.Commit()
+	return 0, nil
+}
+
+//创建多个TTxErc20对象
+func SQLCreateIgnoreManyTTxErc20(rows []*TTxErc20) (int64, error) {
+	tx := Getdb().Begin()
+	if len(rows) == 0 {
+		return 0, nil
+	}
+	for _, v := range rows {
+		if err := Getdb().Model(&TTxErc20{}).Create(v).Error; err != nil {
 			tx.Rollback()
 			return 0, err
 		}
@@ -401,6 +451,26 @@ func SQLUpdateTTxErc20OrgStatusByIDs(ids []int64, row *TTxErc20) (err error) {
 		}
 	}
 	return
+}
+
+//根据ids更新erc20处理整理状态
+func SQLUpdateTTxErc20StatusByIDs(ids []int64, row  TTxErc20) (int64,error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	tx := Getdb().Begin()
+	for _, v := range ids {
+		var trc TTxErc20
+		Getdb().First(&trc, v)
+		err := tx.Model(&trc).
+			Updates(TTxErc20{HandleStatus: row.HandleStatus, HandleMsg: row.HandleMsg, HandleTime: row.HandleTime}).Error
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}
+	return 0, nil
 }
 
 //更新Twitndraw

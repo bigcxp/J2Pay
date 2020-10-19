@@ -100,6 +100,8 @@ func AutoMigrate() {
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '待发送表'").AutoMigrate(&TSend{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '提币记录表'").AutoMigrate(&TWithdraw{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '通知表'").AutoMigrate(&TProductNotify{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '合约配置表'").AutoMigrate(&TAppConfigToken{})
+
 
 }
 
