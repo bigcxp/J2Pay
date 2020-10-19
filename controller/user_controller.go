@@ -6,6 +6,7 @@ import (
 	"j2pay-server/pkg/util"
 )
 
+
 func UserInfo(c *gin.Context) {
 	response := util.Response{c}
 	user, hasUser := c.Get("user")
