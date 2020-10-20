@@ -174,6 +174,13 @@ func SQLSelectTAddressKeyColByAddress(addresses []string) ([]*Address, error) {
 	return rows, err
 }
 
+//根据address查询地址
+func SQLGetTAddressKeyColByAddress(address string) (*Address, error) {
+	var row Address
+	err := Getdb().Model(&Address{}).Find(&row, "user_address = ? ", address).Error
+	return &row, err
+}
+
 //根据status 、id查询
 func SQLGetTWithdrawColForUpdate(id int64, status int) (*TWithdraw, error) {
 	var rows *TWithdraw
@@ -385,6 +392,23 @@ func SQLUpdateTAppStatusIntByKGreater(row *TAppStatusInt) (err error) {
 		Updates(TAppStatusInt{V: row.V}).Error
 	return
 }
+
+//更新gas费用
+func SQLUpdateTAppStatusIntByK(row *TAppStatusInt) (err error) {
+	tx := Getdb().Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	status := SQLGetTAppStatusIntValueByK("k = ?", row.K)
+	err = tx.Model(&status).
+		Updates(TAppStatusInt{V: row.V}).Error
+	return
+}
+
 
 //更改ttx的org状态
 func SQLUpdateTTxOrgStatusByIDs(ids []int64, row *TTx) (err error) {

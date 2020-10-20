@@ -8,7 +8,7 @@ import (
 
 type Address struct {
 	ID          int64
-	UserAddress string    `gorm:"unique;comment:'钱包地址';"json:"user_address"`                           //地址
+	UserAddress string    `gorm:"unique;comment:'钱包地址';"json:"user_address"`                               //地址
 	EthAmount   float64   `gorm:"default:0;comment:'以太币余额';";json:"eth_amount"`                            //以太币余额
 	UsdtAmount  float64   `gorm:"default:0;comment:'泰达币余额';";json:"usdt_amount"`                           //泰达币余额
 	UserId      int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`                              //组织id
@@ -158,7 +158,7 @@ func (a *Address) GetCount(where ...interface{}) (count int) {
 }
 
 // 获取所有收款地址数量
-func  GetAddressCount(where ...interface{}) (count int64) {
+func GetAddressCount(where ...interface{}) (count int64) {
 	if len(where) == 0 {
 		Getdb().Model(&Address{}).Count(&count)
 		return
@@ -166,7 +166,6 @@ func  GetAddressCount(where ...interface{}) (count int64) {
 	Getdb().Model(&Address{}).Where(where[0], where[1:]...).Count(&count)
 	return
 }
-
 
 // 根据条件获取钱包地址
 func GetAddressByWhere(where ...interface{}) (a Address) {

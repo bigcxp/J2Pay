@@ -21,6 +21,7 @@ import (
 	_ "github.com/ethereum/go-ethereum/rlp"
 	"github.com/gin-gonic/gin"
 	_ "github.com/gin-gonic/gin"
+	"github.com/parnurzeal/gorequest"
 	_ "github.com/parnurzeal/gorequest"
 	"j2pay-server/ethclient"
 	_ "j2pay-server/ethclient"
@@ -28,9 +29,11 @@ import (
 	"j2pay-server/model"
 	"j2pay-server/pkg/setting"
 	"j2pay-server/pkg/util"
+	"math"
 	_ "math"
 	"math/big"
 	_ "math/big"
+	"net/http"
 	_ "net/http"
 	"strings"
 	_ "strings"
@@ -1669,378 +1672,303 @@ func CheckErc20TxOrg() {
 	}
 }
 
-//// CheckErc20Withdraw erc20提币
-//func CheckErc20Withdraw() {
-//	lockKey := "Erc20CheckWithdraw"
-//	common.LockWrap(lockKey, func() {
-//		var tokenSymbols []string
-//		tokenMap := make(map[string]*model.DBTAppConfigToken)
-//		addressKeyMap := make(map[string]*ecdsa.PrivateKey)
-//		addressEthBalanceMap := make(map[string]*big.Int)
-//		addressTokenBalanceMap := make(map[string]*big.Int)
-//		tokenRows, err := common.SQLSelectTAppConfigTokenColAll(
-//			context.Background(),
-//			xenv.DbCon,
-//			[]string{
-//				model.DBColTAppConfigTokenID,
-//				model.DBColTAppConfigTokenTokenAddress,
-//				model.DBColTAppConfigTokenTokenDecimals,
-//				model.DBColTAppConfigTokenTokenSymbol,
-//				model.DBColTAppConfigTokenHotAddress,
-//			},
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		for _, tokenRow := range tokenRows {
-//			tokenMap[tokenRow.TokenSymbol] = tokenRow
-//			if !hcommon.IsStringInSlice(tokenSymbols, tokenRow.TokenSymbol) {
-//				tokenSymbols = append(tokenSymbols, tokenRow.TokenSymbol)
-//			}
-//			// 获取私钥
-//			_, err = StrToAddressBytes(tokenRow.HotAddress)
-//			if err != nil {
-//				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//				return
-//			}
-//			hotAddress := tokenRow.HotAddress
-//			_, ok := addressKeyMap[hotAddress]
-//			if !ok {
-//				// 获取私钥
-//				keyRow, err := common.SQLGetTAddressKeyColByAddress(
-//					context.Background(),
-//					xenv.DbCon,
-//					[]string{
-//						model.DBColTAddressKeyPwd,
-//					},
-//					hotAddress,
-//				)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				if keyRow == nil {
-//					hcommon.Log.Errorf("no key of: %s", hotAddress)
-//					return
-//				}
-//				key := hcommon.AesDecrypt(keyRow.Pwd, xenv.Cfg.AESKey)
-//				if len(key) == 0 {
-//					hcommon.Log.Errorf("error key of: %s", hotAddress)
-//					return
-//				}
-//				if strings.HasPrefix(key, "0x") {
-//					key = key[2:]
-//				}
-//				privateKey, err := crypto.HexToECDSA(key)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				addressKeyMap[hotAddress] = privateKey
-//			}
-//			_, ok = addressEthBalanceMap[hotAddress]
-//			if !ok {
-//				hotAddressBalance, err := ethclient.RpcBalanceAt(
-//					context.Background(),
-//					hotAddress,
-//				)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				pendingBalanceReal, err := common.SQLGetTSendPendingBalanceReal(
-//					context.Background(),
-//					xenv.DbCon,
-//					hotAddress,
-//				)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				pendingBalance, err := EthStrToWeiBigInit(pendingBalanceReal)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				hotAddressBalance.Sub(hotAddressBalance, pendingBalance)
-//				addressEthBalanceMap[hotAddress] = hotAddressBalance
-//			}
-//			tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
-//			_, ok = addressTokenBalanceMap[tokenBalanceKey]
-//			if !ok {
-//				tokenBalance, err := ethclient.RpcTokenBalance(
-//					context.Background(),
-//					tokenRow.TokenAddress,
-//					tokenRow.HotAddress,
-//				)
-//				if err != nil {
-//					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//					return
-//				}
-//				addressTokenBalanceMap[tokenBalanceKey] = tokenBalance
-//			}
-//		}
-//		withdrawRows, err := common.SQLSelectTWithdrawColByStatus(
-//			context.Background(),
-//			xenv.DbCon,
-//			[]string{
-//				model.DBColTWithdrawID,
-//				model.DBColTWithdrawSymbol,
-//			},
-//			common.WithdrawStatusInit,
-//			tokenSymbols,
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		if len(withdrawRows) == 0 {
-//			return
-//		}
-//		// 获取gap price
-//		gasPriceValue, err := common.SQLGetTAppStatusIntValueByK(
-//			context.Background(),
-//			xenv.DbCon,
-//			"to_user_gas_price",
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		gasPrice := gasPriceValue
-//		erc20GasUseValue, err := common.SQLGetTAppConfigIntValueByK(
-//			context.Background(),
-//			xenv.DbCon,
-//			"erc20_gas_use",
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		gasLimit := erc20GasUseValue
-//		// eth fee
-//		feeValue := big.NewInt(gasLimit * gasPrice)
-//		chainID, err := ethclient.RpcNetworkID(context.Background())
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		for _, withdrawRow := range withdrawRows {
-//			err = handleErc20Withdraw(withdrawRow.ID, chainID, &tokenMap, &addressKeyMap, &addressEthBalanceMap, &addressTokenBalanceMap, gasLimit, gasPrice, feeValue)
-//			if err != nil {
-//				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//				continue
-//			}
-//		}
-//	})
-//}
-//
-//func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*model.DBTAppConfigToken, addressKeyMap *map[string]*ecdsa.PrivateKey, addressEthBalanceMap *map[string]*big.Int, addressTokenBalanceMap *map[string]*big.Int, gasLimit, gasPrice int64, feeValue *big.Int) error {
-//	isComment := false
-//	dbTx, err := xenv.DbCon.BeginTxx(context.Background(), nil)
-//	if err != nil {
-//		return err
-//	}
-//	defer func() {
-//		if !isComment {
-//			_ = dbTx.Rollback()
-//		}
-//	}()
-//	// 处理业务
-//	withdrawRow, err := common.SQLGetTWithdrawColForUpdate(
-//		context.Background(),
-//		dbTx,
-//		[]string{
-//			model.DBColTWithdrawID,
-//			model.DBColTWithdrawBalanceReal,
-//			model.DBColTWithdrawToAddress,
-//			model.DBColTWithdrawSymbol,
-//		},
-//		withdrawID,
-//		common.WithdrawStatusInit,
-//	)
-//	if err != nil {
-//		return err
-//	}
-//	if withdrawRow == nil {
-//		return nil
-//	}
-//	tokenRow, ok := (*tokenMap)[withdrawRow.Symbol]
-//	if !ok {
-//		hcommon.Log.Errorf("no tokenMap: %s", withdrawRow.Symbol)
-//		return nil
-//	}
-//	hotAddress := tokenRow.HotAddress
-//	key, ok := (*addressKeyMap)[hotAddress]
-//	if !ok {
-//		hcommon.Log.Errorf("no addressKeyMap: %s", hotAddress)
-//		return nil
-//	}
-//	(*addressEthBalanceMap)[hotAddress] = (*addressEthBalanceMap)[hotAddress].Sub(
-//		(*addressEthBalanceMap)[hotAddress],
-//		feeValue,
-//	)
-//	if (*addressEthBalanceMap)[hotAddress].Cmp(new(big.Int)) < 0 {
-//		hcommon.Log.Errorf("%s eth limit", hotAddress)
-//		return nil
-//	}
-//	tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
-//	tokenBalance, err := TokenEthStrToWeiBigInit(withdrawRow.BalanceReal, tokenRow.TokenDecimals)
-//	if err != nil {
-//		return err
-//	}
-//	(*addressTokenBalanceMap)[tokenBalanceKey] = (*addressTokenBalanceMap)[tokenBalanceKey].Sub(
-//		(*addressTokenBalanceMap)[tokenBalanceKey],
-//		tokenBalance,
-//	)
-//	if (*addressTokenBalanceMap)[tokenBalanceKey].Cmp(new(big.Int)) < 0 {
-//		hcommon.Log.Errorf("%s token limit", tokenBalanceKey)
-//		return nil
-//	}
-//	// 获取nonce值
-//	nonce, err := GetNonce(dbTx, hotAddress)
-//	if err != nil {
-//		return err
-//	}
-//	// 生成交易
-//	contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
-//	if err != nil {
-//		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//		return err
-//	}
-//	input, err := contractAbi.Pack(
-//		"transfer",
-//		common.HexToAddress(withdrawRow.ToAddress),
-//		tokenBalance,
-//	)
-//	if err != nil {
-//		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//		return err
-//	}
-//	rpcTx := types.NewTransaction(
-//		uint64(nonce),
-//		common.HexToAddress(tokenRow.TokenAddress),
-//		big.NewInt(0),
-//		uint64(gasLimit),
-//		big.NewInt(gasPrice),
-//		input,
-//	)
-//	signedTx, err := types.SignTx(rpcTx, types.NewEIP155Signer(big.NewInt(chainID)), key)
-//	if err != nil {
-//		return err
-//	}
-//	ts := types.Transactions{signedTx}
-//	rawTxBytes := ts.GetRlp(0)
-//	rawTxHex := hex.EncodeToString(rawTxBytes)
-//	txHash := strings.ToLower(signedTx.Hash().Hex())
-//	now := time.Now().Unix()
-//	_, err = common.SQLUpdateTWithdrawGenTx(
-//		context.Background(),
-//		dbTx,
-//		&model.DBTWithdraw{
-//			ID:           withdrawID,
-//			TxHash:       txHash,
-//			HandleStatus: common.WithdrawStatusHex,
-//			HandleMsg:    "gen tx hex",
-//			HandleTime:   now,
-//		},
-//	)
-//	if err != nil {
-//		return err
-//	}
-//	_, err = model.SQLCreateTSend(
-//		context.Background(),
-//		dbTx,
-//		&model.DBTSend{
-//			RelatedType:  common.SendRelationTypeWithdraw,
-//			RelatedID:    withdrawID,
-//			TxID:         txHash,
-//			FromAddress:  hotAddress,
-//			ToAddress:    withdrawRow.ToAddress,
-//			BalanceReal:  withdrawRow.BalanceReal,
-//			Gas:          gasLimit,
-//			GasPrice:     gasPrice,
-//			Nonce:        nonce,
-//			Hex:          rawTxHex,
-//			HandleStatus: common.SendStatusInit,
-//			HandleMsg:    "init",
-//			HandleTime:   now,
-//		},
-//	)
-//	if err != nil {
-//		return err
-//	}
-//	// 处理完成
-//	err = dbTx.Commit()
-//	if err != nil {
-//		return err
-//	}
-//	isComment = true
-//	return nil
-//}
-//
-//// CheckGasPrice 检测gas price
-//func CheckGasPrice() {
-//	lockKey := "EthCheckGasPrice"
-//	common.LockWrap(lockKey, func() {
-//		type StRespGasPrice struct {
-//			Fast        int64   `json:"fast"`
-//			Fastest     int64   `json:"fastest"`
-//			SafeLow     int64   `json:"safeLow"`
-//			Average     int64   `json:"average"`
-//			BlockTime   float64 `json:"block_time"`
-//			BlockNum    int64   `json:"blockNum"`
-//			Speed       float64 `json:"speed"`
-//			SafeLowWait float64 `json:"safeLowWait"`
-//			AvgWait     float64 `json:"avgWait"`
-//			FastWait    float64 `json:"fastWait"`
-//			FastestWait float64 `json:"fastestWait"`
-//		}
-//		gresp, body, errs := gorequest.New().
-//			Get("https://ethgasstation.info/api/ethgasAPI.json").
-//			Timeout(time.Second * 120).
-//			End()
-//		if errs != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", errs[0], errs[0].Error())
-//			return
-//		}
-//		if gresp.StatusCode != http.StatusOK {
-//			// 状态错误
-//			hcommon.Log.Errorf("req status error: %d", gresp.StatusCode)
-//			return
-//		}
-//		var resp StRespGasPrice
-//		err := json.Unmarshal([]byte(body), &resp)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		toUserGasPrice := resp.Fast * int64(math.Pow10(8))
-//		toColdGasPrice := resp.Average * int64(math.Pow10(8))
-//		_, err = common.SQLUpdateTAppStatusIntByK(
-//			context.Background(),
-//			xenv.DbCon,
-//			&model.DBTAppStatusInt{
-//				K: "to_user_gas_price",
-//				V: toUserGasPrice,
-//			},
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//		_, err = common.SQLUpdateTAppStatusIntByK(
-//			context.Background(),
-//			xenv.DbCon,
-//			&model.DBTAppStatusInt{
-//				K: "to_cold_gas_price",
-//				V: toColdGasPrice,
-//			},
-//		)
-//		if err != nil {
-//			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//			return
-//		}
-//	})
-//}
+//erc20提币
+func CheckErc20Withdraw() {
+	var tokenSymbols []string
+	tokenMap := make(map[string]*model.TAppConfigToken)
+	addressKeyMap := make(map[string]*ecdsa.PrivateKey)
+	addressEthBalanceMap := make(map[string]*big.Int)
+	addressTokenBalanceMap := make(map[string]*big.Int)
+	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
+	if err != nil {
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+		return
+	}
+	for _, tokenRow := range tokenRows {
+		tokenMap[tokenRow.TokenSymbol] = tokenRow
+		if !hcommon.IsStringInSlice(tokenSymbols, tokenRow.TokenSymbol) {
+			tokenSymbols = append(tokenSymbols, tokenRow.TokenSymbol)
+		}
+		// 获取私钥
+		_, err = StrToAddressBytes(tokenRow.HotAddress)
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		hotAddress := tokenRow.HotAddress
+		_, ok := addressKeyMap[hotAddress]
+		if !ok {
+			// 获取私钥
+			keyRow, err := model.SQLGetTAddressKeyColByAddress(hotAddress)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			if keyRow == nil {
+				hcommon.Log.Errorf("no key of: %s", hotAddress)
+				return
+			}
+			key := hcommon.AesDecrypt(keyRow.Pwd, fmt.Sprintf("%s", setting.AesConf.Key))
+			if len(key) == 0 {
+				hcommon.Log.Errorf("error key of: %s", hotAddress)
+				return
+			}
+			if strings.HasPrefix(key, "0x") {
+				key = key[2:]
+			}
+			privateKey, err := crypto.HexToECDSA(key)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			addressKeyMap[hotAddress] = privateKey
+		}
+		_, ok = addressEthBalanceMap[hotAddress]
+		if !ok {
+			hotAddressBalance, err := ethclient.RpcBalanceAt(
+				context.Background(),
+				hotAddress,
+			)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			pendingBalanceReal, err := model.SQLGetTSendPendingBalanceReal(hotAddress)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			pendingBalance, err := EthStrToWeiBigInit(pendingBalanceReal)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			hotAddressBalance.Sub(hotAddressBalance, pendingBalance)
+			addressEthBalanceMap[hotAddress] = hotAddressBalance
+		}
+		tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
+		_, ok = addressTokenBalanceMap[tokenBalanceKey]
+		if !ok {
+			tokenBalance, err := ethclient.RpcTokenBalance(
+				context.Background(),
+				tokenRow.TokenAddress,
+				tokenRow.HotAddress,
+			)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			addressTokenBalanceMap[tokenBalanceKey] = tokenBalance
+		}
+	}
+	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(model.WithdrawStatusInit)
+	if err != nil {
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+		return
+	}
+	if len(withdrawRows) == 0 {
+		return
+	}
+	// 获取gap price
+	gasPriceValue := model.SQLGetTAppStatusIntValueByK("k = ? ", "to_user_gas_price")
+	if err != nil {
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+		return
+	}
+	gasPrice := gasPriceValue
+	erc20GasUseValue := model.SQLGetTAppConfigIntValueByK("k = ?", "erc20_gas_use")
+	if err != nil {
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+		return
+	}
+	gasLimit := erc20GasUseValue
+	// eth fee
+	feeValue := big.NewInt(gasLimit.V * gasPrice.V)
+	chainID, err := ethclient.RpcNetworkID(context.Background())
+	if err != nil {
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+		return
+	}
+	for _, withdrawRow := range withdrawRows {
+		err = handleErc20Withdraw(withdrawRow.ID, chainID, &tokenMap, &addressKeyMap, &addressEthBalanceMap, &addressTokenBalanceMap, gasLimit.V, gasPrice.V, feeValue)
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			continue
+		}
+	}
+}
+
+//提币
+func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*model.TAppConfigToken, addressKeyMap *map[string]*ecdsa.PrivateKey, addressEthBalanceMap *map[string]*big.Int, addressTokenBalanceMap *map[string]*big.Int, gasLimit, gasPrice int64, feeValue *big.Int) error {
+	// 处理业务
+	withdrawRow, err := model.SQLGetTWithdrawColForUpdate(
+		withdrawID,
+		model.WithdrawStatusInit,
+	)
+	if err != nil {
+		return err
+	}
+	if withdrawRow == nil {
+		return nil
+	}
+	tokenRow, ok := (*tokenMap)[withdrawRow.Symbol]
+	if !ok {
+		hcommon.Log.Errorf("no tokenMap: %s", withdrawRow.Symbol)
+		return nil
+	}
+	hotAddress := tokenRow.HotAddress
+	key, ok := (*addressKeyMap)[hotAddress]
+	if !ok {
+		hcommon.Log.Errorf("no addressKeyMap: %s", hotAddress)
+		return nil
+	}
+	(*addressEthBalanceMap)[hotAddress] = (*addressEthBalanceMap)[hotAddress].Sub(
+		(*addressEthBalanceMap)[hotAddress],
+		feeValue,
+	)
+	if (*addressEthBalanceMap)[hotAddress].Cmp(new(big.Int)) < 0 {
+		hcommon.Log.Errorf("%s eth limit", hotAddress)
+		return nil
+	}
+	tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
+	tokenBalance, err := TokenEthStrToWeiBigInit(withdrawRow.BalanceReal, tokenRow.TokenDecimals)
+	if err != nil {
+		return err
+	}
+	(*addressTokenBalanceMap)[tokenBalanceKey] = (*addressTokenBalanceMap)[tokenBalanceKey].Sub(
+		(*addressTokenBalanceMap)[tokenBalanceKey],
+		tokenBalance,
+	)
+	if (*addressTokenBalanceMap)[tokenBalanceKey].Cmp(new(big.Int)) < 0 {
+		hcommon.Log.Errorf("%s token limit", tokenBalanceKey)
+		return nil
+	}
+	// 获取nonce值
+	nonce, err := GetNonce(hotAddress)
+	if err != nil {
+		return err
+	}
+	// 生成交易
+	contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
+	if err != nil {
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+		return err
+	}
+	input, err := contractAbi.Pack(
+		"transfer",
+		common.HexToAddress(withdrawRow.ToAddress),
+		tokenBalance,
+	)
+	if err != nil {
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+		return err
+	}
+	rpcTx := types.NewTransaction(
+		uint64(nonce),
+		common.HexToAddress(tokenRow.TokenAddress),
+		big.NewInt(0),
+		uint64(gasLimit),
+		big.NewInt(gasPrice),
+		input,
+	)
+	signedTx, err := types.SignTx(rpcTx, types.NewEIP155Signer(big.NewInt(chainID)), key)
+	if err != nil {
+		return err
+	}
+	ts := types.Transactions{signedTx}
+	rawTxBytes := ts.GetRlp(0)
+	rawTxHex := hex.EncodeToString(rawTxBytes)
+	txHash := strings.ToLower(signedTx.Hash().Hex())
+	now := time.Now().Unix()
+	 err = model.SQLUpdateTWithdrawGenTx(
+		&model.TWithdraw{
+			ID:           withdrawID,
+			TxHash:       txHash,
+			HandleStatus: model.WithdrawStatusHex,
+			HandleMsg:    "gen tx hex",
+			HandleTime:   now,
+		},
+	)
+	if err != nil {
+		return err
+	}
+	_, err = model.SQLCreateTSend(
+		&model.TSend{
+			RelatedType:  model.SendRelationTypeWithdraw,
+			RelatedID:    withdrawID,
+			TxID:         txHash,
+			FromAddress:  hotAddress,
+			ToAddress:    withdrawRow.ToAddress,
+			BalanceReal:  withdrawRow.BalanceReal,
+			Gas:          gasLimit,
+			GasPrice:     gasPrice,
+			Nonce:        nonce,
+			Hex:          rawTxHex,
+			HandleStatus: model.SendStatusInit,
+			HandleMsg:    "init",
+			HandleTime:   now,
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// 检测gas price
+func CheckGasPrice() {
+		type StRespGasPrice struct {
+			Fast        int64   `json:"fast"`
+			Fastest     int64   `json:"fastest"`
+			SafeLow     int64   `json:"safeLow"`
+			Average     int64   `json:"average"`
+			BlockTime   float64 `json:"block_time"`
+			BlockNum    int64   `json:"blockNum"`
+			Speed       float64 `json:"speed"`
+			SafeLowWait float64 `json:"safeLowWait"`
+			AvgWait     float64 `json:"avgWait"`
+			FastWait    float64 `json:"fastWait"`
+			FastestWait float64 `json:"fastestWait"`
+		}
+		gresp, body, errs := gorequest.New().
+			Get("https://ethgasstation.info/api/ethgasAPI.json").
+			Timeout(time.Second * 120).
+			End()
+		if errs != nil {
+			hcommon.Log.Errorf("err: [%T] %s", errs[0], errs[0].Error())
+			return
+		}
+		if gresp.StatusCode != http.StatusOK {
+			// 状态错误
+			hcommon.Log.Errorf("req status error: %d", gresp.StatusCode)
+			return
+		}
+		var resp StRespGasPrice
+		err := json.Unmarshal([]byte(body), &resp)
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		toUserGasPrice := resp.Fast * int64(math.Pow10(8))
+		toColdGasPrice := resp.Average * int64(math.Pow10(8))
+		err = model.SQLUpdateTAppStatusIntByK(
+			&model.TAppStatusInt{
+				K: "to_user_gas_price",
+				V: toUserGasPrice,
+			},
+		)
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		 err = model.SQLUpdateTAppStatusIntByK(
+			&model.TAppStatusInt{
+				K: "to_cold_gas_price",
+				V: toColdGasPrice,
+			},
+		)
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+}

@@ -25,7 +25,7 @@ func InitRouter() *gin.Engine {
 
 	// 加入通用中间件
 	r.Use(
-		gin.Recovery(),           // recovery 防止程序奔溃
+		//gin.Recovery(),           // recovery 防止程序奔溃
 		middleware.Logger(),      // 日志记录
 		middleware.NoFound(),     // 404 处理
 		middleware.MakeSession(), // session支持
