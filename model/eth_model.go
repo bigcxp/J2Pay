@@ -82,7 +82,7 @@ type TSend struct {
 	RelatedType  int64  `gorm:"default:0;comment:'关联类型 1 零钱整理 2 提币'";json:"related_type"` // 关联类型 1 零钱整理 2 提币
 	RelatedID    int64  `gorm:"default:0;comment:'管理id'";json:"related_id"`               // 关联id
 	TxID         string `gorm:"default:'';comment:'tx hash'";json:"tx_id"`                // tx hash
-	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`           //合约id
+	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`                 //合约id
 	FromAddress  string `gorm:"default:'';comment:'打币地址'";json:"from_address"`            // 打币地址
 	ToAddress    string `gorm:"default:'';comment:'收币地址'";json:"to_address"`              // 收币地址
 	BalanceReal  string `gorm:"default:'';comment:'打币金额 ether'";json:"balance_real"`      // 打币金额 Ether
@@ -287,10 +287,10 @@ func SQLGetTSendPendingBalanceReal(address string) (string, error) {
 }
 
 //根据状态获取Erc20条约
-func SQLSelectTTxErc20ColByStatus(status int64) ([]*TTxErc20,error) {
+func SQLSelectTTxErc20ColByStatus(status int64) ([]*TTxErc20, error) {
 	var rows []*TTxErc20
 	err := Getdb().Model(&TTxErc20{}).Find(&rows, "handle_status = ?", status).Error
-	return rows ,err
+	return rows, err
 }
 
 func SQLSelectTTxErc20ColByOrgForUpdate(orgStatuses []int64) ([]*TTxErc20, error) {
@@ -298,7 +298,6 @@ func SQLSelectTTxErc20ColByOrgForUpdate(orgStatuses []int64) ([]*TTxErc20, error
 	err := Getdb().Model(&TTxErc20{}).Find(&rows, "org_status = ?", orgStatuses).Error
 	return rows, err
 }
-
 
 //创建多个交易
 func SQLCreateIgnoreManyTTx(rows []*TTx) (int64, error) {
@@ -409,7 +408,6 @@ func SQLUpdateTAppStatusIntByK(row *TAppStatusInt) (err error) {
 	return
 }
 
-
 //更改ttx的org状态
 func SQLUpdateTTxOrgStatusByIDs(ids []int64, row *TTx) (err error) {
 	tx := Getdb().Begin()
@@ -478,7 +476,7 @@ func SQLUpdateTTxErc20OrgStatusByIDs(ids []int64, row *TTxErc20) (err error) {
 }
 
 //根据ids更新erc20处理整理状态
-func SQLUpdateTTxErc20StatusByIDs(ids []int64, row  TTxErc20) (int64,error) {
+func SQLUpdateTTxErc20StatusByIDs(ids []int64, row TTxErc20) (int64, error) {
 	if len(ids) == 0 {
 		return 0, nil
 	}
@@ -523,6 +521,23 @@ func SQLUpdateTSendStatusByIDs(ids []int64, row *TSend) (err error) {
 		} else {
 			tx.Commit()
 		}
+	}
+	return
+}
+
+//将地址分配给用户
+func ToAddress(userId int,useTag int64, addr []Address) (err error) {
+	tx := Getdb().Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	for _, v := range addr {
+		err = tx.Model(&v).
+			Updates(Address{UserId: userId, UseTag: useTag}).Error
 	}
 	return
 }

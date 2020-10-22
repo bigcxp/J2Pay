@@ -27,6 +27,7 @@ import (
 	_ "j2pay-server/ethclient"
 	"j2pay-server/hcommon"
 	"j2pay-server/model"
+	"j2pay-server/model/request"
 	"j2pay-server/pkg/setting"
 	"j2pay-server/pkg/util"
 	"math"
@@ -63,13 +64,13 @@ func genAddressAndAesKey() (string, string, error) {
 }
 
 // CreateHotAddress 创建自用地址 热钱包
-func CreateHotAddress(num int64) ([]string, error) {
+func CreateHotAddress(addr request.AddressAdd) ([]string, error) {
 	var rows []*model.Address
 	// 当前时间
 	now := time.Now().Unix()
 	var userAddresses []string
 	// 遍历差值次数
-	for i := int64(0); i < num; i++ {
+	for i := int64(0); i < addr.Num; i++ {
 		address, privateKeyStrEn, err := genAddressAndAesKey()
 		if err != nil {
 			return nil, err
@@ -79,11 +80,12 @@ func CreateHotAddress(num int64) ([]string, error) {
 			Symbol:      CoinSymbol,
 			UserAddress: address,
 			Pwd:         privateKeyStrEn,
-			UseTag:      -1,
-			UserId:      0,
+			UseTag:      addr.UseTag,
+			UserId:      addr.UserId,
 			UsdtAmount:  0,
 			EthAmount:   0,
-			Status:      0,
+			Status:      1,
+			HandleStatus: addr.HandleStatus,
 			CreateTime:  now,
 			UpdateTime:  now,
 		})
@@ -138,6 +140,17 @@ func CheckAddressFree() ([]string, error) {
 		}
 	}
 	return userAddresses, nil
+}
+
+//将地址分配给商户
+func ToMerchantAddress(addr request.AddressAdd)(err error)  {
+	//从钱包地址随机获取
+	address, err := model.GetFreAddress(addr.Num)
+	if err != nil {
+		return err
+	}
+	err = model.ToAddress(addr.UserId,addr.UseTag, address)
+	return err
 }
 
 // CheckBlockSeek 检测到账

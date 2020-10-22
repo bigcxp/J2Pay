@@ -19,7 +19,7 @@ type FieldTrans map[string]string
 func Setup() {
 	fmt.Println("init db")
 	var err error
-	db, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	db, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
 		setting.MysqlConf.User,
 		setting.MysqlConf.Pwd,
 		setting.MysqlConf.Host,
@@ -79,28 +79,28 @@ func MultiOr(where ...interface{}) func(db2 *gorm.DB) *gorm.DB {
 
 // 自动创建修改表
 func AutoMigrate() {
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '后台用户'").AutoMigrate(&AdminUser{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '角色'").AutoMigrate(&Role{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '权限'").AutoMigrate(&Auth{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '商户提领'").AutoMigrate(&Pick{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '订单'").AutoMigrate(&Order{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '退款订单'").AutoMigrate(&Return{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '手续费结账'").AutoMigrate(&Fee{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '实收明细记录'").AutoMigrate(&DetailedRecord{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '系统参数设定'").AutoMigrate(&Parameter{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '汇率表'").AutoMigrate(&Rate{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '收款地址表'").AutoMigrate(&Address{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '默认整型配置表'").AutoMigrate(&TAppConfigInt{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '程序状态表'").AutoMigrate(&TAppStatusInt{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '默认字符串配置表'").AutoMigrate(&TAppConfigStr{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT 'eth充币交易表'").AutoMigrate(&TTx{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT 'eRC20交易表'").AutoMigrate(&TTxErc20{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '待发送表'").AutoMigrate(&TSend{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '提币记录表'").AutoMigrate(&TWithdraw{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '通知表'").AutoMigrate(&TProductNotify{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8mb4 COMMENT '合约配置表'").AutoMigrate(&TAppConfigToken{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '后台用户'").AutoMigrate(&AdminUser{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '角色'").AutoMigrate(&Role{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '权限'").AutoMigrate(&Auth{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '商户提领'").AutoMigrate(&Pick{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '订单'").AutoMigrate(&Order{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '退款订单'").AutoMigrate(&Return{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '手续费结账'").AutoMigrate(&Fee{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '实收明细记录'").AutoMigrate(&DetailedRecord{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '系统参数设定'").AutoMigrate(&Parameter{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '汇率表'").AutoMigrate(&Rate{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '收款地址表'").AutoMigrate(&Address{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '默认整型配置表'").AutoMigrate(&TAppConfigInt{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '程序状态表'").AutoMigrate(&TAppStatusInt{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '默认字符串配置表'").AutoMigrate(&TAppConfigStr{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT 'eth充币交易表'").AutoMigrate(&TTx{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT 'eRC20交易表'").AutoMigrate(&TTxErc20{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '待发送表'").AutoMigrate(&TSend{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '提币记录表'").AutoMigrate(&TWithdraw{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '通知表'").AutoMigrate(&TProductNotify{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '合约配置表'").AutoMigrate(&TAppConfigToken{})
 
 
 }

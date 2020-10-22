@@ -48,15 +48,23 @@ func InitRouter() *gin.Engine {
 	r.GET("/returnIndex",controller.ReturnIndex)
 	r.GET("/orderIndex",controller.OrderIndex)
 
-
 	// 加入鉴权中间件
 	r.Use(middleware.JWT())
+	//登录后能做的操作
+	//代发 提领 eth转账 erc20代币转账 生成用户钱包地址
+	//1.生成钱包地址 =》热钱包地址 eth钱包地址 分配商户充币地址
+ 	r.POST("/createAddress",controller.CreateAddress)
+	//2.获取钱包列表
+	r.GET("/addrList",controller.AddrList)
+	//3.启用 停用地址
+	r.POST("addrRestart",controller.AddrRestart)
+	//4.更新余额
+	r.POST("updateBalance",controller.UpdateBalance)
+
 	r.GET("/userInfo", controller.UserInfo)
 	r.Use(middleware.Authentication())
 	// 用户
 	{
-
-
 		r.GET("/auth/role", controller.RoleTree)
 		r.GET("/adminUser", controller.UserIndex)
 		r.GET("/adminUser/:id", controller.UserDetail)
@@ -77,8 +85,6 @@ func InitRouter() *gin.Engine {
 	}
 	//公告
 	{
-
-
 		r.GET("/systemMessage", controller.SystemMessage)
 		r.GET("/systemMessageByUser", controller.SystemMessageByUserId)
 		r.POST("/systemMessage", controller.SystemMessageAdd)
@@ -88,14 +94,11 @@ func InitRouter() *gin.Engine {
 	}
 	//首页
 	{
-
 		r.PUT("/password/:id", controller.UpdatePassword)
 		r.PUT("/google/:id", controller.GoogleValidate)
 	}
 	//商户提领 代发
 	{
-
-
 		r.GET("/merchantPick",controller.MerchantPickIndex)
 		r.GET("/merchantPick/:id",controller.MerchantPickDetail)
 
@@ -114,7 +117,6 @@ func InitRouter() *gin.Engine {
 	}
 	//订单
 	{
-
 		r.GET("/order",controller.OrderList)
 		r.POST("/order",controller.OrderAdd)
 		r.GET("/order/:id",controller.OrderDetail)
@@ -123,7 +125,6 @@ func InitRouter() *gin.Engine {
 	}
 	//订单退款
 	{
-
 		r.GET("/return",controller.ReturnList)
 		r.POST("/return",controller.ReturnAdd)
 		r.GET("/return/:id",controller.ReturnDetail)
@@ -151,12 +152,10 @@ func InitRouter() *gin.Engine {
 	}
 	//汇率管理
 	{
-
 		r.GET("/rate", controller.RateList)
 		r.GET("/rate/:id", controller.RateDetail)
 		r.PUT("/rate/:id", controller.RateEdit)
 
 	}
-
 	return r
 }
