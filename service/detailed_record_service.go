@@ -62,7 +62,7 @@ func DetailsDetail(id int) (res response.DetailedList, err error) {
 func IsBind(detail request.DetailedEdit)  error{
 	defer casbin.ClearEnforcer()
 	d := model.DetailedRecord{}
-	d.ID = uint(detail.Id)
+	d.ID = uint(detail.ID)
 	//逻辑
-	return d.Binding(uint(detail.Id),detail.OrderCode,detail.IsBind)
+	return d.Binding(uint(detail.ID),detail.OrderCode,detail.IsBind)
 }

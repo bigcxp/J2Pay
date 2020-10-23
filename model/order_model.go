@@ -107,7 +107,7 @@ func (o *Order) Create() error {
 //修改订单
 func (o *Order) UpdateOrder(order request.OrderEdit) error {
 	tx := Getdb().Begin()
-	orders := GetOrderByWhere("id = ?", order.Id)
+	orders := GetOrderByWhere("id = ?", order.ID)
 	if err := tx.Model(&orders).
 		Updates(Order{Status: order.Status, Address: order.Address, ShouldAmount: order.ShouldAmount, ExprireTime: order.ExprireTime}).Error; err != nil {
 		tx.Rollback()

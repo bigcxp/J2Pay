@@ -10,7 +10,7 @@ type OrderAdd struct {
 }
 
 type OrderEdit struct {
-	Id           int       `json:"-"`
+	ID           int       `json:"id"`
 	Status       int       `json:"status" binding:"required" example:"3"`        // 状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：：已过期
 	Address      string    `json:"address" binding:"required,max=255"`           //收款地址
 	ShouldAmount float64   `json:"should_amount" binding:"required" example:"1"` //应收金额

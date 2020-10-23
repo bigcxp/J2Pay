@@ -12,7 +12,7 @@ type DetailedAdd struct {
 }
 
 type DetailedEdit struct {
-	Id        int    `json:"id"`         //id
+	ID        int    `json:"id"`         //id
 	OrderCode string `json:"order_code"` //商户订单编号
 	IsBind    int    `json:"is_bind"`    // 1：解绑 2：绑定
 }

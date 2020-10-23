@@ -105,7 +105,7 @@ func UserAdd(c *gin.Context) {
 func UserEdit(c *gin.Context) {
 	response := util.Response{c}
 	var user request.UserEdit
-	user.Id, _ = strconv.Atoi(c.Param("id"))
+	user.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&user); err != nil {
 		response.SetValidateError(err)
 		return

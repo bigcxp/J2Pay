@@ -68,7 +68,7 @@ func UpdatePassword(c *gin.Context) {
 func GoogleValidate(c *gin.Context) {
 	response := util.Response{c}
 	var google request.Google
-	google.Id, _ = strconv.Atoi(c.Param("id"))
+	google.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&google); err != nil {
 		response.SetValidateError(err)
 		return

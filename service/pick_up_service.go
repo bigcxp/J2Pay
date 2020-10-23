@@ -126,7 +126,7 @@ func SendAdd(send request.SendAdd) error {
 func CancelPick(send request.SendEdit)  error{
 	defer casbin.ClearEnforcer()
 	p := model.Pick{}
-	p.ID = uint(send.Id)
+	p.ID = uint(send.ID)
 	//逻辑
-	return p.CancelPick(send.Id,send.Status)
+	return p.CancelPick(send.ID,send.Status)
 }

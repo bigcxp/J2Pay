@@ -5,7 +5,7 @@ type RoleAdd struct {
 }
 
 type RoleEdit struct {
-	Id int `json:"-"`
+	ID int `json:"id"`
 	Role
 }
 type Role struct {

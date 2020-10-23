@@ -24,7 +24,7 @@ func AddrList(c *gin.Context) {
 	response := util.Response{c}
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	status, _ := strconv.Atoi(c.DefaultQuery("status", "1"))
+	status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
 	handStatus, _ := strconv.Atoi(c.DefaultQuery("handStatus", "0"))
 	userId, _ := strconv.Atoi(c.DefaultQuery("userId", "0"))
 	useTag, _ := strconv.Atoi(c.DefaultQuery("useTag", "1"))
@@ -93,4 +93,42 @@ func UpdateBalance(c *gin.Context) {
 		return
 	}
 	response.SuccessMsg("成功")
+}
+
+//@tags 地址管理
+// @Summary 编辑地址
+// @Produce json
+// @Param body body request.AddressEdit true "地址id"
+// @Router /addrEdit [post]
+func AddrEdit(c *gin.Context) {
+	response := util.Response{c}
+	var addr request.AddressEdit
+	if err := c.ShouldBindJSON(&addr); err != nil {
+		response.SetValidateError(err)
+		return
+	}
+	if err := service.AddressEdit(addr); err != nil {
+		response.SetOtherError(err)
+		return
+	}
+	response.SuccessMsg("成功")
+}
+
+// @Tags 地址管理
+// @Summary 删除地址
+// @Produce json
+// @Param body body request.AddressDel true "地址id"
+// @Router /addrDel [delete]
+func AddrDel(c *gin.Context) {
+	response := util.Response{c}
+	var addr request.AddressDel
+	if err := c.ShouldBindJSON(&addr); err != nil {
+		response.SetValidateError(err)
+		return
+	}
+	if err := service.AddressDel(addr); err != nil {
+		response.SetOtherError(err)
+		return
+	}
+	response.SuccessMsg("删除成功")
 }

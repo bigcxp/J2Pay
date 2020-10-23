@@ -21,6 +21,6 @@ type SendAdd struct {
 
 //取消提领 代发
 type SendEdit struct {
-	Id     int  `json:"-"`
+	ID     int  `json:"id"`
 	Status int `json:"status" binding:"required" example:"3"` // 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
 }

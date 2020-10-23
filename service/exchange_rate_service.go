@@ -29,7 +29,7 @@ func RateDetail(id uint) (res response.Rate, err error) {
 func UpdateRate(rate request.RateEdit)  error{
 	defer casbin.ClearEnforcer()
 	r := model.Rate{}
-	r.ID = uint(rate.Id)
+	r.ID = uint(rate.ID)
 	//逻辑
 	return r.Update(rate)
 }

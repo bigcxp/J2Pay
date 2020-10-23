@@ -12,7 +12,7 @@ import (
 )
 
 type AdminUser struct {
-	Id             int
+	ID            int
 	Pid            int             `gorm:"default:0;comment:'上级ID';"`
 	UserName       string          `gorm:"unique;comment:'用户名';"`
 	Tel            string          `gorm:"unique;default:'';comment:'手机号';"`
@@ -96,7 +96,7 @@ func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (res
 
 // 根据ID获取用户详情
 func (u *AdminUser) Detail(id ...int) (res response.AdminUserList, err error) {
-	searchId := u.Id
+	searchId := u.ID
 	if len(id) > 0 {
 		searchId = id[0]
 	}
@@ -119,7 +119,7 @@ func (u *AdminUser) Create(roles []int) error {
 	for _, v := range roles {
 		err := tx.Create(&CasbinRule{
 			PType: "g",
-			V0:    "user:" + strconv.Itoa(u.Id),
+			V0:    "user:" + strconv.Itoa(u.ID),
 			V1:    "role:" + strconv.Itoa(v),
 		}).Error
 		if err != nil {
@@ -141,19 +141,19 @@ func (u *AdminUser) Edit(roles []int) error {
 		"tel":         u.Tel,
 		"update_time": time.Now(),
 	}
-	if err := tx.Model(&AdminUser{Id: u.Id}).
+	if err := tx.Model(&AdminUser{ID: u.ID}).
 		Updates(updateInfo).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	if err := tx.Delete(CasbinRule{}, "p_type = 'g' and v0 = ?", "user:"+strconv.Itoa(u.Id)).Error; err != nil {
+	if err := tx.Delete(CasbinRule{}, "p_type = 'g' and v0 = ?", "user:"+strconv.Itoa(u.ID)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	for _, v := range roles {
 		err := tx.Create(&CasbinRule{
 			PType: "g",
-			V0:    "user:" + strconv.Itoa(u.Id),
+			V0:    "user:" + strconv.Itoa(u.ID),
 			V1:    "role:" + strconv.Itoa(v),
 		}).Error
 		if err != nil {
@@ -191,13 +191,13 @@ func (u *AdminUser) Google(google request.Google) (err error) {
 			tx.Commit()
 		}
 	}()
-	user := GetUserByWhere("id = ?", google.Id)
+	user := GetUserByWhere("id = ?", google.ID)
 	isOpen := google.IsOpen
 	if isOpen == 0 {
-		err = tx.Model(&AdminUser{Id: user.Id}).
+		err = tx.Model(&AdminUser{ID: user.ID}).
 			Updates(AdminUser{IsOpen: 0}).Error
 	} else {
-		err = tx.Model(&AdminUser{Id: user.Id}).
+		err = tx.Model(&AdminUser{ID: user.ID}).
 			Updates(AdminUser{IsOpen: 1}).Error
 	}
 
@@ -207,11 +207,11 @@ func (u *AdminUser) Google(google request.Google) (err error) {
 // 删除用户
 func (u *AdminUser) Del() error {
 	tx := Getdb().Begin()
-	if err := tx.Delete(u, "id = ?", u.Id).Error; err != nil {
+	if err := tx.Delete(u, "id = ?", u.ID).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	if err := tx.Delete(CasbinRule{}, "p_type = 'g' and v0 = ?", "user:"+strconv.Itoa(u.Id)).Error; err != nil {
+	if err := tx.Delete(CasbinRule{}, "p_type = 'g' and v0 = ?", "user:"+strconv.Itoa(u.ID)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

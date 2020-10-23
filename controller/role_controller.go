@@ -84,7 +84,7 @@ func RoleAdd(c *gin.Context) {
 func RoleEdit(c *gin.Context) {
 	response := util.Response{c}
 	var role request.RoleEdit
-	role.Id, _ = strconv.Atoi(c.Param("id"))
+	role.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&role); err != nil {
 		response.SetValidateError(err).SetMeta(map[string]string{"Name": "角色名"})
 		return

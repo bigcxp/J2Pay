@@ -33,7 +33,7 @@ func Login(user *request.LoginUser, id string) (string, error) {
 		}
 
 	}
-	if adminUser.Id == 0 {
+	if adminUser.ID== 0 {
 		return "", myerr.NewNormalValidateError("用户不存在")
 	}
 	if bcrypt.CompareHashAndPassword([]byte(adminUser.Password), []byte(user.Password)) != nil {
@@ -78,7 +78,7 @@ func UserList(pid int, page, pageSize int) (res response.AdminUserPage, err erro
 
 // 用户详情
 func UserDetail(id int) (res response.AdminUserList, err error) {
-	adminUser := model.AdminUser{Id: id}
+	adminUser := model.AdminUser{ID: id}
 	res, err = adminUser.Detail()
 	if err != nil {
 		return
@@ -125,10 +125,10 @@ func UserAdd(user request.UserAdd) error {
 		IsOpen:        0,
 	}
 	// 1.判断用户名和手机号是否存在
-	if hasName := model.GetUserByWhere("user_name = ?", user.UserName); hasName.Id > 0 {
+	if hasName := model.GetUserByWhere("user_name = ?", user.UserName); hasName.ID > 0 {
 		return myerr.NewDbValidateError("用户名已存在")
 	}
-	if hasTel := model.GetUserByWhere("tel = ?", user.Tel); hasTel.Id > 0 {
+	if hasTel := model.GetUserByWhere("tel = ?", user.Tel); hasTel.ID > 0 {
 		return myerr.NewDbValidateError("手机号已存在")
 	}
 
@@ -154,7 +154,7 @@ func UserAdd(user request.UserAdd) error {
 func UserEdit(user request.UserEdit) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		Id:            user.Id,
+		ID:            user.ID,
 		UserName:      user.UserName,
 		IsOpen:        user.IsOpen,
 		Tel:           user.Tel,
@@ -188,10 +188,10 @@ func UserEdit(user request.UserEdit) error {
 	}
 
 	// 1.判断用户名和手机号是否存在
-	if hasName := model.GetUserByWhere("user_name = ? and id <> ?", user.UserName, user.Id); hasName.Id > 0 {
+	if hasName := model.GetUserByWhere("user_name = ? and id <> ?", user.UserName, user.ID); hasName.ID > 0 {
 		return myerr.NewDbValidateError("用户名已存在")
 	}
-	if hasTel := model.GetUserByWhere("tel = ? and id <> ?", user.UserName, user.Id); hasTel.Id > 0 {
+	if hasTel := model.GetUserByWhere("tel = ? and id <> ?", user.UserName, user.ID); hasTel.ID > 0 {
 		return myerr.NewDbValidateError("手机号已存在")
 	}
 	// 2.判断角色是否存在
@@ -218,7 +218,7 @@ func UserEdit(user request.UserEdit) error {
 //修改密码
 func UpdatePassword(id int) (password response.Password, err error) {
 	defer casbin.ClearEnforcer()
-	adminUser := model.AdminUser{Id: id}
+	adminUser := model.AdminUser{ID: id}
 	//随机获取密码
 	password1 := util.RandString(10)
 	userPassword := response.Password{Password: password1}
@@ -232,7 +232,7 @@ func UpdatePassword(id int) (password response.Password, err error) {
 //开启google验证
 func OpenGoogle(google request.Google) (err error) {
 	defer casbin.ClearEnforcer()
-	user := model.GetUserByWhere("id = ?", google.Id)
+	user := model.GetUserByWhere("id = ?", google.ID)
 	code, err2 := validate.NewGoogleAuth().VerifyCode(user.Secret, google.GoogleCode)
 	if err2 != nil {
 		return err2
@@ -248,7 +248,7 @@ func OpenGoogle(google request.Google) (err error) {
 func UserDel(id int) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
-		Id: id,
+		ID: id,
 	}
 	return u.Del()
 }
