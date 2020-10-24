@@ -78,4 +78,5 @@ func GoogleValidate(c *gin.Context) {
 		return
 	}
 	response.SuccessMsg("成功")
+
 }
