@@ -103,6 +103,7 @@ func EditAddress(address []Address,userId int) error {
 	return nil
 }
 
+
 //删除收款地址
 func  AddressDel(addr []Address) error {
 	tx := Getdb().Begin()
@@ -113,7 +114,6 @@ func  AddressDel(addr []Address) error {
 		}
 		tx.Commit()
 	}
-
 	return nil
 }
 

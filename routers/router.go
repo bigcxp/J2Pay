@@ -64,6 +64,9 @@ func InitRouter() *gin.Engine {
 	r.POST("addrEdit", controller.AddrEdit)
 	//6.删除地址
 	r.DELETE("addrDel", controller.AddrDel)
+	//7.交易记录
+	r.GET("ethTransfer",controller.EthTransfer)
+	r.GET("hotTransfer",controller.HotTransfer)
 	r.GET("/userInfo", controller.UserInfo)
 	// 加入鉴权中间件
 	r.Use(middleware.Authentication())

@@ -47,7 +47,6 @@ type PickList struct {
 }
 
 //管理端代发对象
-
 type SendList struct {
 	ID          uint      `json:"id"`           //ID
 	UserId      int       `json:"user_id"`      //商户id
