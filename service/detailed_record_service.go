@@ -48,7 +48,6 @@ func DetailedAdd(detail request.DetailedAdd) error {
 
 //实收明细详情
 func DetailsDetail(id int) (res response.DetailedList, err error) {
-
 	record := model.DetailedRecord{}
 	record.ID = uint(id)
 	res, err = record.GetDetail()

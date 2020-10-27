@@ -24,7 +24,7 @@ type HotTransaction struct {
 	Type           int     `gorm:"default:0;comment:'类型:1:代发,2:排程结账,3:手动结账';"`
 	ScheduleStatus int     `gorm:"default:1;comment:'排程状态：1：等待中，:成功,2：失败,3:执行中'"`
 	TXID           string  `gorm:"default:'';comment:'交易哈希';";json:"txid"`
-	GasFee         float64 `gorm:"default:0;comment:'gas费'";json:"gas_fee"`
+	GasFee         int64 `gorm:"default:0;comment:'gas费'";json:"gas_fee"`
 	ChainStatus    int     `gorm:"default:1;comment:'链上状态:1：none,2:等待中,3：失败,4:dropped,5：成功'"`
 	CreateTime     int64   `gorm:"default:0;comment:'创建时间戳'";json:"create_time"`
 }

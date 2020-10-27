@@ -59,6 +59,23 @@ type TAppConfigToken struct {
 	CreateTime    int64  `gorm:"default:0;comment:'创建时间'" ;json:"create_time"`      //创建时间
 }
 
+// const TProductNotify
+const (
+	DBColTProductNotifyID           = "t_product_notify.id"
+	DBColTProductNotifyNonce        = "t_product_notify.nonce"
+	DBColTProductNotifyProductID    = "t_product_notify.product_id"
+	DBColTProductNotifyItemType     = "t_product_notify.item_type"
+	DBColTProductNotifyItemID       = "t_product_notify.item_id"
+	DBColTProductNotifyNotifyType   = "t_product_notify.notify_type"
+	DBColTProductNotifyTokenSymbol  = "t_product_notify.token_symbol"
+	DBColTProductNotifyURL          = "t_product_notify.url"
+	DBColTProductNotifyMsg          = "t_product_notify.msg"
+	DBColTProductNotifyHandleStatus = "t_product_notify.handle_status"
+	DBColTProductNotifyHandleMsg    = "t_product_notify.handle_msg"
+	DBColTProductNotifyCreateTime   = "t_product_notify.create_time"
+	DBColTProductNotifyUpdateTime   = "t_product_notify.update_time"
+)
+
 //通知
 type TProductNotify struct {
 	ID           int64
@@ -256,7 +273,8 @@ func SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
 //  获取erc代币map
 func SQLGetAppConfigTokenMap(ids []int64) (map[int64]*TAppConfigToken, error) {
 	itemMap := make(map[int64]*TAppConfigToken)
-	err := Getdb().Where("id in (?)", ids).Find(&itemMap).Error
+	//var token []TAppConfigToken
+	err := Getdb().Where("id in (?)", ids).Scan(&itemMap).Error
 	if err != nil {
 		return nil, err
 	}
@@ -526,7 +544,7 @@ func SQLUpdateTSendStatusByIDs(ids []int64, row *TSend) (err error) {
 }
 
 //将地址分配给用户
-func ToAddress(userId int,useTag int64, addr []Address) (err error) {
+func ToAddress(userId int, useTag int64, addr []Address) (err error) {
 	tx := Getdb().Begin()
 	defer func() {
 		if err != nil {
@@ -540,4 +558,32 @@ func ToAddress(userId int,useTag int64, addr []Address) (err error) {
 			Updates(Address{UserId: userId, UseTag: useTag}).Error
 	}
 	return
+}
+
+// SQLUpdateTProductNotifyStatusByID 更新
+func SQLUpdateTProductNotifyStatusByID(row *TProductNotify) (err error) {
+	tx := Getdb().Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	err = tx.Model(&row).Updates(TProductNotify{HandleStatus: row.HandleStatus, HandleMsg: row.HandleMsg, UpdateTime: row.UpdateTime}).Error
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+// SQLSelectTProductNotifyColByStatusAndTime 根据ids获取通知
+func SQLSelectTProductNotifyColByStatusAndTime(cols []string, status int64, time int64) ([]*TProductNotify, error) {
+	var rows []*TProductNotify
+	err := Getdb().Model(&TProductNotify{}).Find(&rows, "handle_status = ? and update_time < ?", status, time).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
 }

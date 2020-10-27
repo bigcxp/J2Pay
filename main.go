@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/ethereum/go-ethereum/accounts/keystore"
+	"j2pay-server/cron"
 	"j2pay-server/ethclient"
 	"j2pay-server/model"
 	"j2pay-server/pkg/logger"
@@ -15,7 +16,6 @@ import (
 func main() {
 	//把用户传递的命令行参数解析为对应变量的值
 	flag.Parse()
-
 	// 初始化操作 (因为 init 方法无法保证我们想要的顺序)
 	setting.Setup()
 	//日志
@@ -24,6 +24,8 @@ func main() {
 	model.Setup()
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
+	//初始化定时器检测
+	cron.Cron()
 	//生成热钱包地址
 	//address, err := heth.CreateHotAddress(1)
 	//if err != nil {

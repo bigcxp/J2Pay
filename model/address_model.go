@@ -184,7 +184,7 @@ func GetAddressByWhere(where ...interface{}) (a Address) {
 	return
 }
 
-// 根据条件获取钱包地址
+// 根据条件获取钱包地址列表
 func GetAllAddress(where ...interface{}) (res []Address) {
 	Getdb().Model(Address{}).
 		Order("id asc").

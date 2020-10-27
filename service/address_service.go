@@ -34,10 +34,7 @@ func AddressList(address string, status, handStatus, userId, useTag, page, pageS
 //按照一定数量和是否启用钱包新建热钱包，eth钱包 ，检测是否有空闲钱包 为商户分配钱包
 func AddAddress(addr request.AddressAdd) (err error) {
 	//检测空余地址是否足够 不够则生成新的地址 数据库中设置好需要生成的地址数量
-	_, err = heth.CheckAddressFree()
-	if err != nil {
-		return
-	}
+	heth.CheckAddressFree()
 	//根据需要生成的地址执行对应方法
 	switch addr.UseTag {
 	//生成热钱包地址
