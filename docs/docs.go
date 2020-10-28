@@ -36,6 +36,50 @@ var doc = `{
                 "summary": "系统首页"
             }
         },
+        "/addrDel": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "地址管理"
+                ],
+                "summary": "删除地址",
+                "parameters": [
+                    {
+                        "description": "地址id",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddressDel"
+                        }
+                    }
+                ]
+            }
+        },
+        "/addrEdit": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "地址管理"
+                ],
+                "summary": "编辑地址",
+                "parameters": [
+                    {
+                        "description": "地址id",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddressEdit"
+                        }
+                    }
+                ]
+            }
+        },
         "/addrList": {
             "get": {
                 "produces": [
@@ -504,6 +548,51 @@ var doc = `{
                 "summary": "实收明细记录"
             }
         },
+        "/ethTransfer": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "交易记录管理"
+                ],
+                "summary": "eth交易记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "起始时间",
+                        "name": "fromTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "到达时间",
+                        "name": "toTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AdminUserPage"
+                        }
+                    }
+                }
+            }
+        },
         "/fee": {
             "get": {
                 "produces": [
@@ -628,6 +717,75 @@ var doc = `{
                         }
                     }
                 ]
+            }
+        },
+        "/hotTransfer": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "交易记录管理"
+                ],
+                "summary": "热钱包交易明细",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "来源地址",
+                        "name": "fromAddr",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "目的地址",
+                        "name": "toAddr",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "起始时间",
+                        "name": "fromTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "到达时间",
+                        "name": "toTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "排程状态",
+                        "name": "scheduleStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "链上状态",
+                        "name": "chainStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AdminUserPage"
+                        }
+                    }
+                }
             }
         },
         "/index": {
@@ -1948,6 +2106,55 @@ var doc = `{
                 }
             }
         },
+        "request.AddressDel": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                    ]
+                }
+            }
+        },
+        "request.AddressEdit": {
+            "type": "object",
+            "required": [
+                "id",
+                "user_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                    ]
+                },
+                "user_id": {
+                    "description": "组织id",
+                    "type": "integer"
+                }
+            }
+        },
         "request.DetailedAdd": {
             "type": "object",
             "properties": {
@@ -2017,6 +2224,9 @@ var doc = `{
                     "description": "google验证码",
                     "type": "string",
                     "example": "852079"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "is_open": {
                     "description": "是否开启google双重验证 默认0：不开启 1：开启",
@@ -2138,11 +2348,28 @@ var doc = `{
         },
         "request.OpenOrStopAddress": {
             "type": "object",
+            "required": [
+                "id"
+            ],
             "properties": {
-                "hand_status": {
+                "handle_status": {
                     "description": "是否启用",
                     "type": "integer",
                     "example": 1
+                },
+                "id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                    ]
                 }
             }
         },
@@ -2193,6 +2420,9 @@ var doc = `{
                     "description": "过期时间",
                     "type": "string"
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "should_amount": {
                     "description": "应收金额",
                     "type": "number",
@@ -2226,6 +2456,9 @@ var doc = `{
                     "description": "GasPrice",
                     "type": "number",
                     "example": 88
+                },
+                "id": {
+                    "type": "integer"
                 }
             }
         },
@@ -2273,6 +2506,9 @@ var doc = `{
                 "receive_weight_value"
             ],
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "pay_weight_add_or_reduce": {
                     "description": "代发增加还是减少 0：增加 1：减少",
                     "type": "integer",
@@ -2410,6 +2646,9 @@ var doc = `{
                         19
                     ]
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "name": {
                     "description": "角色名",
                     "type": "string",
@@ -2471,6 +2710,9 @@ var doc = `{
                 "status"
             ],
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "status": {
                     "description": "状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败",
                     "type": "integer",
@@ -2479,7 +2721,26 @@ var doc = `{
             }
         },
         "request.UpdateAmount": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                    ]
+                }
+            }
         },
         "request.UserAdd": {
             "type": "object",
@@ -2712,6 +2973,9 @@ var doc = `{
                     "type": "number",
                     "example": 1
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "is_collection": {
                     "description": "是否开启收款功能 1：是 0：否",
                     "type": "integer",
@@ -2834,7 +3098,7 @@ var doc = `{
                 }
             }
         },
-        "response.AddressList": {
+        "response.Address": {
             "type": "object",
             "properties": {
                 "create_time": {
@@ -2889,7 +3153,7 @@ var doc = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.AddressList"
+                        "$ref": "#/definitions/response.Address"
                     }
                 },
                 "per_page": {

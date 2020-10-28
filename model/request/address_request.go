@@ -22,7 +22,7 @@ type AddressDel struct {
 //启用停用
 type OpenOrStopAddress struct {
 	ID []int `json:"id" binding:"required,unique,min=1" example:"1,2,3,4,5,6"`
-	HandleStatus int   `json:"hand_status" example:"1"` //是否启用
+	HandleStatus int   `json:"handle_status" example:"1"` //是否启用
 }
 
 //储值

@@ -17,6 +17,42 @@ definitions:
         example: 1
         type: integer
     type: object
+  request.AddressDel:
+    properties:
+      id:
+        example:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        items:
+          type: integer
+        type: array
+    required:
+    - id
+    type: object
+  request.AddressEdit:
+    properties:
+      id:
+        example:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        items:
+          type: integer
+        type: array
+      user_id:
+        description: 组织id
+        type: integer
+    required:
+    - id
+    - user_id
+    type: object
   request.DetailedAdd:
     properties:
       amount:
@@ -65,6 +101,8 @@ definitions:
         description: google验证码
         example: "852079"
         type: string
+      id:
+        type: integer
       is_open:
         description: 是否开启google双重验证 默认0：不开启 1：开启
         example: 1
@@ -160,10 +198,23 @@ definitions:
     type: object
   request.OpenOrStopAddress:
     properties:
-      hand_status:
+      handle_status:
         description: 是否启用
         example: 1
         type: integer
+      id:
+        example:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        items:
+          type: integer
+        type: array
+    required:
+    - id
     type: object
   request.OrderAdd:
     properties:
@@ -197,6 +248,8 @@ definitions:
       exprire_time:
         description: 过期时间
         type: string
+      id:
+        type: integer
       should_amount:
         description: 应收金额
         example: 1
@@ -227,6 +280,8 @@ definitions:
         description: GasPrice
         example: 88
         type: number
+      id:
+        type: integer
     type: object
   request.PickAdd:
     properties:
@@ -259,6 +314,8 @@ definitions:
     type: object
   request.RateEdit:
     properties:
+      id:
+        type: integer
       pay_weight_add_or_reduce:
         description: 代发增加还是减少 0：增加 1：减少
         example: 0
@@ -370,6 +427,8 @@ definitions:
         items:
           type: integer
         type: array
+      id:
+        type: integer
       name:
         description: 角色名
         example: 程序员
@@ -418,6 +477,8 @@ definitions:
     type: object
   request.SendEdit:
     properties:
+      id:
+        type: integer
       status:
         description: 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
         example: 3
@@ -426,6 +487,20 @@ definitions:
     - status
     type: object
   request.UpdateAmount:
+    properties:
+      id:
+        example:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        items:
+          type: integer
+        type: array
+    required:
+    - id
     type: object
   request.UserAdd:
     properties:
@@ -596,6 +671,8 @@ definitions:
         description: 代发审核
         example: 1
         type: number
+      id:
+        type: integer
       is_collection:
         description: 是否开启收款功能 1：是 0：否
         example: 1
@@ -712,7 +789,7 @@ definitions:
     - user_less_time
     - user_name
     type: object
-  response.AddressList:
+  response.Address:
     properties:
       create_time:
         description: 创建时间戳
@@ -752,7 +829,7 @@ definitions:
         type: integer
       data:
         items:
-          $ref: '#/definitions/response.AddressList'
+          $ref: '#/definitions/response.Address'
         type: array
       per_page:
         description: 当前页码
@@ -1455,6 +1532,34 @@ paths:
       summary: 系统首页
       tags:
       - 管理员首页
+  /addrDel:
+    delete:
+      parameters:
+      - description: 地址id
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddressDel'
+      produces:
+      - application/json
+      summary: 删除地址
+      tags:
+      - 地址管理
+  /addrEdit:
+    post:
+      parameters:
+      - description: 地址id
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddressEdit'
+      produces:
+      - application/json
+      summary: 编辑地址
+      tags:
+      - 地址管理
   /addrList:
     get:
       parameters:
@@ -1759,6 +1864,35 @@ paths:
       summary: 实收明细记录
       tags:
       - 实收明细记录
+  /ethTransfer:
+    get:
+      parameters:
+      - description: 起始时间
+        in: query
+        name: fromTime
+        type: integer
+      - description: 到达时间
+        in: query
+        name: toTime
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AdminUserPage'
+      summary: eth交易记录
+      tags:
+      - 交易记录管理
   /fee:
     get:
       parameters:
@@ -1841,6 +1975,51 @@ paths:
       summary: 开启google验证
       tags:
       - 管理员首页
+  /hotTransfer:
+    get:
+      parameters:
+      - description: 来源地址
+        in: query
+        name: fromAddr
+        type: string
+      - description: 目的地址
+        in: query
+        name: toAddr
+        type: string
+      - description: 起始时间
+        in: query
+        name: fromTime
+        type: integer
+      - description: 到达时间
+        in: query
+        name: toTime
+        type: integer
+      - description: 排程状态
+        in: query
+        name: scheduleStatus
+        type: integer
+      - description: 链上状态
+        in: query
+        name: chainStatus
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AdminUserPage'
+      summary: 热钱包交易明细
+      tags:
+      - 交易记录管理
   /index:
     get:
       produces:

@@ -972,7 +972,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 
 // CheckTxNotify 创建eth冲币通知
 func CheckTxNotify() {
-	txRows := model.SQLSelectTTxColByOrgForUpdate("hand_status", model.TxStatusInit)
+	txRows := model.SQLSelectTTxColByOrgForUpdate("handle_status", model.TxStatusInit)
 
 	var notifyTxIDs []int64
 	var notifyRows []*model.TProductNotify

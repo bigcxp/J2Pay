@@ -4,14 +4,14 @@ import (
 	"github.com/robfig/cron/v3"
 	"j2pay-server/hcommon"
 	"j2pay-server/heth"
+	"j2pay-server/pkg/logger"
 )
 // 定时处理检测任务
 func Cron() {
 	c := cron.New(
 		cron.WithSeconds(),
-		cron.WithChain(
-			cron.Recover(cron.DefaultLogger),
-		),
+		cron.WithLogger(cron.VerbosePrintfLogger(logger.Logger)),
+		cron.WithChain(cron.Recover(cron.DefaultLogger)),
 	)
 	var err error
 	// --- common --
@@ -84,5 +84,4 @@ func Cron() {
 		hcommon.Log.Errorf("cron add func error: %#v", err)
 	}
 	c.Start()
-	select {}
 }

@@ -258,13 +258,13 @@ func GetPkOfAddress(address string) (*ecdsa.PrivateKey, error) {
 
 //获取提币map
 func SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
-
 	itemMap := make(map[int64]*TWithdraw)
-	err := Getdb().Where("id in (?)", ids).Find(&itemMap).Error
+	var withdraw []*TWithdraw
+	err := Getdb().Where("id in (?)", ids).Find(&withdraw).Error
 	if err != nil {
 		return nil, err
 	}
-	for _, itemRow := range itemMap {
+	for _, itemRow := range withdraw {
 		itemMap[itemRow.ID] = itemRow
 	}
 	return itemMap, nil
@@ -272,13 +272,14 @@ func SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
 
 //  获取erc代币map
 func SQLGetAppConfigTokenMap(ids []int64) (map[int64]*TAppConfigToken, error) {
+
 	itemMap := make(map[int64]*TAppConfigToken)
-	//var token []TAppConfigToken
-	err := Getdb().Where("id in (?)", ids).Scan(&itemMap).Error
+	var token []*TAppConfigToken
+	err := Getdb().Model(&TAppConfigToken{}).Where("id in (?)", ids).Scan(&token).Error
 	if err != nil {
 		return nil, err
 	}
-	for _, itemRow := range itemMap {
+	for _, itemRow := range token {
 		itemMap[itemRow.ID] = itemRow
 	}
 	return itemMap, nil
