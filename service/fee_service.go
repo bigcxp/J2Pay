@@ -23,7 +23,7 @@ func FeeList(fromDate string, toDate string, status int, userId int, page, pageS
 func FeeSettle(fee request.FeeEdit)  error{
 	defer casbin.ClearEnforcer()
 	f := model.Fee{}
-	f.ID = uint(fee.Id)
+	f.ID = uint(fee.ID)
 	//逻辑
 	return f.Settlement(f.ID)
 }

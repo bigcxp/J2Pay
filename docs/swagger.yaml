@@ -1,4 +1,22 @@
 definitions:
+  request.AddressAdd:
+    properties:
+      handle_status:
+        description: 指派状态 0：所有，1：启用，2：停用
+        example: 1
+        type: integer
+      num:
+        description: 生成钱包数量
+        type: integer
+      use_tag:
+        description: -2:eth钱包,-1:热钱包,0:未占用,userId:组织充币钱包
+        example: 0
+        type: integer
+      user_id:
+        description: 组织id
+        example: 1
+        type: integer
+    type: object
   request.DetailedAdd:
     properties:
       amount:
@@ -139,6 +157,13 @@ definitions:
     - endTime
     - title
     - users
+    type: object
+  request.OpenOrStopAddress:
+    properties:
+      hand_status:
+        description: 是否启用
+        example: 1
+        type: integer
     type: object
   request.OrderAdd:
     properties:
@@ -399,6 +424,8 @@ definitions:
         type: integer
     required:
     - status
+    type: object
+  request.UpdateAmount:
     type: object
   request.UserAdd:
     properties:
@@ -684,6 +711,55 @@ definitions:
     - tel
     - user_less_time
     - user_name
+    type: object
+  response.AddressList:
+    properties:
+      create_time:
+        description: 创建时间戳
+        type: integer
+      eth_amount:
+        description: 以太币余额
+        type: number
+      id:
+        description: ID
+        type: integer
+      real_name:
+        description: 组织名称
+        type: string
+      status:
+        description: 状态 1：已完成，2：执行中，3：结账中
+        type: integer
+      update_time:
+        description: 更新时间戳
+        type: integer
+      usdt_amount:
+        description: 泰达币余额
+        type: number
+      user_address:
+        description: 地址
+        type: string
+      user_id:
+        description: 商户id
+        type: integer
+      user_tag:
+        description: 占用状态 0：停用，1：启用
+        type: integer
+    type: object
+  response.AddressPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.AddressList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
     type: object
   response.AdminSystemMessage:
     properties:
@@ -1372,6 +1448,70 @@ info:
   license: {}
   title: y2pay
 paths:
+  /:
+    get:
+      produces:
+      - application/json
+      summary: 系统首页
+      tags:
+      - 管理员首页
+  /addrList:
+    get:
+      parameters:
+      - description: 状态 0：所有，1：已完成，2：执行中，3：结账中
+        in: query
+        name: status
+        type: integer
+      - description: 指派状态 0：所有，1：启用，2：停用
+        in: query
+        name: handleStatus
+        type: integer
+      - description: 钱包地址
+        in: query
+        name: address
+        type: string
+      - description: 商户组织id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      - description: 钱包占用类型 -2:eth钱包地址,-1：hot钱包地址,1:商户充币钱包地址
+        in: query
+        name: useTag
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AddressPage'
+      summary: 钱包地址列表
+      tags:
+      - 地址管理
+  /addrRestart:
+    post:
+      parameters:
+      - description: 地址id
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenOrStopAddress'
+      produces:
+      - application/json
+      summary: 启用 停用地址
+      tags:
+      - 地址管理
   /adminUser:
     get:
       parameters:
@@ -1458,6 +1598,13 @@ paths:
       summary: 编辑账户
       tags:
       - 账户管理
+  /adminUserIndex:
+    get:
+      produces:
+      - application/json
+      summary: 账户管理
+      tags:
+      - 账户管理
   /auth/role:
     get:
       produces:
@@ -1489,6 +1636,22 @@ paths:
       summary: 验证码
       tags:
       - 登录操作
+  /createAddress:
+    post:
+      parameters:
+      - description: 钱包地址
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddressAdd'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: 为商户分配地址 生成热钱包地址 生成eth地址
+      tags:
+      - 地址管理
   /detail:
     get:
       parameters:
@@ -1589,6 +1752,13 @@ paths:
       summary: 绑定 | 解绑 订单
       tags:
       - 实收明细记录
+  /detailedRecordIndex:
+    get:
+      produces:
+      - application/json
+      summary: 实收明细记录
+      tags:
+      - 实收明细记录
   /fee:
     get:
       parameters:
@@ -1645,6 +1815,13 @@ paths:
       summary: 结账
       tags:
       - 手续费结账
+  /feeIndex:
+    get:
+      produces:
+      - application/json
+      summary: 手续费结账
+      tags:
+      - 手续费结账
   /google/{id}:
     put:
       parameters:
@@ -1677,6 +1854,12 @@ paths:
       tags:
       - 管理员首页
   /login:
+    get:
+      produces:
+      - application/json
+      summary: 登录操作
+      tags:
+      - 登录操作
     post:
       parameters:
       - description: 用户
@@ -1903,6 +2086,35 @@ paths:
       summary: 修改订单
       tags:
       - 订单管理
+  /orderIndex:
+    get:
+      produces:
+      - application/json
+      summary: 订单管理
+      tags:
+      - 订单管理
+  /orderNotify:
+    post:
+      parameters:
+      - description: token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302": {}
+      summary: 通知
+      tags:
+      - 订单管理
+  /parameterIndex:
+    get:
+      produces:
+      - application/json
+      summary: 系统参数管理
+      tags:
+      - 系统参数管理
   /password/{id}:
     put:
       parameters:
@@ -1998,6 +2210,13 @@ paths:
       summary: 修改提领订单状态
       tags:
       - 商户提领代发管理
+  /pickIndex:
+    get:
+      produces:
+      - application/json
+      summary: 商户提领代发管理
+      tags:
+      - 商户提领代发管理
   /rate:
     get:
       produces:
@@ -2044,6 +2263,13 @@ paths:
       produces:
       - application/json
       summary: 更新汇率
+      tags:
+      - 汇率管理
+  /rateIndex:
+    get:
+      produces:
+      - application/json
+      summary: 汇率管理
       tags:
       - 汇率管理
   /return:
@@ -2114,6 +2340,13 @@ paths:
           schema:
             $ref: '#/definitions/response.ReturnList'
       summary: 退款订单详情
+      tags:
+      - 退款订单管理
+  /returnIndex:
+    get:
+      produces:
+      - application/json
+      summary: 退款订单管理
       tags:
       - 退款订单管理
   /role:
@@ -2200,6 +2433,13 @@ paths:
       produces:
       - application/json
       summary: 编辑角色
+      tags:
+      - 角色管理
+  /roleIndex:
+    get:
+      produces:
+      - application/json
+      summary: 角色管理
       tags:
       - 角色管理
   /send:
@@ -2315,6 +2555,13 @@ paths:
       summary: 更新GasPrice
       tags:
       - 系统参数管理
+  /systemIndex:
+    get:
+      produces:
+      - application/json
+      summary: 系统首页
+      tags:
+      - 管理员首页
   /systemMessage:
     get:
       parameters:
@@ -2412,4 +2659,25 @@ paths:
       summary: 获取用户公告列表
       tags:
       - 系统公告
+  /systemMessageIndex:
+    get:
+      produces:
+      - application/json
+      summary: 系统公告
+      tags:
+      - 系统公告
+  /updateBalance:
+    post:
+      parameters:
+      - description: 地址id
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateAmount'
+      produces:
+      - application/json
+      summary: 更新余额
+      tags:
+      - 地址管理
 swagger: "2.0"

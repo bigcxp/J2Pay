@@ -53,7 +53,7 @@ func (r *Rate) Update(rate request.RateEdit) (err error) {
 			tx.Commit()
 		}
 	}()
-	rates := GetRateByWhere("id = ?", rate.Id)
+	rates := GetRateByWhere("id = ?", rate.ID)
 	err = tx.Model(&rates).
 		Updates(Rate{ReceiveWeightType: rate.ReceiveWeightType, PayWeightType: rate.PayWeightType,
 			ReceiveWeightAddOrReduce: rate.ReceiveWeightAddOrReduce, PayWeightAddOrReduce: rate.PayWeightAddOrReduce,

@@ -18,7 +18,7 @@ func GetDetail() response.Parameter {
 func UpdateParameter(edit request.ParameterEdit)  error{
 	defer casbin.ClearEnforcer()
 	p := model.Parameter{}
-	p.ID = uint(edit.Id)
+	p.ID = uint(edit.ID)
 	return p.UpdateParameter(edit)
 }
 
@@ -26,6 +26,6 @@ func UpdateParameter(edit request.ParameterEdit)  error{
 func UpdateGasPrice(edit request.ParameterEdit)  error{
 	defer casbin.ClearEnforcer()
 	p := model.Parameter{}
-	p.ID = uint(edit.Id)
+	p.ID = uint(edit.ID)
 	return p.UpdateGasPrice(edit)
 }

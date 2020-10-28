@@ -100,7 +100,7 @@ func OrderAdd(c *gin.Context) {
 func OrderEdit(c *gin.Context) {
 	response := util.Response{c}
 	var order request.OrderEdit
-	order.Id, _ = strconv.Atoi(c.Param("id"))
+	order.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&order); err != nil {
 		response.SetValidateError(err)
 		return

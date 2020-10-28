@@ -6,6 +6,6 @@ type FeeAdd struct {
 }
 
 type FeeEdit struct {
-	Id     int `json:"id"`     //id
+	ID     int `json:"id"`     //id
 	Status int `json:"status"` //状态 1：执行中 2：已完成
 }

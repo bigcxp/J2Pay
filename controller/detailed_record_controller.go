@@ -100,7 +100,7 @@ func DetailedAdd(c *gin.Context)  {
 func DetailedEdit(c *gin.Context) {
 	response := util.Response{c}
 	var detail request.DetailedEdit
-	detail.Id, _ = strconv.Atoi(c.Param("id"))
+	detail.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&detail); err != nil {
 		response.SetValidateError(err)
 		return

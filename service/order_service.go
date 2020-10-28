@@ -64,6 +64,6 @@ func OrderAdd(order request.OrderAdd) error {
 func OrderEdit(order request.OrderEdit) error {
 	defer casbin.ClearEnforcer()
 	o := model.Order{}
-	o.ID = uint(order.Id)
+	o.ID = uint(order.ID)
 	return o.UpdateOrder(order)
 }

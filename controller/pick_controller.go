@@ -215,7 +215,7 @@ func SendAdd(c *gin.Context)  {
 func PickEdit(c *gin.Context) {
 	response := util.Response{c}
 	var send request.SendEdit
-	send.Id, _ = strconv.Atoi(c.Param("id"))
+	send.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&send); err != nil {
 		response.SetValidateError(err)
 		return

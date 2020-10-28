@@ -13,7 +13,7 @@ type UserAdd struct {
 }
 
 type UserEdit struct {
-	Id     int    `json:"-"`
+	ID     int    `json:"id"`
 	IsOpen int    `json:"is_open"` //是否开启双重验证 0：关闭 1：开启
 	Code   string `json:"code"`    //动态码
 	CommonUser
@@ -22,7 +22,7 @@ type UserEdit struct {
 }
 
 type Google struct {
-	Id         int    `json:"-"`
+	ID         int    `json:"id"`
 	IsOpen     int    `json:"is_open" binding:"oneof=0 1" example:"1"`                 //是否开启google双重验证 默认0：不开启 1：开启
 	GoogleCode string `json:"google_code" binding:"required,max=255" example:"852079"` //google验证码
 }
@@ -55,5 +55,4 @@ type CommonUser struct {
 	Limit         float64 `json:"limit" binding:"required" example:"1"`                 //结账限制
 	UserLessTime  int     `json:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
 	Roles         []int   `binding:"required,min=1" example:"1,2"`                      // 所属角色
-
 }

@@ -29,7 +29,7 @@ func MakeToken(adminUser model.AdminUser) (string, error) {
 	expTime := time.Now().Add(time.Duration(setting.JwtConf.ExpTime) * time.Hour)
 	tokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		Username: adminUser.UserName,
-		Id:       adminUser.Id,
+		Id:       adminUser.ID,
 		RealName: adminUser.RealName,
 		Tel:      adminUser.Tel,
 		StandardClaims: jwt.StandardClaims{

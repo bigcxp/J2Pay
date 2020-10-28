@@ -96,7 +96,7 @@ func MessageAdd(message request.MessageAdd) error {
 func MessageEdit(message request.MessageEdit) error {
 	defer casbin.ClearEnforcer()
 	m := model.SystemMessage{
-		Id:       message.Id,
+		Id:       message.ID,
 		Title: message.Title,
 		BeginTime: message.BeginTime,
 		EndTime: message.EndTime,

@@ -117,7 +117,7 @@ func SystemMessageDel(c *gin.Context)  {
 func SystemMessageEdit(c *gin.Context)  {
 	response := util.Response{c}
 	var  systemMessage request.MessageEdit
-	systemMessage.Id, _ = strconv.Atoi(c.Param("id"))
+	systemMessage.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&systemMessage); err != nil {
 		response.SetValidateError(err)
 		return

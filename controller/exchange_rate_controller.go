@@ -56,7 +56,7 @@ func RateDetail(c *gin.Context) {
 func RateEdit(c *gin.Context) {
 	response := util.Response{c}
 	var rate request.RateEdit
-	rate.Id, _ = strconv.Atoi(c.Param("id"))
+	rate.ID, _ = strconv.Atoi(c.Param("id"))
 	if err := c.ShouldBindJSON(&rate); err != nil {
 		response.SetValidateError(err)
 		return

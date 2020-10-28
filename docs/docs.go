@@ -25,6 +25,104 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理员首页"
+                ],
+                "summary": "系统首页"
+            }
+        },
+        "/addrList": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "地址管理"
+                ],
+                "summary": "钱包地址列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "状态 0：所有，1：已完成，2：执行中，3：结账中",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "指派状态 0：所有，1：启用，2：停用",
+                        "name": "handleStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "钱包地址",
+                        "name": "address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "商户组织id",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "钱包占用类型 -2:eth钱包地址,-1：hot钱包地址,1:商户充币钱包地址",
+                        "name": "useTag",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AddressPage"
+                        }
+                    }
+                }
+            }
+        },
+        "/addrRestart": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "地址管理"
+                ],
+                "summary": "启用 停用地址",
+                "parameters": [
+                    {
+                        "description": "地址id",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenOrStopAddress"
+                        }
+                    }
+                ]
+            }
+        },
         "/adminUser": {
             "get": {
                 "produces": [
@@ -157,6 +255,17 @@ var doc = `{
                 ]
             }
         },
+        "/adminUserIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "账户管理"
+            }
+        },
         "/auth/role": {
             "get": {
                 "produces": [
@@ -201,6 +310,31 @@ var doc = `{
                     "登录操作"
                 ],
                 "summary": "验证码",
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
+        "/createAddress": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "地址管理"
+                ],
+                "summary": "为商户分配地址 生成热钱包地址 生成eth地址",
+                "parameters": [
+                    {
+                        "description": "钱包地址",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddressAdd"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {}
                 }
@@ -359,6 +493,17 @@ var doc = `{
                 ]
             }
         },
+        "/detailedRecordIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实收明细记录"
+                ],
+                "summary": "实收明细记录"
+            }
+        },
         "/fee": {
             "get": {
                 "produces": [
@@ -445,6 +590,17 @@ var doc = `{
                 ]
             }
         },
+        "/feeIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "手续费结账"
+                ],
+                "summary": "手续费结账"
+            }
+        },
         "/google/{id}": {
             "put": {
                 "produces": [
@@ -494,6 +650,15 @@ var doc = `{
             }
         },
         "/login": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "登录操作"
+                ],
+                "summary": "登录操作"
+            },
             "post": {
                 "produces": [
                     "application/json"
@@ -841,6 +1006,51 @@ var doc = `{
                 ]
             }
         },
+        "/orderIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "订单管理"
+            }
+        },
+        "/orderNotify": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "通知",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {}
+                }
+            }
+        },
+        "/parameterIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统参数管理"
+                ],
+                "summary": "系统参数管理"
+            }
+        },
         "/password/{id}": {
             "put": {
                 "produces": [
@@ -987,6 +1197,17 @@ var doc = `{
                 ]
             }
         },
+        "/pickIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "商户提领代发管理"
+                ],
+                "summary": "商户提领代发管理"
+            }
+        },
         "/rate": {
             "get": {
                 "produces": [
@@ -1059,6 +1280,17 @@ var doc = `{
                         }
                     }
                 ]
+            }
+        },
+        "/rateIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "汇率管理"
+                ],
+                "summary": "汇率管理"
             }
         },
         "/return": {
@@ -1167,6 +1399,17 @@ var doc = `{
                         }
                     }
                 }
+            }
+        },
+        "/returnIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "退款订单管理"
+                ],
+                "summary": "退款订单管理"
             }
         },
         "/role": {
@@ -1299,6 +1542,17 @@ var doc = `{
                 "responses": {
                     "200": {}
                 }
+            }
+        },
+        "/roleIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色管理"
+                ],
+                "summary": "角色管理"
             }
         },
         "/send": {
@@ -1475,6 +1729,17 @@ var doc = `{
                 ]
             }
         },
+        "/systemIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理员首页"
+                ],
+                "summary": "系统首页"
+            }
+        },
         "/systemMessage": {
             "get": {
                 "produces": [
@@ -1623,9 +1888,66 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/systemMessageIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统公告"
+                ],
+                "summary": "系统公告"
+            }
+        },
+        "/updateBalance": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "地址管理"
+                ],
+                "summary": "更新余额",
+                "parameters": [
+                    {
+                        "description": "地址id",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateAmount"
+                        }
+                    }
+                ]
+            }
         }
     },
     "definitions": {
+        "request.AddressAdd": {
+            "type": "object",
+            "properties": {
+                "handle_status": {
+                    "description": "指派状态 0：所有，1：启用，2：停用",
+                    "type": "integer",
+                    "example": 1
+                },
+                "num": {
+                    "description": "生成钱包数量",
+                    "type": "integer"
+                },
+                "use_tag": {
+                    "description": "-2:eth钱包,-1:热钱包,0:未占用,userId:组织充币钱包",
+                    "type": "integer",
+                    "example": 0
+                },
+                "user_id": {
+                    "description": "组织id",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "request.DetailedAdd": {
             "type": "object",
             "properties": {
@@ -1811,6 +2133,16 @@ var doc = `{
                         6,
                         7
                     ]
+                }
+            }
+        },
+        "request.OpenOrStopAddress": {
+            "type": "object",
+            "properties": {
+                "hand_status": {
+                    "description": "是否启用",
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -2145,6 +2477,9 @@ var doc = `{
                     "example": 3
                 }
             }
+        },
+        "request.UpdateAmount": {
+            "type": "object"
         },
         "request.UserAdd": {
             "type": "object",
@@ -2496,6 +2831,74 @@ var doc = `{
                     "description": "账号",
                     "type": "string",
                     "example": "test"
+                }
+            }
+        },
+        "response.AddressList": {
+            "type": "object",
+            "properties": {
+                "create_time": {
+                    "description": "创建时间戳",
+                    "type": "integer"
+                },
+                "eth_amount": {
+                    "description": "以太币余额",
+                    "type": "number"
+                },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 1：已完成，2：执行中，3：结账中",
+                    "type": "integer"
+                },
+                "update_time": {
+                    "description": "更新时间戳",
+                    "type": "integer"
+                },
+                "usdt_amount": {
+                    "description": "泰达币余额",
+                    "type": "number"
+                },
+                "user_address": {
+                    "description": "地址",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "商户id",
+                    "type": "integer"
+                },
+                "user_tag": {
+                    "description": "占用状态 0：停用，1：启用",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.AddressPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AddressList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
                 }
             }
         },

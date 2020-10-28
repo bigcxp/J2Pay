@@ -78,7 +78,7 @@ func RoleAdd(role request.RoleAdd) error {
 func RoleEdit(role request.RoleEdit) error {
 	defer casbin.ClearEnforcer()
 	r := model.Role{
-		Id:   role.Id,
+		Id:   role.ID,
 		Pid:  role.Pid,
 		Name: role.Name,
 	}

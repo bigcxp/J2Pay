@@ -33,7 +33,7 @@ func (p *Parameter) UpdateParameter(edit request.ParameterEdit) (err error) {
 			tx.Commit()
 		}
 	}()
-	parameter := GetParameterByWhere("id = ?", edit.Id)
+	parameter := GetParameterByWhere("id = ?", edit.ID)
 	ethFee := validate.Decimal(validate.WrapToFloat64(edit.GasPrice, 10) * validate.Unwrap(int64(edit.GasLimit), 10) * 0.0000000001)
 	err = tx.Model(&parameter).
 		Updates(Parameter{Confirmation: edit.Confirmation, GasLimit: edit.GasLimit, GasPrice: edit.GasPrice, EthFee: ethFee}).Error
@@ -50,7 +50,7 @@ func (p *Parameter) UpdateGasPrice(edit request.ParameterEdit) (err error) {
 			tx.Commit()
 		}
 	}()
-	parameter := GetParameterByWhere("id = ?", edit.Id)
+	parameter := GetParameterByWhere("id = ?", edit.ID)
 	ethFee := validate.Decimal(validate.WrapToFloat64(edit.GasPrice, 10) * validate.Unwrap(int64(parameter.GasLimit), 10) * 0.0000000001)
 	err = tx.Model(&parameter).
 		Updates(Parameter{GasPrice: edit.GasPrice, EthFee: ethFee}).Error
