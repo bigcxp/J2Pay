@@ -6,7 +6,6 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aristanetworks/goarista v0.0.0-20200812190859-4cb0e71f3c0e // indirect
-	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/casbin/casbin/v2 v2.11.3
 	github.com/casbin/gorm-adapter/v2 v2.1.0
@@ -42,7 +41,6 @@ require (
 	github.com/shirou/gopsutil v2.20.7+incompatible // indirect
 	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.6.0
-	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/afero v1.3.5 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
