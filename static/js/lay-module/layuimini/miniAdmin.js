@@ -41,42 +41,53 @@ layui.define(["jquery", "miniMenu", "element","miniTab", "miniTheme"], function 
             options.loadingTime = options.loadingTime || 1;
             options.pageAnim = options.pageAnim || false;
             options.maxTabNum = options.maxTabNum || 20;
-            $.getJSON(options.iniUrl, function (data) {
-                if (data == null) {
-                    miniAdmin.error('暂无菜单信息')
-                } else {
-                    miniAdmin.renderLogo(data.logoInfo);
-                    miniAdmin.renderClear(options.clearUrl);
-                    miniAdmin.renderHome(data.homeInfo);
-                    miniAdmin.renderAnim(options.pageAnim);
-                    miniAdmin.listen();
-                    miniMenu.render({
-                        menuList: data.menuInfo,
-                        multiModule: options.multiModule,
-                        menuChildOpen: options.menuChildOpen
-                    });
-                    miniTab.render({
-                        filter: 'layuiminiTab',
-                        urlHashLocation: options.urlHashLocation,
-                        multiModule: options.multiModule,
-                        menuChildOpen: options.menuChildOpen,
-                        maxTabNum: options.maxTabNum,
-                        menuList: data.menuInfo,
-                        homeInfo: data.homeInfo,
-                        listenSwichCallback: function () {
-                            miniAdmin.renderDevice();
-                        }
-                    });
-                    miniTheme.render({
-                        bgColorDefault: options.bgColorDefault,
-                        listen: true,
-                    });
-                    miniAdmin.deleteLoader(options.loadingTime);
-                }
-            }).fail(function () {
-                miniAdmin.error('菜单接口有误');
-            });
+
+            options.initData = options.initData || null;
+            if(!options.initData && options.iniUrl){
+	            $.getJSON(options.iniUrl, function (data) {
+	                initMenus(data);
+	            }).fail(function () {
+	                miniAdmin.error('菜单接口有误');
+	            });
+            }else{
+	            initMenus(options.initData);
+            }
+            
         },
+
+        initMenus:function(data){
+	        if (data == null) {
+                miniAdmin.error('暂无菜单信息')
+            } else {
+                miniAdmin.renderLogo(data.logoInfo);
+                miniAdmin.renderClear(options.clearUrl);
+                miniAdmin.renderHome(data.homeInfo);
+                miniAdmin.renderAnim(options.pageAnim);
+                miniAdmin.listen();
+                miniMenu.render({
+                    menuList: data.menuInfo,
+                    multiModule: options.multiModule,
+                    menuChildOpen: options.menuChildOpen
+                });
+                miniTab.render({
+                    filter: 'layuiminiTab',
+                    urlHashLocation: options.urlHashLocation,
+                    multiModule: options.multiModule,
+                    menuChildOpen: options.menuChildOpen,
+                    maxTabNum: options.maxTabNum,
+                    menuList: data.menuInfo,
+                    homeInfo: data.homeInfo,
+                    listenSwichCallback: function () {
+                        miniAdmin.renderDevice();
+                    }
+                });
+                miniTheme.render({
+                    bgColorDefault: options.bgColorDefault,
+                    listen: true,
+                });
+                miniAdmin.deleteLoader(options.loadingTime);
+            }
+        }
 
         /**
          * 初始化logo
