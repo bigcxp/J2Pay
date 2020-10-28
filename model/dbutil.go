@@ -12,10 +12,6 @@ var db *gorm.DB
 
 type Base struct{}
 type FieldTrans map[string]string
-
-
-
-
 func Setup() {
 	fmt.Println("init db")
 	var err error

@@ -20,8 +20,11 @@ import (
 	"j2pay-server/pkg/setting"
 	_ "j2pay-server/pkg/setting"
 	"math/big"
+	"net/http"
 	"regexp"
 	"strings"
+
+	"time"
 )
 
 const (
@@ -136,14 +139,14 @@ func TokenWeiBigIntToEthStr(wei *big.Int, tokenDecimals int64) (string, error) {
 }
 
 // GetPKMapOfAddresses 获取地址私钥
-func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey,error) {
+func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey, error) {
 	addressPKMap := make(map[string]*ecdsa.PrivateKey)
-	addressKeyMap ,err:= model.SQLGetAddressKeyMap(addresses)
+	addressKeyMap, err := model.SQLGetAddressKeyMap(addresses)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	for k, v := range addressKeyMap {
-		key := hcommon.AesDecrypt(v.Pwd, fmt.Sprintf("%s",setting.AesConf.Key))
+		key := hcommon.AesDecrypt(v.Pwd, fmt.Sprintf("%s", setting.AesConf.Key))
 		if len(key) == 0 {
 			hcommon.Log.Errorf("error key of: %s", k)
 			continue
@@ -159,6 +162,19 @@ func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey,error
 		addressPKMap[k] = privateKey
 	}
 	return addressPKMap, nil
+}
+
+//获取eth和usdt汇率
+func GetEthereumUSDRate() {
+
+	cg := gecko.NewClient(&http.Client{
+		Timeout: time.Second * 10,
+	})
+
+	price, err := cg.SimpleSinglePrice("ethereum", "usd")
+	if err == nil {
+		controllers.EthereumUSDRate = float64(price.MarketPrice)
+	}
 }
 
 //// GetPkOfAddress 获取地址私钥
