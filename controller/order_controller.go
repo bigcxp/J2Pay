@@ -71,7 +71,7 @@ func OrderDetail(c *gin.Context) {
 }
 
 // @Tags 订单管理
-// @Summary 新增订单
+// @Summary 新增订单(充币)
 // @Produce json
 // @Param body body request.OrderAdd true "新增订单"
 // @Success 200
