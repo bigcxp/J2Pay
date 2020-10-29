@@ -82,6 +82,7 @@ layui.define(["element","laytpl" ,"jquery"], function (exports) {
             var me = this ;
             menuList = menuList || [] ;
             var html = this.each(menuList,function (idx,menu) {
+	            if(!menu){return true;}
                 if(menu.child && menu.child.length){
                     menu.children = me.renderChildrenMenu(menu.child,{ childOpenClass: options.childOpenClass || '' });
                 }

@@ -45,17 +45,17 @@ layui.define(["jquery", "miniMenu", "element","miniTab", "miniTheme"], function 
             options.initData = options.initData || null;
             if(!options.initData && options.iniUrl){
 	            $.getJSON(options.iniUrl, function (data) {
-	                initMenus(data);
+	                miniAdmin.initMenus(data,options);
 	            }).fail(function () {
 	                miniAdmin.error('菜单接口有误');
 	            });
             }else{
-	            initMenus(options.initData);
+	            miniAdmin.initMenus(options.initData,options);
             }
             
         },
 
-        initMenus:function(data){
+        initMenus:function(data,options){
 	        if (data == null) {
                 miniAdmin.error('暂无菜单信息')
             } else {
@@ -87,7 +87,7 @@ layui.define(["jquery", "miniMenu", "element","miniTab", "miniTheme"], function 
                 });
                 miniAdmin.deleteLoader(options.loadingTime);
             }
-        }
+        },
 
         /**
          * 初始化logo

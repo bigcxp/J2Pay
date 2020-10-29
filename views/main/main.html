@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>后台管理系统</title>
+	<meta name="renderer" content="webkit">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Access-Control-Allow-Origin" content="*">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<script type="text/javascript">
+	window.csrf_token=sessionStorage.getItem('token');
+	if(!csrf_token){
+		window.stop();
+		top.location.href='/login';
+	}
+	</script>
+	<link rel="stylesheet" href="/static/lib/layui-v2.5.5/css/layui.css" media="all">
+	<link rel="stylesheet" href="/static/css/public.css" media="all">
+	<link rel="stylesheet" href="/static/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+</head>
+<body>
+<div class="layuimini-container">
+	<div class="layuimini-main" id="tpl_container">
+		1
+	</div>
+</div>
+
+<script src="/static/lib/jquery-3.4.1/jquery-3.4.1.min.js"></script>
+<script src="/static/lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="/static/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
+<script type="text/javascript" src="/static/common.js"></script>
+<script>
+var hash=(location.hash).replace('#','');
+var _tmp_arr=hash.split('|');
+var _urlid=_tmp_arr[0]
+var _urlpath=_tmp_arr[1]
+var _tpl_path='/static/views/'+_urlpath+'.html';
+$.ajax({
+	url:_tpl_path,
+	cache:true,
+	type:'GET',
+	dataType:'html',
+	success:function(res){
+		$('#tpl_container').html(res);
+	}
+})
+</script>
+</body>
+</html>

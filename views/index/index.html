@@ -58,9 +58,9 @@
 				<li class="layui-nav-item" lay-unselect>
 					<a href="javascript:;" data-refresh="刷新"><i class="fa fa-refresh"></i></a>
 				</li>
-				<li class="layui-nav-item" lay-unselect>
+				<!--<li class="layui-nav-item" lay-unselect>
 					<a href="javascript:;" data-clear="清理" class="layuimini-clear"><i class="fa fa-trash-o"></i></a>
-				</li>
+				</li>-->
 				<li class="layui-nav-item mobile layui-hide-xs" lay-unselect>
 					<a href="javascript:;" data-check-screen="full"><i class="fa fa-arrows-alt"></i></a>
 				</li>
@@ -132,34 +132,101 @@
 
 	</div>
 </div>
+
+<script src="/static/lib/jquery-3.4.1/jquery-3.4.1.min.js"></script>
 <script src="/static/lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
 <script src="/static/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
-<script type="text/javascript" src="../../static/common.js"></script>
+<script type="text/javascript" src="/static/common.js"></script>
 <script>
-	layui.use(['jquery', 'layer', 'miniAdmin'], function () {
-		var $ = layui.jquery,
-			layer = layui.layer,
-			miniAdmin = layui.miniAdmin;
+var _LEFT_MENU_OBJ={
+	"homeInfo": {
+		"title": "首页",
+		"href": "main#0|home"
+	},
+	"logoInfo": {
+		"title": "CHAIN ADMIN",
+		"image": "/static/images/logo.png",
+		"href": ""
+	},
+	"menuInfo": [
+	]
+};
+var _ROOT_MENU_OBJ={};
 
-		var options = {
-			iniUrl: "api/init.json",	// 初始化接口
+
+
+
+function parseMenu(data){
+	_ROOT_MENU_OBJ[data['id']]=data;
+	if(data['is_menu']>0){
+		var dt={
+			'title':data['name'],
+			'href':data['pid']==0?'':'main#'+data['id']+'|'+data['ext'],
+			'target':'_self',
+			'icon':'',
+		}
+		if(data['children'].length>0){
+			var v0=parseMenu(data['children'][0]);
+			if(v0){
+				dt['child']=[];
+				$.each(data['children'],function(k,v){
+					dt['child'].push(parseMenu(v))
+				})
+			}else{
+				/*dt['operates']=[]
+				dt['child']=[];
+				$.each(data['children'],function(k,v){
+					dt['operates'].push({'api':v['api'],'ext':v.ext,'method':v.action,'name':v.name})
+				})*/
+			}
+		}
+		return dt;
+	}
+	return null
+}
+function render_menu(data){
+	var arr=[];
+	$.each(data,function(k,v){
+		var d1=parseMenu(v)
+		if(d1){arr.push(d1)}
+	})
+	return arr;
+}
+
+
+layui.use(['jquery', 'layer', 'miniAdmin'], function () {
+	var $ = layui.jquery,
+		layer = layui.layer,
+		miniAdmin = layui.miniAdmin;
+	$.ajaxSetup({
+		'headers':{'Authorization':sessionStorage.getItem('token')}
+	})
+	$.get('/auth/tree',function(res){
+		if(res['code']!=1){
+			msgerr(res['msg']||'菜单获取失败')
+			return;
+		}
+		_LEFT_MENU_OBJ['menuInfo'] = render_menu(res['data'])
+		var opts = {
+			initData:_LEFT_MENU_OBJ,
+			iniUrl: null,	// 初始化接口
 			clearUrl:null, // 缓存清理接口
 			urlHashLocation: true,	  // 是否打开hash定位
 			bgColorDefault: false,	  // 主题默认配置
-			multiModule: true,		  // 是否开启多模块
+			multiModule: false,		  // 是否开启多模块
 			menuChildOpen: false,	   // 是否默认展开菜单
 			loadingTime: 0,			 // 初始化加载时间
 			pageAnim: true,			 // iframe窗口动画
-			maxTabNum: 20,			  // 最大的tab打开数量
+			maxTabNum: 20			  // 最大的tab打开数量
 		};
-		miniAdmin.render(options);
-
-		$('.login-out').on("click", function () {
-			layer.msg('退出登录成功', function () {
-				window.location = '/login';
-			});
+		miniAdmin.render(opts);
+	});
+	$('.login-out').on("click", function () {
+		layer.msg('退出登录成功', function () {
+			window.location = '/login';
 		});
 	});
+});
 </script>
 </body>
 </html>

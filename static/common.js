@@ -17,6 +17,7 @@ function postform(form,url,datas,fn,isjson){
 		'xhrFields':{'withCredentials':true},
 		'processData':(true==isjson)?false:true,
 		'url':url,
+		'headers':{'Authorization':sessionStorage.getItem('token')},
 		'type':'POST',
 		'data':data,
 		success:function(res){
