@@ -2054,6 +2054,13 @@ paths:
       summary: 登录操作
       tags:
       - 登录操作
+  /main:
+    get:
+      produces:
+      - application/json
+      summary: 首页
+      tags:
+      - 首页
   /merchantPick:
     get:
       parameters:

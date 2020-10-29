@@ -841,6 +841,17 @@ var doc = `{
                 }
             }
         },
+        "/main": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "首页"
+                ],
+                "summary": "首页"
+            }
+        },
         "/merchantPick": {
             "get": {
                 "produces": [

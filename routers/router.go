@@ -47,7 +47,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/detailedRecordIndex", controller.DetailedRecordIndex)
 	r.GET("/returnIndex", controller.ReturnIndex)
 	r.GET("/orderIndex", controller.OrderIndex)
-
+	r.GET("/main",controller.MainIndex)
 	//加入jwt中间件
 	r.Use(middleware.JWT())
 	//登录后能做的操作
