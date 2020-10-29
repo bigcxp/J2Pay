@@ -1710,6 +1710,18 @@ paths:
       summary: 账户管理
       tags:
       - 账户管理
+  /auth/list:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.RolePage'
+      summary: 权限列表
+      tags:
+      - 角色管理
   /auth/role:
     get:
       produces:

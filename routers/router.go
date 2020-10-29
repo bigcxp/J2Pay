@@ -84,6 +84,7 @@ func InitRouter() *gin.Engine {
 	{
 
 		r.GET("/auth/tree", controller.AuthTree)
+		r.GET("/auth/list", controller.AuthList)
 		r.GET("/role", controller.RoleIndex)
 		r.GET("/role/:id", controller.RoleDetail)
 		r.POST("/role", controller.RoleAdd)

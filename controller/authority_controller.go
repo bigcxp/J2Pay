@@ -18,3 +18,14 @@ func AuthTree(c *gin.Context) {
 	res := service.AuthTreeCache()
 	response.SuccessData(res)
 }
+
+// @Tags 角色管理
+// @Summary 权限列表
+// @Produce json
+// @Success 200 {object} response.RolePage
+// @Router /auth/list [get]
+func AuthList(c *gin.Context) {
+	response := util.Response{c}
+	res := service.AuthListCache()
+	response.SuccessData(res)
+}

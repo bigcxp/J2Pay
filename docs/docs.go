@@ -310,6 +310,25 @@ var doc = `{
                 "summary": "账户管理"
             }
         },
+        "/auth/list": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色管理"
+                ],
+                "summary": "权限列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.RolePage"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/role": {
             "get": {
                 "produces": [

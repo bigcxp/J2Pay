@@ -13,7 +13,7 @@ var (
 	authMapCache map[int]model.Auth
 )
 
-// 返回无极限分类方式的权限
+// 返回无权限分类方式的权限
 func AuthTreeCache() []response.Auth {
 	if len(authTreeCache) == 0 {
 		authTreeCache = authTree(0)
@@ -21,8 +21,26 @@ func AuthTreeCache() []response.Auth {
 	return authTreeCache
 }
 
+// 返回有权限分类方式的权限
+func AuthListCache() []response.Auth {
+	if len(authTreeCache) == 0 {
+		authTreeCache = authList(0)
+	}
+	return authTreeCache
+}
+
+
+
 func authTree(pid int) []response.Auth {
 	res := model.GetAllAuth("pid = ?", pid)
+	for i, v := range res {
+		res[i].Children = authTree(v.Id)
+	}
+	return res
+}
+
+func authList(pid int) []response.Auth {
+	res := model.GetAllAuth("pid != ?", pid)
 	for i, v := range res {
 		res[i].Children = authTree(v.Id)
 	}
