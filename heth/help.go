@@ -20,11 +20,8 @@ import (
 	"j2pay-server/pkg/setting"
 	_ "j2pay-server/pkg/setting"
 	"math/big"
-	"net/http"
 	"regexp"
 	"strings"
-
-	"time"
 )
 
 const (
@@ -165,17 +162,17 @@ func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey, erro
 }
 
 //获取eth和usdt汇率
-func GetEthereumUSDRate() {
-
-	cg := gecko.NewClient(&http.Client{
-		Timeout: time.Second * 10,
-	})
-
-	price, err := cg.SimpleSinglePrice("ethereum", "usd")
-	if err == nil {
-		controllers.EthereumUSDRate = float64(price.MarketPrice)
-	}
-}
+//func GetEthereumUSDRate() {
+//
+//	cg := gecko.NewClient(&http.Client{
+//		Timeout: time.Second * 10,
+//	})
+//
+//	price, err := cg.SimpleSinglePrice("ethereum", "usd")
+//	if err == nil {
+//		controllers.EthereumUSDRate = float64(price.MarketPrice)
+//	}
+//}
 
 //// GetPkOfAddress 获取地址私钥
 //func GetPkOfAddress(ctx context.Context, db hcommon.DbExeAble, address string) (*ecdsa.PrivateKey, error) {
