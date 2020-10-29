@@ -137,7 +137,7 @@ layui.use(['form'], function () {
 			if(res.code=='1'){
 				sessionStorage.setItem('token',res.data);
 				layer.msg('登录成功',{icon:1},function (){
-					window.location = '/main';
+					window.location = '/index';
 				});
 			}else{
 				alerterr(res.msg);
