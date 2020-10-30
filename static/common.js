@@ -87,3 +87,29 @@ function form2json(el){
 	});
 	return o;
 }
+
+function open_dlg(title,url,size,fn){
+	if(!url){return;}
+	var idx=layer.open({
+		type:2,
+		title:title||'Dialog',
+		content:url,
+		area: size||['90%','90%'],
+		btn:['close'],
+		anim:-1,
+		isOutAnim:false,
+		yes:function(){layer.close(idx)},
+		success:function(){
+			{if(typeof(fn)=='function'){fn()}}
+		}
+	});
+}
+function close_dlg(){
+	try{
+		window.parent.layer.closeAll('iframe')
+	}catch(e){}
+}
+function close_page(){
+	var tabid=(location.pathname).replace(/\//g,'_');
+	try{parent.closeTab(tabid)}catch(e){window.close()}
+}
