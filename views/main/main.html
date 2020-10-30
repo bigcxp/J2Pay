@@ -21,7 +21,7 @@
 <body>
 <div class="layuimini-container">
 	<div class="layuimini-main" id="tpl_container">
-		1
+		loading
 	</div>
 </div>
 
@@ -33,17 +33,35 @@
 var hash=(location.hash).replace('#','');
 var _tmp_arr=hash.split('|');
 var _urlid=_tmp_arr[0]
-var _urlpath=_tmp_arr[1]
+var _urlpath=_tmp_arr[1].split('?')[0]
 var _tpl_path='/static/views/'+_urlpath+'.html';
-$.ajax({
-	url:_tpl_path,
-	cache:true,
-	type:'GET',
-	dataType:'html',
-	success:function(res){
-		$('#tpl_container').html(res);
-	}
+var _loading_index=0;
+
+
+
+$.ajaxSetup({
+	'headers':{'Authorization':sessionStorage.getItem('token')}
+});
+layui.use(['layer'],function(){
+	window.layer = layui.layer;
+	_loading_index=layer.load(0,{shade:[0.2,'#000']});
+	$.ajax({
+		url:_tpl_path,
+		cache:true,
+		type:'GET',
+		dataType:'html',
+		success:function(res){
+			$('#tpl_container').html(res);
+		},
+		error:function(){
+			$('#tpl_container').html('<h2>404 Page Not Found</h2>');
+		},
+		complete:function(){
+			layer.close(_loading_index);
+		}
+	})
 })
+
 </script>
 </body>
 </html>
