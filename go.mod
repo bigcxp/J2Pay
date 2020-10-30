@@ -43,6 +43,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.4.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
+	github.com/xinliangnote/go-util v0.0.0-20191115235314-e7d1576d41db
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1
@@ -62,4 +63,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
 	moul.io/http2curl v1.0.0 // indirect
+
 )

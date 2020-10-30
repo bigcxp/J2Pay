@@ -38,7 +38,6 @@ func JWT() gin.HandlerFunc {
 			})
 			return
 		}
-
 		// 设置用户对象在上下文中，方便后续使用
 		c.Set("user", claims)
 		c.Next()

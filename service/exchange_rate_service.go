@@ -14,7 +14,7 @@ func GetAllRate()  response.RatePage{
 	return allRate
 }
 
-// 获取汇率详情
+// ID获取汇率详情
 func RateDetail(id uint) (res response.Rate, err error) {
 	rate := model.Rate{}
 	rate.ID = id
@@ -24,6 +24,14 @@ func RateDetail(id uint) (res response.Rate, err error) {
 	}
 	return res, err
 }
+
+// 币别获取汇率详情
+func TypeDetail(name string) (response.Rate,  error) {
+	rate := model.Rate{}
+	detail, _ := rate.TypeDetail("name")
+	return detail, nil
+}
+
 
 //修改汇率
 func UpdateRate(rate request.RateEdit)  error{

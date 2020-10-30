@@ -20,8 +20,9 @@ type Order struct {
 	Fee              float64   `gorm:"default:0;comment:'手续费';";json:"fee"`
 	ReturnAmount     float64   `gorm:"default:0;comment:'退款金额';";json:"return_amount"`
 	MerchantAmount   float64   `gorm:"default:0;comment:'商户实收金额';";json:"merchant_amount"`
-	FinishTime       time.Time `gorm:"comment:'完成时间';";json:"finishTime"`
-	ExprireTime      time.Time `gorm:"comment:'过期时间';";json:"exprireTime"`
+	CreateTime       int64     `gorm:"comment:'创建时间';";json:"create_time"`
+	FinishTime       int64     `gorm:"comment:'完成时间';";json:"finishTime"`
+	ExprireTime      int64     `gorm:"comment:'过期时间';";json:"exprireTime"`
 	TXID             string    `gorm:"default:'';comment:'交易哈希';";json:"txid"`
 	Remark           string    `gorm:"default:'';comment:'备注';";json:"remark"`
 	Address          string    `gorm:"default:'';comment:'收款地址';";json:"charge_address"`
@@ -94,8 +95,8 @@ func (o *Order) GetDetail(id ...int) (res response.RealOrderList, err error) {
 func (o *Order) Create() error {
 	tx := Getdb().Begin()
 	o.CreatedAt = time.Now()
-	o.FinishTime = time.Now()
-	o.ExprireTime = time.Now().Add(time.Hour * 2)
+	o.FinishTime = time.Now().Unix()
+	o.ExprireTime = time.Now().Unix()
 	if err := tx.Create(o).Error; err != nil {
 		tx.Rollback()
 		return err

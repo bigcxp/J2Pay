@@ -37,3 +37,11 @@ type RealOrderList struct {
 	Address          string    `json:"address"`            //收款地址
 
 }
+
+//返回给用户充币地址
+type UserAddr struct {
+
+
+
+
+}

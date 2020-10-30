@@ -14,7 +14,7 @@ var (
 	CaptchaConf     = Captcha{}
 	EthConf         = Eth{}
 	AesConf         = Aes{}
-	SqlxConf           = Sqlx{}
+	SignConf        = Sign{}
 )
 
 func Setup() {
@@ -50,11 +50,11 @@ func Setup() {
 		log.Panic("eth配置文件格式错误", err)
 	}
 
-	if err := viper.UnmarshalKey("Aes", &AesConf); err != nil {
+	if err := viper.UnmarshalKey("aes", &AesConf); err != nil {
 		log.Panic("Aes配置文件格式错误", err)
 	}
-	if err := viper.UnmarshalKey("sqlx", &SqlxConf); err != nil {
-		log.Panic("sqlx配置文件格式错误", err)
+	if err := viper.UnmarshalKey("sign", &SignConf); err != nil {
+		log.Panic("sign配置文件格式错误", err)
 	}
 
 }

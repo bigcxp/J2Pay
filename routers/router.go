@@ -126,7 +126,6 @@ func InitRouter() *gin.Engine {
 	//订单
 	{
 		r.GET("/order", controller.OrderList)
-		r.POST("/order", controller.OrderAdd)
 		r.GET("/order/:id", controller.OrderDetail)
 		r.PUT("/order/:id", controller.OrderEdit)
 		r.POST("/orderNotify", controller.OrderNotify)
@@ -145,7 +144,6 @@ func InitRouter() *gin.Engine {
 	}
 	//实收明细记录
 	{
-
 		r.GET("/detail", controller.DetailedList)
 		r.GET("/detail/:id", controller.DetailedDetail)
 		r.POST("/detail", controller.DetailedAdd)
@@ -165,5 +163,10 @@ func InitRouter() *gin.Engine {
 		r.PUT("/rate/:id", controller.RateEdit)
 
 	}
+	//加入签名中间件
+	r.Use(middleware.SetUp())
+	//创建新订单（充币）
+	r.POST("/order", controller.OrderAdd)
+
 	return r
 }

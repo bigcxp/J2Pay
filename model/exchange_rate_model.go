@@ -43,6 +43,15 @@ func (r *Rate) Detail(id ...int) (res response.Rate, err error) {
 	return
 }
 
+// 根据ID获取汇率详情
+func (r *Rate) TypeDetail(name ...string) (res response.Rate, err error) {
+	err = Getdb().Table("rate").
+		Where("currency = ?", name).
+		First(&res).
+		Error
+	return
+}
+
 //修改代收、代发加权
 func (r *Rate) Update(rate request.RateEdit) (err error) {
 	tx := Getdb().Begin()

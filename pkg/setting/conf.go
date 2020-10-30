@@ -59,7 +59,7 @@ type Aes struct {
 	Key string
 }
 
-// Sqlx 配置
-type Sqlx struct {
-	Name string
+// Sign 配置
+type Sign struct {
+	AppSignExpiry int `mapstructure:"app_sign_expiry"`
 }

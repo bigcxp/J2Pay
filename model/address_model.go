@@ -48,6 +48,13 @@ func GetFreAddress(num int64) ([]Address, error) {
 	return rows, s
 }
 
+//随机获取商户不在收款中的充币地址
+func GetAddress(id int) (Address, error) {
+	var row Address
+	s := Getdb().Raw("SELECT * FROM address WHERE use_tag = ? ORDER BY RAND() LIMIT 1", id).Scan(&row).Error
+	return row, s
+}
+
 //新增用户收款地址
 func (a *Address) AddAddress() error {
 	tx := Getdb().Begin()

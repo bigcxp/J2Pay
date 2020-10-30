@@ -14,13 +14,8 @@ import (
 )
 
 // 登录逻辑
-func Login(user *request.LoginUser, id string) (string, error) {
-	//bcryptPassword, _:= bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-	//Password := string(bcryptPassword)
-	//fmt.Println(Password)
-	//if ! base64Captcha.DefaultMemStore.Verify(id, user.VerifyCode, true) {
-	//	return "", myerr.NewNormalValidateError("验证码错误")
-	//}
+func Login(user *request.LoginUser) (string, error) {
+	//获取用户
 	adminUser := model.GetUserByWhere("user_name = ?", user.Username)
 	//验证google Code
 	if adminUser.IsOpen != 0 {
@@ -33,7 +28,7 @@ func Login(user *request.LoginUser, id string) (string, error) {
 		}
 
 	}
-	if adminUser.ID== 0 {
+	if adminUser.ID == 0 {
 		return "", myerr.NewNormalValidateError("用户不存在")
 	}
 	if bcrypt.CompareHashAndPassword([]byte(adminUser.Password), []byte(user.Password)) != nil {
@@ -254,10 +249,10 @@ func UserDel(id int) error {
 }
 
 // 更新Token
-func EditToken(token string, username string) error {
+func EditToken(username string) error {
 	defer casbin.ClearEnforcer()
 	u := model.AdminUser{
 		UserName: username,
 	}
-	return u.EditToken(token, username)
+	return u.EditToken(username)
 }

@@ -53,4 +53,8 @@ eth:
 
 # AES key
 aes:
-  key: jspay
+  key: j2pay
+
+# AppSignExpiry
+sign:
+  app_sign_expiry: 120

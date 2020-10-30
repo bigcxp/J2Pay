@@ -287,11 +287,11 @@ func GetUsersByWhere(where ...interface{}) (res []AdminUser, err error) {
 }
 
 // 编辑用户
-func (u *AdminUser) EditToken(token string, username string) error {
+func (u *AdminUser) EditToken(username string) error {
 	tx := Getdb().Begin()
 	adminUser := GetUserByWhere("user_name = ?", username)
 	if err := tx.Model(&adminUser).
-		Updates(AdminUser{Token: token, LastLoginTime: time.Now(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, adminUser.Secret)}).Error; err != nil {
+		Updates(AdminUser{LastLoginTime: time.Now(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, adminUser.Secret)}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
