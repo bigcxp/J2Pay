@@ -81,6 +81,7 @@ func AutoMigrate() {
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '商户提领'").AutoMigrate(&Pick{})
+	db.DropTableIfExists(&Order{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '订单'").AutoMigrate(&Order{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '退款订单'").AutoMigrate(&Return{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '手续费结账'").AutoMigrate(&Fee{})

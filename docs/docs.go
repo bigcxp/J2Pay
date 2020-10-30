@@ -367,17 +367,6 @@ var doc = `{
                 }
             }
         },
-        "/captcha": {
-            "get": {
-                "tags": [
-                    "登录操作"
-                ],
-                "summary": "验证码",
-                "responses": {
-                    "200": {}
-                }
-            }
-        },
         "/createAddress": {
             "post": {
                 "produces": [
@@ -1122,7 +1111,7 @@ var doc = `{
                 "tags": [
                     "订单管理"
                 ],
-                "summary": "新增订单",
+                "summary": "新增订单(充币)",
                 "parameters": [
                     {
                         "description": "新增订单",
@@ -2408,14 +2397,18 @@ var doc = `{
             "required": [
                 "amount",
                 "orderCode",
-                "remark",
-                "user_id"
+                "uts"
             ],
             "properties": {
                 "amount": {
                     "description": "数量",
                     "type": "number",
                     "example": 1
+                },
+                "currency": {
+                    "description": "换算汇率",
+                    "type": "string",
+                    "example": "RMB"
                 },
                 "orderCode": {
                     "description": "商户订单编号",
@@ -2431,6 +2424,11 @@ var doc = `{
                     "description": "用户id",
                     "type": "integer",
                     "example": 1
+                },
+                "uts": {
+                    "description": "时间戳",
+                    "type": "integer",
+                    "example": 1231244520
                 }
             }
         },
@@ -2448,7 +2446,7 @@ var doc = `{
                 },
                 "exprire_time": {
                     "description": "过期时间",
-                    "type": "string"
+                    "type": "integer"
                 },
                 "id": {
                     "type": "integer"
@@ -3812,7 +3810,7 @@ var doc = `{
                 },
                 "create_at": {
                     "description": "创建时间",
-                    "type": "string"
+                    "type": "integer"
                 },
                 "detailed_record_id": {
                     "description": "实收明细订单编号",
@@ -3824,7 +3822,7 @@ var doc = `{
                 },
                 "finish_time": {
                     "description": "完成时间",
-                    "type": "string"
+                    "type": "integer"
                 },
                 "id": {
                     "description": "ID",

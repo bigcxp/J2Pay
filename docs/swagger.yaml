@@ -222,6 +222,10 @@ definitions:
         description: 数量
         example: 1
         type: number
+      currency:
+        description: 换算汇率
+        example: RMB
+        type: string
       orderCode:
         description: 商户订单编号
         example: asfasgdsasfgas
@@ -234,11 +238,14 @@ definitions:
         description: 用户id
         example: 1
         type: integer
+      uts:
+        description: 时间戳
+        example: 1231244520
+        type: integer
     required:
     - amount
     - orderCode
-    - remark
-    - user_id
+    - uts
     type: object
   request.OrderEdit:
     properties:
@@ -247,7 +254,7 @@ definitions:
         type: string
       exprire_time:
         description: 过期时间
-        type: string
+        type: integer
       id:
         type: integer
       should_amount:
@@ -1281,7 +1288,7 @@ definitions:
         type: number
       create_at:
         description: 创建时间
-        type: string
+        type: integer
       detailed_record_id:
         description: 实收明细订单编号
         type: number
@@ -1290,7 +1297,7 @@ definitions:
         type: number
       finish_time:
         description: 完成时间
-        type: string
+        type: integer
       id:
         description: ID
         type: integer
@@ -1746,13 +1753,6 @@ paths:
       summary: 获取权限树
       tags:
       - 角色管理
-  /captcha:
-    get:
-      responses:
-        "200": {}
-      summary: 验证码
-      tags:
-      - 登录操作
   /createAddress:
     post:
       parameters:
@@ -2245,7 +2245,7 @@ paths:
       - application/json
       responses:
         "200": {}
-      summary: 新增订单
+      summary: 新增订单(充币)
       tags:
       - 订单管理
   /order/{id}:

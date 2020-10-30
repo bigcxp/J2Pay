@@ -8,7 +8,7 @@ import (
 	"j2pay-server/myerr"
 	"j2pay-server/pkg/casbin"
 	"j2pay-server/pkg/util"
-	"time"
+
 )
 
 // 订单列表
@@ -111,16 +111,8 @@ func OrderAdd(order request.OrderAdd) (error) {
 			CreateTime: order.Uts,
 			Remark:     order.Remark,
 		}
+		return o.Create()
 	}
-
-	o := model.Order{
-		OrderCode: order.OrderCode,
-		IdCode:    util.RandString(20),
-		Amount:    order.Amount,
-		UserId:    order.UserId,
-		Remark:    order.Remark,
-	}
-	return o.Create()
 }
 
 //修改订单

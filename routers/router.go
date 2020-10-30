@@ -32,7 +32,6 @@ func InitRouter() *gin.Engine {
 		middleware.ErrorHandle(), // 错误处理
 	)
 	//不需要授权
-	r.GET("/captcha", controller.Captcha)
 	r.POST("/login", controller.Login)
 	r.GET("/login", controller.LoginIndex)
 	r.GET("/index", controller.Index)
