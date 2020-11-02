@@ -19,7 +19,7 @@ func CheckDoNotify() {
 			model.DBColTProductNotifyURL,
 			model.DBColTProductNotifyMsg,
 		},
-		model.NotifyStatusInit,
+		hcommon.NotifyStatusInit,
 		time.Now().Unix(),
 	)
 	if err != nil {
@@ -33,7 +33,7 @@ func CheckDoNotify() {
 			model.DBColTProductNotifyURL,
 			model.DBColTProductNotifyMsg,
 		},
-		model.NotifyStatusFail,
+		hcommon.NotifyStatusFail,
 		time.Now().Add(-time.Minute*10).Unix(),
 	)
 	if err != nil {
@@ -49,7 +49,7 @@ func CheckDoNotify() {
 			 err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
-					HandleStatus: model.NotifyStatusFail,
+					HandleStatus: hcommon.NotifyStatusFail,
 					HandleMsg:    errs[0].Error(),
 					UpdateTime:   time.Now().Unix(),
 				},
@@ -65,7 +65,7 @@ func CheckDoNotify() {
 			 err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
-					HandleStatus: model.NotifyStatusFail,
+					HandleStatus: hcommon.NotifyStatusFail,
 					HandleMsg:    fmt.Sprintf("http status: %d", gresp.StatusCode),
 					UpdateTime:   time.Now().Unix(),
 				},
@@ -82,7 +82,7 @@ func CheckDoNotify() {
 			err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
-					HandleStatus: model.NotifyStatusFail,
+					HandleStatus: hcommon.NotifyStatusFail,
 					HandleMsg:    body,
 					UpdateTime:   time.Now().Unix(),
 				},
@@ -98,7 +98,7 @@ func CheckDoNotify() {
 			err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
-					HandleStatus: model.NotifyStatusPass,
+					HandleStatus: hcommon.NotifyStatusPass,
 					HandleMsg:    body,
 					UpdateTime:   time.Now().Unix(),
 				},
@@ -111,7 +111,7 @@ func CheckDoNotify() {
 			err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
-					HandleStatus: model.NotifyStatusFail,
+					HandleStatus: hcommon.NotifyStatusFail,
 					HandleMsg:    body,
 					UpdateTime:   time.Now().Unix(),
 				},

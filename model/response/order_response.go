@@ -36,4 +36,10 @@ type RealOrderList struct {
 
 //返回给用户充币地址
 type UserAddr struct {
+	OrderCode      string  `json:"order_code"`      //商户订单编号
+	Amount         float64 `json:"amount"`          //金额
+	Address        string  `json:"charge_address"`  //分配的收款地址
+	ExprireTime    int64   `json:"exprireTime"`     //过期时间
+	Currency       string  `json:"currency"`        //币别
+	CurrencyAmount float64 `json:"currency_amount"` //币别金额
 }

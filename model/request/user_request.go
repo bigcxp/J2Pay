@@ -53,6 +53,6 @@ type CommonUser struct {
 	MaxOrderCount float64 `json:"max_order_count" binding:"required" example:"1"`       //最大交易总量
 	MinOrderCount float64 `json:"min_order_count" binding:"required" example:"1"`       //最小交易总量
 	Limit         float64 `json:"limit" binding:"required" example:"1"`                 //结账限制
-	UserLessTime  int     `json:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
+	UserLessTime  int64     `json:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
 	Roles         []int   `binding:"required,min=1" example:"1,2"`                      // 所属角色
 }

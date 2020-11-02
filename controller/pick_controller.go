@@ -21,7 +21,7 @@ func IndexPick(c *gin.Context) {
 }
 
 // @Tags 商户提领代发管理
-// @Summary 商户提领、代发列表
+// @Summary 商户端提领、代发列表
 // @Produce json
 // @Param status  query int false "-1：等待中，1:执行中，2：成功，3：取消，4，失败"
 // @Param type  query int false "0：所有，1：代发，2：提领"
@@ -120,7 +120,7 @@ func SendIndex(c *gin.Context) {
 func MerchantPickDetail(c *gin.Context) {
 	response := util.Response{c}
 	id, _ := strconv.Atoi(c.Param("id"))
-	detail, err := service.MerchantPickDetail(uint(id))
+	detail, err := service.MerchantPickDetail(int64(id))
 	if err != nil {
 		response.SetOtherError(err)
 		return
@@ -137,7 +137,7 @@ func MerchantPickDetail(c *gin.Context) {
 func PickDetail(c *gin.Context) {
 	response := util.Response{c}
 	id, _ := strconv.Atoi(c.Param("id"))
-	detail, err := service.PickDetail(uint(id))
+	detail, err := service.PickDetail(int64(id))
 	if err != nil {
 		response.SetOtherError(err)
 		return
@@ -154,7 +154,7 @@ func PickDetail(c *gin.Context) {
 func SendDetail(c *gin.Context) {
 	response := util.Response{c}
 	id, _ := strconv.Atoi(c.Param("id"))
-	detail, err := service.SendDetail(uint(id))
+	detail, err := service.SendDetail(int64(id))
 	if err != nil {
 		response.SetOtherError(err)
 		return
@@ -177,12 +177,11 @@ func PickAdd(c *gin.Context)  {
 		response.SetValidateError(err)
 		return
 	}
-	if err := service.PickAdd(pick); err != nil {
-		response.SetOtherError(err)
-		return
+	err,pickAddr := service.PickAdd(pick)
+	if err != nil {
+		response.SetValidateError(err)
 	}
-	response.SuccessMsg("成功")
-
+	response.Send(200,"成功",pickAddr)
 }
 
 // @Tags 商户提领代发管理
@@ -198,12 +197,11 @@ func SendAdd(c *gin.Context)  {
 		response.SetValidateError(err)
 		return
 	}
-	if err := service.SendAdd(send); err != nil {
-		response.SetOtherError(err)
-		return
+	err,pickAddr := service.SendAdd(send)
+	if err != nil {
+		response.SetValidateError(err)
 	}
-	response.SuccessMsg("成功")
-
+	response.Send(200,"成功",pickAddr)
 }
 
 // @Tags 商户提领代发管理

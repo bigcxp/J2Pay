@@ -868,7 +868,7 @@ var doc = `{
                 "tags": [
                     "商户提领代发管理"
                 ],
-                "summary": "商户提领、代发列表",
+                "summary": "商户端提领、代发列表",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2505,6 +2505,11 @@ var doc = `{
                     "type": "number",
                     "example": 1
                 },
+                "currency": {
+                    "description": "换算汇率",
+                    "type": "string",
+                    "example": "RMB"
+                },
                 "pick_address": {
                     "description": "收款地址",
                     "type": "string",
@@ -2704,6 +2709,11 @@ var doc = `{
                     "description": "数量",
                     "type": "number",
                     "example": 1
+                },
+                "currency": {
+                    "description": "换算汇率",
+                    "type": "string",
+                    "example": "RMB"
                 },
                 "order_code": {
                     "description": "商户订单编号",

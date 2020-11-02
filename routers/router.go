@@ -47,6 +47,14 @@ func InitRouter() *gin.Engine {
 	r.GET("/returnIndex", controller.ReturnIndex)
 	r.GET("/orderIndex", controller.OrderIndex)
 	r.GET("/main",controller.MainIndex)
+	//加入签名中间件
+	r.Use(middleware.SetUp())
+	//创建新订单（充币）
+	r.POST("/order", controller.OrderAdd)
+	//提领,代发
+	r.POST("/merchantPick", controller.PickAdd)
+	r.POST("/merchantSend", controller.SendAdd)
+
 	//加入jwt中间件
 	r.Use(middleware.JWT())
 	//登录后能做的操作
@@ -115,9 +123,6 @@ func InitRouter() *gin.Engine {
 		r.GET("/send", controller.SendIndex)
 		r.GET("/send/:id", controller.SendDetail)
 
-		r.POST("/merchantPick", controller.PickAdd)
-		r.POST("/merchantSend", controller.SendAdd)
-
 		r.PUT("/pick/:id", controller.PickEdit)
 
 		r.POST("/notify", controller.PickNotify)
@@ -162,10 +167,5 @@ func InitRouter() *gin.Engine {
 		r.PUT("/rate/:id", controller.RateEdit)
 
 	}
-	//加入签名中间件
-	r.Use(middleware.SetUp())
-	//创建新订单（充币）
-	r.POST("/order", controller.OrderAdd)
-
 	return r
 }

@@ -114,9 +114,9 @@ func UserAdd(user request.UserAdd) error {
 		MinOrderCount: user.MinOrderCount,
 		Limit:         user.Limit,
 		UserLessTime:  user.UserLessTime,
-		CreateTime:    time.Now(),
-		UpdateTime:    time.Now(),
-		LastLoginTime: time.Now(),
+		CreateTime:    time.Now().Unix(),
+		UpdateTime:    time.Now().Unix(),
+		LastLoginTime: time.Now().Unix(),
 		IsOpen:        0,
 	}
 	// 1.判断用户名和手机号是否存在
@@ -177,9 +177,9 @@ func UserEdit(user request.UserEdit) error {
 		MinOrderCount: user.MinOrderCount,
 		Limit:         user.Limit,
 		UserLessTime:  user.UserLessTime,
-		UpdateTime:    time.Now(),
-		CreateTime:    time.Now(),
-		LastLoginTime: time.Now(),
+		UpdateTime:    time.Now().Unix(),
+		CreateTime:    time.Now().Unix(),
+		LastLoginTime: time.Now().Unix(),
 	}
 
 	// 1.判断用户名和手机号是否存在

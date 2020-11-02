@@ -12,7 +12,7 @@ import (
 )
 
 type AdminUser struct {
-	ID            int
+	ID             int
 	Pid            int             `gorm:"default:0;comment:'上级ID';"`
 	UserName       string          `gorm:"unique;comment:'用户名';"`
 	Tel            string          `gorm:"unique;default:'';comment:'手机号';"`
@@ -22,11 +22,11 @@ type AdminUser struct {
 	QrcodeUrl      string          `gorm:"comment:'google二维码图片地址';"`
 	RealName       string          `gorm:"default:'';comment:'组织名称';"`
 	Status         int8            `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
-	CreateTime     time.Time       `gorm:"type:timestamp;comment:'创建时间';"`
-	UpdateTime     time.Time       `gorm:"type:timestamp;comment:'更新时间';"`
+	CreateTime     int64           `gorm:"type:timestamp;comment:'创建时间';"`
+	UpdateTime     int64           `gorm:"type:timestamp;comment:'更新时间';"`
 	Balance        float64         `gorm:"default:0;comment:'用户余额';"`
 	Address        string          `gorm:"default:'';comment:'商户地址';"`
-	LastLoginTime  time.Time       `gorm:"type:timestamp;comment:'最后登录时间';"`
+	LastLoginTime  int64           `gorm:"type:timestamp;comment:'最后登录时间';"`
 	Token          string          `gorm:"default:'';comment:'Token'"`
 	ReturnUrl      string          `gorm:"default:'';comment:'回传URL'"`
 	DaiUrl         string          `gorm:"default:'';comment:'代发URL'"`
@@ -38,16 +38,16 @@ type AdminUser struct {
 	OrderCharge    float64         `gorm:"default:0;comment:'订单手续费';"`
 	ReturnType     int             `gorm:"default:1;comment:'退款手续费类型 1：百分比 0：固定'"`
 	ReturnCharge   float64         `gorm:"default:0;comment:'退款手续费';"`
-	IsDai          int             `gorm:"default:1;comment:'是否启用代发功能';"`
+	IsDai          int             `gorm:"default:1;comment:'是否启用代发功能 1：是 0：否';"`
 	DaiType        int             `gorm:"default:1;comment:'代发手续费类型 1：百分比 0：固定'"`
 	DaiCharge      float64         `gorm:"default:0;comment:'代发手续费';"`
 	IsGas          int             `gorm:"default:1;comment:'是否启用gas预估 1：是 0：否'"`
-	Examine        float64         `gorm:"default:0;comment:'代发审核';"`
+	Examine        float64         `gorm:"default:0;comment:'代发审核 1：是 0：否 ';"`
 	DayTotalCount  float64         `gorm:"default:0;comment:'每日交易总量';"`
 	MaxOrderCount  float64         `gorm:"default:0;comment:'最大交易数量';"`
 	MinOrderCount  float64         `gorm:"default:0;comment:'最小交易数量';"`
 	Limit          float64         `gorm:"default:0;comment:'结账限制';"`
-	UserLessTime   int             `gorm:"default:0;comment:'订单无效时间';"`
+	UserLessTime   int64           `gorm:"default:0;comment:'订单无效时间';"`
 	Pick           []Pick          `gorm:"FOREIGNKEY:UserId;ASSOCIATION_FOREIGNKEY:Id"`
 	SystemMessages []SystemMessage `gorm:"many2many:system_message_user;"`
 }
@@ -110,7 +110,7 @@ func (u *AdminUser) Detail(id ...int) (res response.AdminUserList, err error) {
 // 创建
 func (u *AdminUser) Create(roles []int) error {
 	tx := Getdb().Begin()
-	u.CreateTime = time.Now()
+	u.CreateTime = time.Now().Unix()
 	if err := tx.Create(u).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -291,7 +291,7 @@ func (u *AdminUser) EditToken(username string) error {
 	tx := Getdb().Begin()
 	adminUser := GetUserByWhere("user_name = ?", username)
 	if err := tx.Model(&adminUser).
-		Updates(AdminUser{LastLoginTime: time.Now(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, adminUser.Secret)}).Error; err != nil {
+		Updates(AdminUser{LastLoginTime: time.Now().Unix(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, adminUser.Secret)}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

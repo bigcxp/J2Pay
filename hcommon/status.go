@@ -1,4 +1,4 @@
-package model
+package hcommon
 
 // 交易状态
 const (
@@ -56,18 +56,11 @@ const (
 	WithdrawStatusConfirm = 3
 )
 
-// uxto 类型
+// 提领状态
 const (
-	UxtoTypeTx         = 1
-	UxtoTypeHot        = 2
-	UxtoTypeOmni       = 3
-	UxtoTypeOmniHot    = 4
-	UxtoTypeOmniOrgFee = 5
-)
-
-// uxto 处理类型
-const (
-	UxtoHandleStatusInit    = 0
-	UxtoHandleStatusUse     = 1
-	UxtoHandleStatusConfirm = 2
+	PickStatusWait    = 0 //等待中
+	PickStatusDo      = 1 //执行中
+	PickStatusSuccess = 2 //成功
+	PickStatusCancel  = 3 //已取消
+	PickStatusFail    = 4 //失败
 )

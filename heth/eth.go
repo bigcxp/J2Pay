@@ -248,10 +248,10 @@ func CheckBlockSeek() {
 						ToAddress:    toAddress,
 						BalanceReal:  balanceReal,
 						CreateTime:   now,
-						HandleStatus: model.TxStatusInit,
+						HandleStatus: hcommon.TxStatusInit,
 						HandleMsg:    "",
 						HandleTime:   now,
-						OrgStatus:    model.TxOrgStatusInit,
+						OrgStatus:    hcommon.TxOrgStatusInit,
 						OrgMsg:       "",
 						OrgTime:      now,
 					})
@@ -287,7 +287,7 @@ func CheckAddressOrg() {
 		return
 	}
 	// 获取待整理的交易列表
-	txRows := model.SQLSelectTTxColByOrgForUpdate("org_status = ?", model.TxOrgStatusInit)
+	txRows := model.SQLSelectTTxColByOrgForUpdate("org_status = ?", hcommon.TxOrgStatusInit)
 	if len(txRows) <= 0 {
 		// 没有要处理的信息
 		return
@@ -392,7 +392,7 @@ func CheckAddressOrg() {
 			if rowIndex == 0 {
 				// 只有第一条数据需要发送，其余数据为占位数据
 				sendRows = append(sendRows, &model.TSend{
-					RelatedType:  model.SendRelationTypeTx,
+					RelatedType:  hcommon.SendRelationTypeTx,
 					RelatedID:    rowID,
 					TxID:         txHash,
 					FromAddress:  address,
@@ -403,14 +403,14 @@ func CheckAddressOrg() {
 					Nonce:        nonce,
 					Hex:          rawTxHex,
 					CreateTime:   now,
-					HandleStatus: model.SendStatusInit,
+					HandleStatus: hcommon.SendStatusInit,
 					HandleMsg:    "",
 					HandleTime:   now,
 				})
 			} else {
 				// 占位数据
 				sendRows = append(sendRows, &model.TSend{
-					RelatedType:  model.SendRelationTypeTx,
+					RelatedType:  hcommon.SendRelationTypeTx,
 					RelatedID:    rowID,
 					TxID:         txHash,
 					FromAddress:  address,
@@ -421,7 +421,7 @@ func CheckAddressOrg() {
 					Nonce:        -1,
 					Hex:          "",
 					CreateTime:   now,
-					HandleStatus: model.SendStatusInit,
+					HandleStatus: hcommon.SendStatusInit,
 					HandleMsg:    "",
 					HandleTime:   now,
 				})
@@ -437,7 +437,7 @@ func CheckAddressOrg() {
 		err = model.SQLUpdateTTxOrgStatusByIDs(
 			info.RowIDs,
 			&model.TTx{
-				OrgStatus: model.TxOrgStatusHex,
+				OrgStatus: hcommon.TxOrgStatusHex,
 				OrgMsg:    "gen raw tx",
 				OrgTime:   now,
 			},
@@ -452,12 +452,12 @@ func CheckAddressOrg() {
 // CheckRawTxSend 发送交易
 func CheckRawTxSend() {
 	// 获取待发送的数据
-	sendRows := model.SQLSelectTSendColByStatus("handle_status = ?", model.SendStatusInit)
+	sendRows := model.SQLSelectTSendColByStatus("handle_status = ?", hcommon.SendStatusInit)
 	// 首先单独处理提币，提取提币通知要使用的数据
 	var withdrawIDs []int64
 	for _, sendRow := range sendRows {
 		switch sendRow.RelatedType {
-		case model.SendRelationTypeWithdraw:
+		case hcommon.SendRelationTypeWithdraw:
 			if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 			}
@@ -480,25 +480,25 @@ func CheckRawTxSend() {
 			sendIDs = append(sendIDs, sendRow.ID)
 		}
 		switch sendRow.RelatedType {
-		case model.SendRelationTypeTx:
+		case hcommon.SendRelationTypeTx:
 			if !hcommon.IsIntInSlice(txIDs, sendRow.RelatedID) {
 				txIDs = append(txIDs, sendRow.RelatedID)
 			}
-		case model.SendRelationTypeWithdraw:
+		case hcommon.SendRelationTypeWithdraw:
 			if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 			}
-		case model.SendRelationTypeTxErc20:
+		case hcommon.SendRelationTypeTxErc20:
 			if !hcommon.IsIntInSlice(erc20TxIDs, sendRow.RelatedID) {
 				erc20TxIDs = append(erc20TxIDs, sendRow.RelatedID)
 			}
-		case model.SendRelationTypeTxErc20Fee:
+		case hcommon.SendRelationTypeTxErc20Fee:
 			if !hcommon.IsIntInSlice(erc20TxFeeIDs, sendRow.RelatedID) {
 				erc20TxFeeIDs = append(erc20TxFeeIDs, sendRow.RelatedID)
 			}
 		}
 		// 如果是提币，创建通知信息
-		if sendRow.RelatedType == model.SendRelationTypeWithdraw {
+		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw {
 			withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 			if !ok {
 				hcommon.Log.Errorf("withdrawMap no: %d", sendRow.RelatedID)
@@ -511,7 +511,7 @@ func CheckRawTxSend() {
 				"system_id":   withdrawRow.SystemID,
 				"address":     withdrawRow.ToAddress,
 				"symbol":      withdrawRow.Symbol,
-				"notify_type": model.NotifyTypeWithdrawSend,
+				"notify_type": hcommon.NotifyTypeWithdrawSend,
 			}
 			reqObj["sign"] = hcommon.GetSign("j2pay", reqObj)
 			req, err := json.Marshal(reqObj)
@@ -522,12 +522,12 @@ func CheckRawTxSend() {
 			notifyRows = append(notifyRows, &model.TProductNotify{
 				Nonce:        nonce,
 				SystemID:     withdrawRow.SystemID,
-				ItemType:     model.SendRelationTypeWithdraw,
+				ItemType:     hcommon.SendRelationTypeWithdraw,
 				ItemID:       withdrawRow.ID,
-				NotifyType:   model.NotifyTypeWithdrawSend,
+				NotifyType:   hcommon.NotifyTypeWithdrawSend,
 				TokenSymbol:  withdrawRow.Symbol,
 				Msg:          string(req),
-				HandleStatus: model.NotifyStatusInit,
+				HandleStatus: hcommon.NotifyStatusInit,
 				HandleMsg:    "",
 				CreateTime:   now,
 				UpdateTime:   now,
@@ -583,7 +583,7 @@ func CheckRawTxSend() {
 		err = model.SQLUpdateTWithdrawStatusByIDs(
 			withdrawIDs,
 			&model.TWithdraw{
-				HandleStatus: model.WithdrawStatusSend,
+				HandleStatus: hcommon.WithdrawStatusSend,
 				HandleMsg:    "send",
 				HandleTime:   now,
 			},
@@ -596,7 +596,7 @@ func CheckRawTxSend() {
 		err = model.SQLUpdateTTxOrgStatusByIDs(
 			txIDs,
 			&model.TTx{
-				OrgStatus: model.TxOrgStatusSend,
+				OrgStatus: hcommon.TxOrgStatusSend,
 				OrgMsg:    "send",
 				OrgTime:   now,
 			},
@@ -609,7 +609,7 @@ func CheckRawTxSend() {
 		err = model.SQLUpdateTTxErc20OrgStatusByIDs(
 			erc20TxIDs,
 			&model.TTxErc20{
-				OrgStatus: model.TxOrgStatusSend,
+				OrgStatus: hcommon.TxOrgStatusSend,
 				OrgMsg:    "send",
 				OrgTime:   now,
 			},
@@ -623,7 +623,7 @@ func CheckRawTxSend() {
 
 			erc20TxFeeIDs,
 			&model.TTxErc20{
-				OrgStatus: model.TxOrgStatusFeeSend,
+				OrgStatus: hcommon.TxOrgStatusFeeSend,
 				OrgMsg:    "send",
 				OrgTime:   now,
 			},
@@ -636,7 +636,7 @@ func CheckRawTxSend() {
 		err = model.SQLUpdateTSendStatusByIDs(
 			sendIDs,
 			&model.TSend{
-				HandleStatus: model.SendStatusSend,
+				HandleStatus: hcommon.SendStatusSend,
 				HandleMsg:    "send",
 				HandleTime:   now,
 			},
@@ -646,10 +646,10 @@ func CheckRawTxSend() {
 
 // CheckRawTxConfirm 确认tx是否打包完成
 func CheckRawTxConfirm() {
-	sendRows := model.SQLSelectTSendColByStatus("handle_status = ?", model.SendStatusSend)
+	sendRows := model.SQLSelectTSendColByStatus("handle_status = ?", hcommon.SendStatusSend)
 	var withdrawIDs []int64
 	for _, sendRow := range sendRows {
-		if sendRow.RelatedType == model.SendRelationTypeWithdraw {
+		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw {
 			// 提币
 			if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
@@ -684,7 +684,7 @@ func CheckRawTxConfirm() {
 			}
 			sendHashes = append(sendHashes, sendRow.TxID)
 		}
-		if sendRow.RelatedType == model.SendRelationTypeWithdraw {
+		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw {
 			// 提币
 			withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 			if !ok {
@@ -698,7 +698,7 @@ func CheckRawTxConfirm() {
 				"system_id":   withdrawRow.SystemID,
 				"address":     withdrawRow.ToAddress,
 				"symbol":      withdrawRow.Symbol,
-				"notify_type": model.NotifyTypeWithdrawConfirm,
+				"notify_type": hcommon.NotifyTypeWithdrawConfirm,
 			}
 			reqObj["sign"] = hcommon.GetSign("j2pay", reqObj)
 			req, err := json.Marshal(reqObj)
@@ -709,12 +709,12 @@ func CheckRawTxConfirm() {
 			notifyRows = append(notifyRows, &model.TProductNotify{
 				Nonce:        nonce,
 				SystemID:     withdrawRow.SystemID,
-				ItemType:     model.SendRelationTypeWithdraw,
+				ItemType:     hcommon.SendRelationTypeWithdraw,
 				ItemID:       withdrawRow.ID,
-				NotifyType:   model.NotifyTypeWithdrawConfirm,
+				NotifyType:   hcommon.NotifyTypeWithdrawConfirm,
 				TokenSymbol:  withdrawRow.Symbol,
 				Msg:          string(req),
-				HandleStatus: model.NotifyStatusInit,
+				HandleStatus: hcommon.NotifyStatusInit,
 				HandleMsg:    "",
 				CreateTime:   now,
 				UpdateTime:   now,
@@ -726,19 +726,19 @@ func CheckRawTxConfirm() {
 			sendIDs = append(sendIDs, sendRow.ID)
 		}
 		switch sendRow.RelatedType {
-		case model.SendRelationTypeTx:
+		case hcommon.SendRelationTypeTx:
 			if !hcommon.IsIntInSlice(txIDs, sendRow.RelatedID) {
 				txIDs = append(txIDs, sendRow.RelatedID)
 			}
-		case model.SendRelationTypeWithdraw:
+		case hcommon.SendRelationTypeWithdraw:
 			if !hcommon.IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 			}
-		case model.SendRelationTypeTxErc20:
+		case hcommon.SendRelationTypeTxErc20:
 			if !hcommon.IsIntInSlice(erc20TxIDs, sendRow.RelatedID) {
 				erc20TxIDs = append(erc20TxIDs, sendRow.RelatedID)
 			}
-		case model.SendRelationTypeTxErc20Fee:
+		case hcommon.SendRelationTypeTxErc20Fee:
 			if !hcommon.IsIntInSlice(erc20TxFeeIDs, sendRow.RelatedID) {
 				erc20TxFeeIDs = append(erc20TxFeeIDs, sendRow.RelatedID)
 			}
@@ -754,7 +754,7 @@ func CheckRawTxConfirm() {
 	err = model.SQLUpdateTWithdrawStatusByIDs(
 		withdrawIDs,
 		&model.TWithdraw{
-			HandleStatus: model.WithdrawStatusConfirm,
+			HandleStatus: hcommon.WithdrawStatusConfirm,
 			HandleMsg:    "confirmed",
 			HandleTime:   now,
 		},
@@ -767,7 +767,7 @@ func CheckRawTxConfirm() {
 	err = model.SQLUpdateTTxOrgStatusByIDs(
 		txIDs,
 		&model.TTx{
-			OrgStatus: model.TxOrgStatusConfirm,
+			OrgStatus: hcommon.TxOrgStatusConfirm,
 			OrgMsg:    "confirm",
 			OrgTime:   now,
 		},
@@ -780,7 +780,7 @@ func CheckRawTxConfirm() {
 	err = model.SQLUpdateTTxErc20OrgStatusByIDs(
 		erc20TxIDs,
 		&model.TTxErc20{
-			OrgStatus: model.TxOrgStatusConfirm,
+			OrgStatus: hcommon.TxOrgStatusConfirm,
 			OrgMsg:    "confirm",
 			OrgTime:   now,
 		},
@@ -793,7 +793,7 @@ func CheckRawTxConfirm() {
 	err = model.SQLUpdateTTxErc20OrgStatusByIDs(
 		erc20TxFeeIDs,
 		&model.TTxErc20{
-			OrgStatus: model.TxOrgStatusFeeConfirm,
+			OrgStatus: hcommon.TxOrgStatusFeeConfirm,
 			OrgMsg:    "eth fee confirmed",
 			OrgTime:   now,
 		},
@@ -806,7 +806,7 @@ func CheckRawTxConfirm() {
 	err = model.SQLUpdateTSendStatusByIDs(
 		sendIDs,
 		&model.TSend{
-			HandleStatus: model.SendStatusConfirm,
+			HandleStatus: hcommon.SendStatusConfirm,
 			HandleMsg:    "confirmed",
 			HandleTime:   now,
 		},
@@ -816,7 +816,7 @@ func CheckRawTxConfirm() {
 // CheckWithdraw 检测提现
 func CheckWithdraw() {
 	// 获取需要处理的提币数据
-	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(model.WithdrawStatusInit)
+	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -885,7 +885,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	// 处理业务
 	withdrawRow, err := model.SQLGetTWithdrawColForUpdate(
 		withdrawID,
-		model.WithdrawStatusInit,
+		hcommon.WithdrawStatusInit,
 	)
 	if err != nil {
 		return err
@@ -939,7 +939,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 		&model.TWithdraw{
 			ID:           withdrawID,
 			TxHash:       txHash,
-			HandleStatus: model.WithdrawStatusHex,
+			HandleStatus: hcommon.WithdrawStatusHex,
 			HandleMsg:    "gen tx hex",
 			HandleTime:   now,
 		},
@@ -949,7 +949,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	}
 	_, err = model.SQLCreateTSend(
 		&model.TSend{
-			RelatedType:  model.SendRelationTypeWithdraw,
+			RelatedType:  hcommon.SendRelationTypeWithdraw,
 			RelatedID:    withdrawID,
 			TxID:         txHash,
 			FromAddress:  hotAddress,
@@ -959,7 +959,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 			GasPrice:     gasPrice,
 			Nonce:        nonce,
 			Hex:          rawTxHex,
-			HandleStatus: model.SendStatusInit,
+			HandleStatus: hcommon.SendStatusInit,
 			HandleMsg:    "init",
 			HandleTime:   now,
 		},
@@ -972,7 +972,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 
 // CheckTxNotify 创建eth冲币通知
 func CheckTxNotify() {
-	txRows := model.SQLSelectTTxColByOrgForUpdate("handle_status", model.TxStatusInit)
+	txRows := model.SQLSelectTTxColByOrgForUpdate("handle_status", hcommon.TxStatusInit)
 
 	var notifyTxIDs []int64
 	var notifyRows []*model.TProductNotify
@@ -985,7 +985,7 @@ func CheckTxNotify() {
 			"address":     txRow.ToAddress,
 			"balance":     txRow.BalanceReal,
 			"symbol":      CoinSymbol,
-			"notify_type": model.NotifyTypeTx,
+			"notify_type": hcommon.NotifyTypeTx,
 		}
 		reqObj["sign"] = hcommon.GetSign("j2pay", reqObj)
 		req, err := json.Marshal(reqObj)
@@ -996,12 +996,12 @@ func CheckTxNotify() {
 		notifyRows = append(notifyRows, &model.TProductNotify{
 			Nonce:        nonce,
 			SystemID:     txRow.SystemID,
-			ItemType:     model.SendRelationTypeTx,
+			ItemType:     hcommon.SendRelationTypeTx,
 			ItemID:       txRow.ID,
-			NotifyType:   model.NotifyTypeTx,
+			NotifyType:   hcommon.NotifyTypeTx,
 			TokenSymbol:  CoinSymbol,
 			Msg:          string(req),
-			HandleStatus: model.NotifyStatusInit,
+			HandleStatus: hcommon.NotifyStatusInit,
 			HandleMsg:    "",
 			CreateTime:   now,
 			UpdateTime:   now,
@@ -1017,7 +1017,7 @@ func CheckTxNotify() {
 	err = model.SQLUpdateTTxStatusByIDs(
 		notifyTxIDs,
 		&model.TTx{
-			HandleStatus: model.TxStatusNotify,
+			HandleStatus: hcommon.TxStatusNotify,
 			HandleMsg:    "notify",
 			HandleTime:   now,
 		},
@@ -1032,7 +1032,6 @@ func CheckTxNotify() {
 func CheckErc20BlockSeek() {
 	// 获取配置 延迟确认数
 	confirmValue := model.SQLGetTAppConfigIntValueByK("k = ? ", "block_confirm_num")
-
 	// 获取状态 当前处理完成的最新的block number
 	seekValue := model.SQLGetTAppStatusIntValueByK("k = ?", "erc20_seek_num")
 	// rpc 获取当前最新区块数
@@ -1186,10 +1185,10 @@ func CheckErc20BlockSeek() {
 							ToAddress:    transferEvent.To,
 							BalanceReal:  balanceReal,
 							CreateTime:   now,
-							HandleStatus: model.TxStatusInit,
+							HandleStatus: hcommon.TxStatusInit,
 							HandleMsg:    "",
 							HandleTime:   now,
-							OrgStatus:    model.TxOrgStatusInit,
+							OrgStatus:    hcommon.TxOrgStatusInit,
 							OrgMsg:       "",
 							OrgTime:      now,
 						})
@@ -1218,7 +1217,7 @@ func CheckErc20BlockSeek() {
 
 // CheckErc20TxNotify 创建erc20冲币通知
 func CheckErc20TxNotify() {
-	txRows, err := model.SQLSelectTTxErc20ColByStatus(model.TxStatusInit)
+	txRows, err := model.SQLSelectTTxErc20ColByStatus(hcommon.TxStatusInit)
 	if err != nil {
 		return
 	}
@@ -1253,7 +1252,7 @@ func CheckErc20TxNotify() {
 			"address":     txRow.ToAddress,
 			"balance":     txRow.BalanceReal,
 			"symbol":      tokenRow.TokenSymbol,
-			"notify_type": model.NotifyTypeTx,
+			"notify_type": hcommon.NotifyTypeTx,
 		}
 		reqObj["sign"] = hcommon.GetSign("j2pay", reqObj)
 		req, err := json.Marshal(reqObj)
@@ -1264,12 +1263,12 @@ func CheckErc20TxNotify() {
 		notifyRows = append(notifyRows, &model.TProductNotify{
 			Nonce:        nonce,
 			SystemID:     txRow.SystemID,
-			ItemType:     model.SendRelationTypeTx,
+			ItemType:     hcommon.SendRelationTypeTx,
 			ItemID:       txRow.ID,
-			NotifyType:   model.NotifyTypeTx,
+			NotifyType:   hcommon.NotifyTypeTx,
 			TokenSymbol:  tokenRow.TokenSymbol,
 			Msg:          string(req),
-			HandleStatus: model.NotifyStatusInit,
+			HandleStatus: hcommon.NotifyStatusInit,
 			HandleMsg:    "",
 			CreateTime:   now,
 			UpdateTime:   now,
@@ -1284,7 +1283,7 @@ func CheckErc20TxNotify() {
 	_, err = model.SQLUpdateTTxErc20StatusByIDs(
 		notifyTxIDs,
 		model.TTxErc20{
-			HandleStatus: model.TxStatusNotify,
+			HandleStatus: hcommon.TxStatusNotify,
 			HandleMsg:    "notify",
 			HandleTime:   now,
 		},
@@ -1313,7 +1312,7 @@ func CheckErc20TxOrg() {
 	}
 	// 查询需要处理的交易
 	txRows, err := model.SQLSelectTTxErc20ColByOrgForUpdate(
-		[]int64{model.TxOrgStatusInit, model.TxOrgStatusFeeConfirm},
+		[]int64{hcommon.TxOrgStatusInit, hcommon.TxOrgStatusFeeConfirm},
 	)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -1482,7 +1481,7 @@ func CheckErc20TxOrg() {
 		for rowIndex, txID := range orgInfo.TxIDs {
 			if rowIndex == 0 {
 				sendRows = append(sendRows, &model.TSend{
-					RelatedType:  model.SendRelationTypeTxErc20,
+					RelatedType:  hcommon.SendRelationTypeTxErc20,
 					RelatedID:    txID,
 					TokenID:      orgInfo.TokenID,
 					TxID:         txHash,
@@ -1494,13 +1493,13 @@ func CheckErc20TxOrg() {
 					Nonce:        nonce,
 					Hex:          rawTxHex,
 					CreateTime:   now,
-					HandleStatus: model.SendStatusInit,
+					HandleStatus: hcommon.SendStatusInit,
 					HandleMsg:    "",
 					HandleTime:   now,
 				})
 			} else {
 				sendRows = append(sendRows, &model.TSend{
-					RelatedType:  model.SendRelationTypeTxErc20,
+					RelatedType:  hcommon.SendRelationTypeTxErc20,
 					RelatedID:    txID,
 					TokenID:      orgInfo.TokenID,
 					TxID:         txHash,
@@ -1512,7 +1511,7 @@ func CheckErc20TxOrg() {
 					Nonce:        -1,
 					Hex:          "",
 					CreateTime:   now,
-					HandleStatus: model.SendStatusInit,
+					HandleStatus: hcommon.SendStatusInit,
 					HandleMsg:    "",
 					HandleTime:   now,
 				})
@@ -1528,7 +1527,7 @@ func CheckErc20TxOrg() {
 		err = model.SQLUpdateTTxErc20OrgStatusByIDs(
 			orgInfo.TxIDs,
 			&model.TTxErc20{
-				OrgStatus: model.TxOrgStatusHex,
+				OrgStatus: hcommon.TxOrgStatusHex,
 				OrgMsg:    "hex",
 				OrgTime:   now,
 			},
@@ -1621,7 +1620,7 @@ func CheckErc20TxOrg() {
 			for rowIndex, txID := range orgInfo.TxIDs {
 				if rowIndex == 0 {
 					sendRows = append(sendRows, &model.TSend{
-						RelatedType:  model.SendRelationTypeTxErc20Fee,
+						RelatedType:  hcommon.SendRelationTypeTxErc20Fee,
 						RelatedID:    txID,
 						TokenID:      0,
 						TxID:         txHash,
@@ -1633,13 +1632,13 @@ func CheckErc20TxOrg() {
 						Nonce:        nonce,
 						Hex:          rawTxHex,
 						CreateTime:   now,
-						HandleStatus: model.SendStatusInit,
+						HandleStatus: hcommon.SendStatusInit,
 						HandleMsg:    "",
 						HandleTime:   now,
 					})
 				} else {
 					sendRows = append(sendRows, &model.TSend{
-						RelatedType:  model.SendRelationTypeTxErc20Fee,
+						RelatedType:  hcommon.SendRelationTypeTxErc20Fee,
 						RelatedID:    txID,
 						TokenID:      0,
 						TxID:         txHash,
@@ -1651,7 +1650,7 @@ func CheckErc20TxOrg() {
 						Nonce:        -1,
 						Hex:          "",
 						CreateTime:   now,
-						HandleStatus: model.SendStatusInit,
+						HandleStatus: hcommon.SendStatusInit,
 						HandleMsg:    "",
 						HandleTime:   now,
 					})
@@ -1667,7 +1666,7 @@ func CheckErc20TxOrg() {
 			err = model.SQLUpdateTTxErc20OrgStatusByIDs(
 				orgInfo.TxIDs,
 				&model.TTxErc20{
-					OrgStatus: model.TxOrgStatusFeeHex,
+					OrgStatus: hcommon.TxOrgStatusFeeHex,
 					OrgMsg:    "fee hex",
 					OrgTime:   now,
 				},
@@ -1773,7 +1772,7 @@ func CheckErc20Withdraw() {
 			addressTokenBalanceMap[tokenBalanceKey] = tokenBalance
 		}
 	}
-	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(model.WithdrawStatusInit)
+	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -1815,7 +1814,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	// 处理业务
 	withdrawRow, err := model.SQLGetTWithdrawColForUpdate(
 		withdrawID,
-		model.WithdrawStatusInit,
+		hcommon.WithdrawStatusInit,
 	)
 	if err != nil {
 		return err
@@ -1896,7 +1895,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		&model.TWithdraw{
 			ID:           withdrawID,
 			TxHash:       txHash,
-			HandleStatus: model.WithdrawStatusHex,
+			HandleStatus: hcommon.WithdrawStatusHex,
 			HandleMsg:    "gen tx hex",
 			HandleTime:   now,
 		},
@@ -1906,7 +1905,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	}
 	_, err = model.SQLCreateTSend(
 		&model.TSend{
-			RelatedType:  model.SendRelationTypeWithdraw,
+			RelatedType:  hcommon.SendRelationTypeWithdraw,
 			RelatedID:    withdrawID,
 			TxID:         txHash,
 			FromAddress:  hotAddress,
@@ -1916,7 +1915,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 			GasPrice:     gasPrice,
 			Nonce:        nonce,
 			Hex:          rawTxHex,
-			HandleStatus: model.SendStatusInit,
+			HandleStatus: hcommon.SendStatusInit,
 			HandleMsg:    "init",
 			HandleTime:   now,
 		},

@@ -83,11 +83,11 @@ func OrderAdd(c *gin.Context) {
 		response.SetValidateError(err)
 		return
 	}
-	if err := service.OrderAdd(order); err != nil {
-		response.SetOtherError(err)
-		return
+	err,orderAddr := service.OrderAdd(order)
+	if err != nil {
+		response.SetValidateError(err)
 	}
-	response.SuccessMsg("成功")
+	response.Send(200,"成功",orderAddr)
 
 }
 

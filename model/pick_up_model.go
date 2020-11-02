@@ -1,28 +1,28 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
 	"j2pay-server/model/response"
 	"j2pay-server/validate"
-
-	"time"
 )
 
 //提领订单
 type Pick struct {
-	gorm.Model
-	IdCode      string    `gorm:"default:'';comment:'系统编号';";json:"id_code"`
-	OrderCode   string    `gorm:"default:'';comment:'商户订单编号';"json:"order_code"`
-	Amount      float64   `gorm:"default:0;comment:'金额';";json:"amount"`
-	FinishTime  time.Time `gorm:"comment:'完成时间';";json:"finishTime"`
-	TXID        string    `gorm:"default:'';comment:'交易信息';";json:"txid"`
-	Fee         float64   `gorm:"default:0;comment:'手续费';";json:"fee"`
-	Type        int       `gorm:"default:1;comment:'类型 1：代发，0：收款';";json:"type"`
-	Remark      string    `gorm:"default:'';comment:'提领备注';";json:"remark"`
-	PickAddress string    `gorm:"default:'';comment:'提领地址';";json:"pick_address"`
-	Status      int       `gorm:"default:1;comment:'状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败';";json:"status"`
-	UserId      int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
-	AdminUser   AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
+	ID           int64
+	WithdrawType int     `gorm:"default:0;comment:' 类型 1 提币 2 代发'";json:"related_type"`                      // 类型 1 提币 2 代发
+	SystemID     string    `gorm:"default:'';comment:'系统编号'";json:"system_id"`                                 // 系统编号
+	MerchantID   string    `gorm:"default:'';comment:'商户订单编号'";json:"merchant_id"`                             // 商户订单编号
+	ToAddress    string    `gorm:"default:'';comment:'提币地址'";json:"to_address"`                                // 提币地址
+	Symbol       string    `gorm:"default:'';comment:'币种'";json:"symbol"`                                      //币种
+	BalanceReal  float64   `gorm:"default:0;comment:'金额'";json:"balance_real"`                                 // 提币金额
+	TxHash       string    `gorm:"default:'';comment:'提币tx hash'";json:"tx_hash"`                              // 提币tx hash
+	Fee          float64   `gorm:"default:0;comment:'手续费'";json:"fee"`                                         //手续费
+	CreateTime   int64     `gorm:"default:0;comment:'创建时间'";json:"create_time"`                                // 创建时间
+	HandleStatus int       `gorm:"default:0;comment:'处理状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败 '";json:"handle_status"` // 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
+	HandleMsg    string    `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`                                // 处理消息
+	HandleTime   int64     `gorm:"default:'0';comment:'处理时间'";json:"handle_time"`                              // 处理时间
+	Remark       string    `gorm:"default:'';comment:'备注';";json:"remark"`
+	UserId       int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
+	AdminUser    AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
 }
 
 // 管理端获取所有提领订单列表
@@ -88,7 +88,7 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.Mercha
 	for index, v := range all.Data {
 		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
 		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
-		all.Data[index].GasFee  = GetGasFeeDetail().EthFee
+		all.Data[index].GasFee = GetGasFeeDetail().EthFee
 	}
 	return all, err
 }
@@ -105,12 +105,8 @@ func (p *Pick) GetCount(where ...interface{}) (count int) {
 
 // 管理端根据ID获取提领订单详情
 func (p *Pick) GetPickDetail(id ...int) (res response.PickList, err error) {
-	searchId := p.ID
-	if len(id) > 0 {
-		searchId = uint(id[0])
-	}
 	err = Getdb().Table("pick").
-		Where("id = ?", searchId).
+		Where("id = ?", p.ID).
 		First(&res).
 		Error
 	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
@@ -119,12 +115,8 @@ func (p *Pick) GetPickDetail(id ...int) (res response.PickList, err error) {
 
 // 管理端根据ID获取提领订单详情
 func (p *Pick) GetSendDetail(id ...int) (res response.SendList, err error) {
-	searchId := p.ID
-	if len(id) > 0 {
-		searchId = uint(id[0])
-	}
 	err = Getdb().Table("pick").
-		Where("id = ?", searchId).
+		Where("id = ?", p.ID).
 		First(&res).
 		Error
 	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
@@ -134,12 +126,9 @@ func (p *Pick) GetSendDetail(id ...int) (res response.SendList, err error) {
 
 // 商户端根据ID获取提领代发订单详情
 func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err error) {
-	searchId := p.ID
-	if len(id) > 0 {
-		searchId = uint(id[0])
-	}
+
 	err = Getdb().Table("pick").
-		Where("id = ?", searchId).
+		Where("id = ?", p.ID).
 		First(&res).
 		Error
 	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
@@ -160,15 +149,13 @@ func (p *Pick) CancelPick(id, status int) (err error) {
 	}()
 	pick := GetPickByWhere("id = ?", id)
 	err = tx.Model(&pick).
-		Updates(Pick{Status: status}).Error
+		Updates(Pick{HandleStatus: status}).Error
 	return
 }
 
 // 商户端创建提领或者代发订单
 func (p *Pick) Create() error {
 	tx := Getdb().Begin()
-	p.CreatedAt = time.Now()
-	p.FinishTime = time.Now()
 	if err := tx.Create(p).Error; err != nil {
 		tx.Rollback()
 		return err

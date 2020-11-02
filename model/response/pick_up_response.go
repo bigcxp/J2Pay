@@ -84,3 +84,12 @@ type MerchantPickList struct {
 	Type        int       `json:"type"`         //类型 1：提领，2：代发
 	Remark      string    `json:"remark"`       //备注
 }
+
+//返回给用户充币地址
+type PickAddr struct {
+	OrderCode      string  `json:"order_code"`      //商户订单编号
+	Amount         float64 `json:"amount"`          //金额
+	Address        string  `json:"charge_address"`  //分配的收款地址
+	Currency       string  `json:"currency"`        //币别
+	CurrencyAmount float64 `json:"currency_amount"` //币别金额
+}

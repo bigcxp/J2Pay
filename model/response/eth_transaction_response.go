@@ -1,13 +1,13 @@
 package response
 
-//eth钱包交易返回对象
+//eth钱包交易返回对象列表
 type EthTransactionPage struct {
 	Total       int              `json:"total"`        // 总共多少页
 	PerPage     int              `json:"per_page"`     // 当前页码
 	CurrentPage int              `json:"current_page"` // 每页显示多少条
 	Data        []EthTransaction `json:"data"`
 }
-
+//eth交易对象
 type EthTransaction struct {
 	ID             int64   `json:"id"`
 	From           string  `json:"from"`            //打币地址

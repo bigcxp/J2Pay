@@ -296,6 +296,10 @@ definitions:
         description: 数量
         example: 1
         type: number
+      currency:
+        description: 换算汇率
+        example: RMB
+        type: string
       pick_address:
         description: 收款地址
         example: 0x1243cfsadfcsd
@@ -454,6 +458,10 @@ definitions:
         description: 数量
         example: 1
         type: number
+      currency:
+        description: 换算汇率
+        example: RMB
+        type: string
       order_code:
         description: 商户订单编号
         example: asfasgdsasfgas
@@ -2116,7 +2124,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.MerchantPickSendPage'
-      summary: 商户提领、代发列表
+      summary: 商户端提领、代发列表
       tags:
       - 商户提领代发管理
     post:
