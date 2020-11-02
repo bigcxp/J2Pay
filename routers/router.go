@@ -1,14 +1,15 @@
 package routers
 
 import (
-	"github.com/gin-gonic/gin"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"j2pay-server/controller"
 	_ "j2pay-server/docs"
 	"j2pay-server/middleware"
 	"j2pay-server/pkg/setting"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 func InitRouter() *gin.Engine {
@@ -46,7 +47,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/detailedRecordIndex", controller.DetailedRecordIndex)
 	r.GET("/returnIndex", controller.ReturnIndex)
 	r.GET("/orderIndex", controller.OrderIndex)
-	r.GET("/main",controller.MainIndex)
+	r.GET("/main", controller.MainIndex)
 	//加入签名中间件
 	r.Use(middleware.SetUp())
 	//创建新订单（充币）
@@ -72,8 +73,8 @@ func InitRouter() *gin.Engine {
 	//6.删除地址
 	r.DELETE("addrDel", controller.AddrDel)
 	//7.交易记录
-	r.GET("ethTransfer",controller.EthTransfer)
-	r.GET("hotTransfer",controller.HotTransfer)
+	r.GET("ethTransfer", controller.EthTransfer)
+	r.GET("hotTransfer", controller.HotTransfer)
 	r.GET("/userInfo", controller.UserInfo)
 	// 加入鉴权中间件
 	r.Use(middleware.Authentication())
