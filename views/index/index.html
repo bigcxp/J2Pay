@@ -170,11 +170,9 @@ function parseMenu(data){
 					dt['child'].push(parseMenu(v))
 				})
 			}else{
-				/*dt['operates']=[]
-				dt['child']=[];
 				$.each(data['children'],function(k,v){
-					dt['operates'].push({'api':v['api'],'ext':v.ext,'method':v.action,'name':v.name})
-				})*/
+					parseMenu(v)
+				})
 			}
 		}
 		return dt;

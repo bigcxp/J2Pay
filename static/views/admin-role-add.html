@@ -1,0 +1,89 @@
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+	<legend>添加角色</legend>
+</fieldset>
+<form class="layui-form layui-form-pane h5form" action="/role">
+	<input type="hidden" name="pid" value="0" />
+	<div class="layui-form-item">
+		<label class="layui-form-label">角色名称</label>
+		<div class="layui-input-inline">
+			<input type="text" name="name" lay-verify="required" placeholder="角色名称" class="layui-input">
+		</div>
+		<div class="layui-form-mid layui-word-aux">角色名称，中文</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">角色权限</label>
+		<div class="layui-input-block" id="rolestree">
+			
+		</div>
+	</div>
+
+	<div class="layui-form-item formbtn">
+		<button type="submit" class="layui-btn" lay-submit="" lay-filter="add">提交</button>
+	</div>
+</form>
+
+<script type="text/tmpl" id="tpl_list">
+<table class="layui-table" lay-filter="rolelist">
+	<thead>
+		<tr>
+			<th width="160" align="center"><input type="checkbox" title="全选/取消" lay-skin="primary" lay-filter="level0" /></th>
+			<th width="160" align="center">子菜单</th>
+			<th width="*" align="center">操作</th>
+		</tr>
+	</thead>
+{{#  layui.each(d.data, function(i,v){ }}
+{{# var sonlen = 1+v.children.length;}}
+	<tr>
+		<td rowspan="{{sonlen}}">
+			<input type="checkbox" title="{{v.name}}" name="auth" value="{{v.id}}" lay-skin="primary" tid="0" pid="0" lay-filter="level1" />
+		</td>
+	</tr>
+	{{#  layui.each(v.children, function(ii,vv){ }}
+	<tr>
+		<td><input type="checkbox" title="{{vv.name}}" name="auth" value="{{vv.id}}" lay-skin="primary" tid="{{v.id}}" pid="{{v.id}}" lay-filter="level2" /></td>
+		<td>
+			{{#  layui.each(vv.children, function(iii,vvv){  }}
+			<input type="checkbox" title="{{vvv.name}}" name="auth" value="{{vvv.id}}" tid="{{v.id}}" pid="{{vv.id}}" />
+			{{#  }); }}
+		</td>
+	</tr>
+	{{#  }); }}
+	
+{{#  }); }}
+</table>
+</script>
+
+<script type="text/javascript">
+layui.use(['laytpl'],function(){
+	var laytpl = layui.laytpl;
+	var tpl=document.getElementById('tpl_list').innerHTML;
+	
+	$.get('/auth/tree',function(res){
+		if(res.code!=1){return}
+		laytpl(tpl).render(res,function(html){
+			$('#rolestree').html(html);
+			form.render('checkbox')
+		});
+	});
+
+	form.on('checkbox(level0)',function(data){
+		$('input[type=checkbox]').prop('checked',data.elem.checked);
+		form.render('checkbox');
+	});
+	form.on('checkbox(level1)',function(data){
+		$('input[type=checkbox][tid='+data.value+']').prop('checked',data.elem.checked);
+		form.render('checkbox');
+	});
+	form.on('checkbox(level2)',function(data){
+		$('input[type=checkbox][pid='+data.value+']').prop('checked',data.elem.checked);
+		form.render('checkbox');
+	});
+
+	form.on('submit(add)',function(data){
+		h5post(data.form);
+		return false;
+	})
+})
+</script>

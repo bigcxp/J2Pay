@@ -1,7 +1,7 @@
 const API_HOST = '/';
 
 
-function postform(form,url,datas,fn,isjson){
+function postform(form,url,datas,fn,isjson,method){
 	var data,$form;
 	if(!form){form=$('form').get(0);}
 	$form=$(form);
@@ -18,8 +18,9 @@ function postform(form,url,datas,fn,isjson){
 		'processData':(true==isjson)?false:true,
 		'url':url,
 		'headers':{'Authorization':sessionStorage.getItem('token')},
-		'type':'POST',
+		'type':method||'POST',
 		'data':data,
+		'contentType': (true==isjson)?'application/json':null,
 		success:function(res){
 			if(typeof(fn)=='function'){fn(res);return;}
 			if(res.code=='1'){
@@ -112,4 +113,22 @@ function close_dlg(){
 function close_page(){
 	var tabid=(location.pathname).replace(/\//g,'_');
 	try{parent.closeTab(tabid)}catch(e){window.close()}
+}
+
+
+function h5post(form,method){
+	var $form=$(form);
+	var btn_submit = $form.find('[type=submit]');
+	if(!method){method='POST'}
+	btn_submit.attr('disabled', 'disabled').addClass('layui-disabled').append('<i class="layui-icon layui-icon-loading layui-icon layui-anim layui-anim-rotate layui-anim-loop"></i>')
+	postform(form,null,null,function(res){
+		btn_submit.removeAttr('disabled').removeClass('layui-disabled').find('i.layui-icon').remove()
+		if(res.code=='1'){
+			alertok(res.msg,function(){
+				try{parent.layer.closeAll('iframe')}catch(e){}
+			});
+		}else{
+			alerterr(res.msg);
+		}
+	},true,method)
 }
