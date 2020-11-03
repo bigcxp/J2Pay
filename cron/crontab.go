@@ -83,5 +83,6 @@ func Cron() {
 	if err != nil {
 		hcommon.Log.Errorf("cron add func error: %#v", err)
 	}
-	c.Start()
+	go c.Start()
+	defer c.Stop()
 }
