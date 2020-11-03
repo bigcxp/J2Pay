@@ -257,14 +257,14 @@ func GetPkOfAddress(address string) (*ecdsa.PrivateKey, error) {
 }
 
 //获取提币map
-func SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
-	itemMap := make(map[int64]*TWithdraw)
-	var withdraw []*TWithdraw
-	err := Getdb().Where("id in (?)", ids).Find(&withdraw).Error
+func SQLGetWithdrawMap(ids []int64) (map[int64]*Pick, error) {
+	itemMap := make(map[int64]*Pick)
+	var pick []*Pick
+	err := Getdb().Where("id in (?)", ids).Find(&pick).Error
 	if err != nil {
 		return nil, err
 	}
-	for _, itemRow := range withdraw {
+	for _, itemRow := range pick {
 		itemMap[itemRow.ID] = itemRow
 	}
 	return itemMap, nil
