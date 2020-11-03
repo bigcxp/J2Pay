@@ -62,13 +62,13 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 		if err != nil {
 			return err, response.UserAddr{}
 		}
-		amount = detail.OriginalRate * order.Amount
+		amount = detail.OriginalRate / order.Amount
 	case "TWB":
 		detail, err := TypeDetail(order.Currency)
 		if err != nil {
 			return err, response.UserAddr{}
 		}
-		amount = detail.OriginalRate * order.Amount
+		amount = detail.OriginalRate / order.Amount
 
 	default:
 		amount = order.Amount

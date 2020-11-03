@@ -25,37 +25,7 @@ func main() {
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
 	//初始化定时器检测
- 	 cron.Cron()
-	//生成热钱包地址
-	//address, err := heth.CreateHotAddress(1)
-	//if err != nil {
-	//	return
-	//}
-	//fmt.Println(address)
-	//检测充币
-	//heth.CheckBlockSeek()
-	//发送交易
-	//heth.CheckRawTxSend()
-	//确认tx是否打包
-	//heth.CheckRawTxConfirm()
-	//零钱整理到冷钱包
-	//heth.CheckAddressOrg()
-	//heth.CheckGasPrice()
-	//model.GetFreAddress(5)
-	//生成备用地址
-	//free, err := heth.CheckAddressFree()
-	//if err != nil {
-	//	return
-	//}
-	//fmt.Println(free)
-	//给用户分配地址
-	//var addr = request.AddressAdd{
-	//	UserId: 0,
-	//	UseTag: -2,
-	//	HandleStatus: 1,
-	//	Num: 1,
-	//}
-	//service.AddAddress(addr)
+	cron.Cron()
 	//网关
 	router := routers.InitRouter()
 	//启动

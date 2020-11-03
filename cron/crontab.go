@@ -69,7 +69,7 @@ func Cron() {
 		hcommon.Log.Errorf("cron add func error: %#v", err)
 	}
 	// 检测 erc20 通知到账
-	_, err = c.AddFunc("@every 5s", heth.CheckErc20TxNotify)
+	_, err = c.AddFunc("@every 20s", heth.CheckErc20TxNotify)
 	if err != nil {
 		hcommon.Log.Errorf("cron add func error: %#v", err)
 	}

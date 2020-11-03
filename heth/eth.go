@@ -36,6 +36,7 @@ import (
 	_ "math/big"
 	"net/http"
 	_ "net/http"
+	"strconv"
 	"strings"
 	_ "strings"
 	"time"
@@ -106,7 +107,8 @@ func CheckAddressFree() {
 	//地址
 	var userAddresses []string
 	// 获取配置 允许的最小剩余地址数
-	appConfig := model.SQLGetTAppConfigIntValueByK("k = ?", "min_free_address")
+	configInt := model.TAppConfigInt{}
+	appConfig := configInt.SQLGetTAppConfigIntValueByK("k = ?", "min_free_address")
 	// 获取当前剩余可用地址数
 	count := model.GetAddressCount("use_tag = ?", 0)
 	// 如果数据库中剩余可用地址小于最小允许可用地址
@@ -148,17 +150,20 @@ func ToMerchantAddress(addr request.AddressAdd) (err error) {
 	if err != nil {
 		return err
 	}
-	err = model.ToAddress(addr.UserId, addr.UseTag, address)
+	a := model.Address{}
+	err = a.ToAddress(addr.UserId, addr.UseTag, address)
 	return err
 }
 
 // CheckBlockSeek 检测到账
 func CheckBlockSeek() {
 	// 获取配置 延迟确认数
-	confirmValue := model.SQLGetTAppConfigIntValueByK("k = ?", "block_confirm_num")
+	configInt := model.TAppConfigInt{}
+	confirmValue := configInt.SQLGetTAppConfigIntValueByK("k = ?", "block_confirm_num")
 
 	// 获取状态 当前处理完成的最新的block number
-	seek := model.SQLGetTAppStatusIntValueByK("k = ?", "seek_num")
+	statusInt := model.TAppStatusInt{}
+	seek := statusInt.SQLGetTAppStatusIntValueByK("k = ?", "seek_num")
 
 	// rpc 获取当前最新区块数
 	rpcBlockNum, err := ethclient.RpcBlockNumber(context.Background())
@@ -170,7 +175,8 @@ func CheckBlockSeek() {
 	endI := rpcBlockNum - confirmValue.V + 1
 	if startI < endI {
 		// 手续费钱包列表
-		feeAddressValue := model.SQLGetTAppConfigStrValueByK("k = ?", "fee_wallet_address_list")
+		str := model.TAppConfigStr{}
+		feeAddressValue := str.SQLGetTAppConfigStrValueByK("k = ?", "fee_wallet_address_list")
 		addresses := strings.Split(feeAddressValue.V, ",")
 		var feeAddresses []string
 		for _, address := range addresses {
@@ -212,7 +218,8 @@ func CheckBlockSeek() {
 				}
 			}
 			//从db中查询这些地址是否是冲币地址中的地址
-			dbAddressRows, err := model.SQLSelectTAddressKeyColByAddress(toAddresses)
+			address := model.Address{}
+			dbAddressRows, err := address.SQLSelectTAddressKeyColByAddress(toAddresses)
 			if err != nil {
 				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
@@ -258,12 +265,14 @@ func CheckBlockSeek() {
 				}
 			}
 			// 插入交易数据
-			_, err = model.SQLCreateIgnoreManyTTx(dbTxRows)
+			tx := model.TTx{}
+			_, err = tx.SQLCreateIgnoreManyTTx(dbTxRows)
 			if err != nil {
 				return
 			}
 			// 更新检查到的最新区块数
-			err = model.SQLUpdateTAppStatusIntByKGreater(
+			appStatusInt := model.TAppStatusInt{}
+			err = appStatusInt.SQLUpdateTAppStatusIntByKGreater(
 				&model.TAppStatusInt{
 					K: "seek_num",
 					V: i,
@@ -280,20 +289,23 @@ func CheckBlockSeek() {
 // CheckAddressOrg 零钱整理到冷钱包
 func CheckAddressOrg() {
 	// 获取冷钱包地址
-	coldAddressValue := model.SQLGetTAppConfigStrValueByK("k = ?", "cold_wallet_address")
+	str := model.TAppConfigStr{}
+	coldAddressValue := str.SQLGetTAppConfigStrValueByK("k = ?", "cold_wallet_address")
 	coldAddress, err := StrToAddressBytes(coldAddressValue.V)
 	if err != nil {
 		hcommon.Log.Errorf("eth organize cold address err: [%T] %s", err, err.Error())
 		return
 	}
 	// 获取待整理的交易列表
-	txRows := model.SQLSelectTTxColByOrgForUpdate("org_status = ?", hcommon.TxOrgStatusInit)
+	tx := model.TTx{}
+	txRows := tx.SQLSelectTTxColByOrgForUpdate("org_status = ?", hcommon.TxOrgStatusInit)
 	if len(txRows) <= 0 {
 		// 没有要处理的信息
 		return
 	}
 	// 获取gap price
-	gasPriceValue := model.SQLGetTAppStatusIntValueByK("k = ?", "to_cold_gas_price")
+	statusInt := model.TAppStatusInt{}
+	gasPriceValue := statusInt.SQLGetTAppStatusIntValueByK("k = ?", "to_cold_gas_price")
 	gasPrice := gasPriceValue.V
 	gasLimit := int64(21000)
 	feeValue := big.NewInt(gasLimit * gasPrice)
@@ -428,13 +440,15 @@ func CheckAddressOrg() {
 			}
 		}
 		// 插入发送数据
-		_, err = model.SQLCreateIgnoreManyTSend(sendRows)
+		send := model.TSend{}
+		_, err = send.SQLCreateIgnoreManyTSend(sendRows)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更改tx整理状态
-		err = model.SQLUpdateTTxOrgStatusByIDs(
+		tTx := model.TTx{}
+		err = tTx.SQLUpdateTTxOrgStatusByIDs(
 			info.RowIDs,
 			&model.TTx{
 				OrgStatus: hcommon.TxOrgStatusHex,
@@ -452,7 +466,8 @@ func CheckAddressOrg() {
 // CheckRawTxSend 发送交易
 func CheckRawTxSend() {
 	// 获取待发送的数据
-	sendRows := model.SQLSelectTSendColByStatus("handle_status = ?", hcommon.SendStatusInit)
+	send := model.TSend{}
+	sendRows := send.SQLSelectTSendColByStatus("handle_status = ?", hcommon.SendStatusInit)
 	// 首先单独处理提币，提取提币通知要使用的数据
 	var withdrawIDs []int64
 	for _, sendRow := range sendRows {
@@ -463,7 +478,8 @@ func CheckRawTxSend() {
 			}
 		}
 	}
-	withdrawMap, err := model.SQLGetWithdrawMap(withdrawIDs)
+	pick := model.Pick{}
+	withdrawMap, err := pick.SQLGetWithdrawMap(withdrawIDs)
 	// 执行发送
 	var sendIDs []int64
 	var txIDs []int64
@@ -574,15 +590,16 @@ func CheckRawTxSend() {
 			}
 		}
 		// 插入通知
-		_, err = model.SQLCreateIgnoreManyTProductNotify(notifyRows)
+		notify := model.TProductNotify{}
+		_, err = notify.SQLCreateIgnoreManyTProductNotify(notifyRows)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更新提币状态
-		err = model.SQLUpdateTWithdrawStatusByIDs(
+		err = pick.SQLUpdateTWithdrawStatusByIDs(
 			withdrawIDs,
-			&model.TWithdraw{
+			&model.Pick{
 				HandleStatus: hcommon.WithdrawStatusSend,
 				HandleMsg:    "send",
 				HandleTime:   now,
@@ -593,7 +610,8 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新eth零钱整理状态
-		err = model.SQLUpdateTTxOrgStatusByIDs(
+		tx := model.TTx{}
+		err =tx.SQLUpdateTTxOrgStatusByIDs(
 			txIDs,
 			&model.TTx{
 				OrgStatus: hcommon.TxOrgStatusSend,
@@ -606,7 +624,8 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新erc20零钱整理状态
-		err = model.SQLUpdateTTxErc20OrgStatusByIDs(
+		erc20 := model.TTxErc20{}
+		err = erc20.SQLUpdateTTxErc20OrgStatusByIDs(
 			erc20TxIDs,
 			&model.TTxErc20{
 				OrgStatus: hcommon.TxOrgStatusSend,
@@ -619,7 +638,7 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新erc20手续费状态
-		err = model.SQLUpdateTTxErc20OrgStatusByIDs(
+		err = erc20.SQLUpdateTTxErc20OrgStatusByIDs(
 
 			erc20TxFeeIDs,
 			&model.TTxErc20{
@@ -633,7 +652,7 @@ func CheckRawTxSend() {
 			return
 		}
 		// 更新发送状态
-		err = model.SQLUpdateTSendStatusByIDs(
+		err = send.SQLUpdateTSendStatusByIDs(
 			sendIDs,
 			&model.TSend{
 				HandleStatus: hcommon.SendStatusSend,
@@ -646,7 +665,8 @@ func CheckRawTxSend() {
 
 // CheckRawTxConfirm 确认tx是否打包完成
 func CheckRawTxConfirm() {
-	sendRows := model.SQLSelectTSendColByStatus("handle_status = ?", hcommon.SendStatusSend)
+	send := model.TSend{}
+	sendRows := send.SQLSelectTSendColByStatus("handle_status = ?", hcommon.SendStatusSend)
 	var withdrawIDs []int64
 	for _, sendRow := range sendRows {
 		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw {
@@ -656,7 +676,8 @@ func CheckRawTxConfirm() {
 			}
 		}
 	}
-	withdrawMap, err := model.SQLGetWithdrawMap(withdrawIDs)
+	pick := model.Pick{}
+	withdrawMap, err := pick.SQLGetWithdrawMap(withdrawIDs)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -745,15 +766,16 @@ func CheckRawTxConfirm() {
 		}
 	}
 	// 添加通知信息
-	_, err = model.SQLCreateIgnoreManyTProductNotify(notifyRows)
+	notify := model.TProductNotify{}
+	_, err = notify.SQLCreateIgnoreManyTProductNotify(notifyRows)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 更新提币状态
-	err = model.SQLUpdateTWithdrawStatusByIDs(
+	err = pick.SQLUpdateTWithdrawStatusByIDs(
 		withdrawIDs,
-		&model.TWithdraw{
+		&model.Pick{
 			HandleStatus: hcommon.WithdrawStatusConfirm,
 			HandleMsg:    "confirmed",
 			HandleTime:   now,
@@ -764,7 +786,8 @@ func CheckRawTxConfirm() {
 		return
 	}
 	// 更新eth零钱整理状态
-	err = model.SQLUpdateTTxOrgStatusByIDs(
+	tx := model.TTx{}
+	err =tx .SQLUpdateTTxOrgStatusByIDs(
 		txIDs,
 		&model.TTx{
 			OrgStatus: hcommon.TxOrgStatusConfirm,
@@ -777,7 +800,8 @@ func CheckRawTxConfirm() {
 		return
 	}
 	// 更新erc20零钱整理状态
-	err = model.SQLUpdateTTxErc20OrgStatusByIDs(
+	erc20 := model.TTxErc20{}
+	err = erc20.SQLUpdateTTxErc20OrgStatusByIDs(
 		erc20TxIDs,
 		&model.TTxErc20{
 			OrgStatus: hcommon.TxOrgStatusConfirm,
@@ -790,7 +814,7 @@ func CheckRawTxConfirm() {
 		return
 	}
 	// 更新erc20零钱整理eth手续费状态
-	err = model.SQLUpdateTTxErc20OrgStatusByIDs(
+	err = erc20.SQLUpdateTTxErc20OrgStatusByIDs(
 		erc20TxFeeIDs,
 		&model.TTxErc20{
 			OrgStatus: hcommon.TxOrgStatusFeeConfirm,
@@ -803,7 +827,7 @@ func CheckRawTxConfirm() {
 		return
 	}
 	// 更新发送状态
-	err = model.SQLUpdateTSendStatusByIDs(
+	err = send.SQLUpdateTSendStatusByIDs(
 		sendIDs,
 		&model.TSend{
 			HandleStatus: hcommon.SendStatusConfirm,
@@ -816,7 +840,8 @@ func CheckRawTxConfirm() {
 // CheckWithdraw 检测提现
 func CheckWithdraw() {
 	// 获取需要处理的提币数据
-	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
+	pick := model.Pick{}
+	withdrawRows, err := pick.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -826,7 +851,8 @@ func CheckWithdraw() {
 		return
 	}
 	// 获取热钱包地址
-	hotAddressValue := model.SQLGetTAppConfigStrValueByK("k = ?", "hot_wallet_address")
+	str := model.TAppConfigStr{}
+	hotAddressValue := str.SQLGetTAppConfigStrValueByK("k = ?", "hot_wallet_address")
 
 	_, err = StrToAddressBytes(hotAddressValue.V)
 	if err != nil {
@@ -834,7 +860,8 @@ func CheckWithdraw() {
 		return
 	}
 	// 获取私钥
-	privateKey, err := model.GetPkOfAddress(hotAddressValue.V)
+	address := model.Address{}
+	privateKey, err := address.GetPkOfAddress(hotAddressValue.V)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -848,7 +875,8 @@ func CheckWithdraw() {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
-	pendingBalanceRealStr, err := model.SQLGetTSendPendingBalanceReal(hotAddressValue.V)
+	send := model.TSend{}
+	pendingBalanceRealStr, err := send.SQLGetTSendPendingBalanceReal(hotAddressValue.V)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -860,7 +888,8 @@ func CheckWithdraw() {
 	}
 	hotAddressBalance.Sub(hotAddressBalance, pendingBalance)
 	// 获取gap price
-	gasPriceValue := model.SQLGetTAppStatusIntValueByK("k = ?", "to_user_gas_price")
+	statusInt := model.TAppStatusInt{}
+	gasPriceValue := statusInt.SQLGetTAppStatusIntValueByK("k = ?", "to_user_gas_price")
 
 	gasPrice := gasPriceValue.V
 	gasLimit := int64(21000)
@@ -883,7 +912,8 @@ func CheckWithdraw() {
 func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateKey *ecdsa.PrivateKey, hotAddressBalance *big.Int, gasLimit, gasPrice, feeValue int64) error {
 
 	// 处理业务
-	withdrawRow, err := model.SQLGetTWithdrawColForUpdate(
+	p := model.Pick{}
+	withdrawRow, err := p.SQLGetTWithdrawColForUpdate(
 		withdrawID,
 		hcommon.WithdrawStatusInit,
 	)
@@ -893,7 +923,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	if withdrawRow == nil {
 		return nil
 	}
-	balanceBigInt, err := EthStrToWeiBigInit(withdrawRow.BalanceReal)
+	balanceBigInt, err := EthStrToWeiBigInit( strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64))
 	if err != nil {
 		return err
 	}
@@ -935,8 +965,9 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	rawTxHex := hex.EncodeToString(rawTxBytes)
 	txHash := strings.ToLower(signedTx.Hash().Hex())
 	now := time.Now().Unix()
-	err = model.SQLUpdateTWithdrawGenTx(
-		&model.TWithdraw{
+	pick := model.Pick{}
+	err = pick.SQLUpdateTWithdrawGenTx(
+		&model.Pick{
 			ID:           withdrawID,
 			TxHash:       txHash,
 			HandleStatus: hcommon.WithdrawStatusHex,
@@ -947,14 +978,15 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	if err != nil {
 		return err
 	}
-	_, err = model.SQLCreateTSend(
+	send := model.TSend{}
+	_, err = send.SQLCreateTSend(
 		&model.TSend{
 			RelatedType:  hcommon.SendRelationTypeWithdraw,
 			RelatedID:    withdrawID,
 			TxID:         txHash,
 			FromAddress:  hotAddress,
 			ToAddress:    withdrawRow.ToAddress,
-			BalanceReal:  withdrawRow.BalanceReal,
+			BalanceReal:   strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64),
 			Gas:          gasLimit,
 			GasPrice:     gasPrice,
 			Nonce:        nonce,
@@ -972,7 +1004,8 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 
 // CheckTxNotify 创建eth冲币通知
 func CheckTxNotify() {
-	txRows := model.SQLSelectTTxColByOrgForUpdate("handle_status", hcommon.TxStatusInit)
+	tTx := model.TTx{}
+	txRows := tTx.SQLSelectTTxColByOrgForUpdate("handle_status", hcommon.TxStatusInit)
 
 	var notifyTxIDs []int64
 	var notifyRows []*model.TProductNotify
@@ -1008,13 +1041,14 @@ func CheckTxNotify() {
 		})
 		notifyTxIDs = append(notifyTxIDs, txRow.ID)
 	}
-	_, err := model.SQLCreateIgnoreManyTProductNotify(notifyRows)
+	notify := model.TProductNotify{}
+	_, err := notify.SQLCreateIgnoreManyTProductNotify(notifyRows)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
-
-	err = model.SQLUpdateTTxStatusByIDs(
+	tx := model.TTx{}
+	err = tx.SQLUpdateTTxStatusByIDs(
 		notifyTxIDs,
 		&model.TTx{
 			HandleStatus: hcommon.TxStatusNotify,
@@ -1031,9 +1065,11 @@ func CheckTxNotify() {
 // CheckErc20BlockSeek 检测erc20到账
 func CheckErc20BlockSeek() {
 	// 获取配置 延迟确认数
-	confirmValue := model.SQLGetTAppConfigIntValueByK("k = ? ", "block_confirm_num")
+	t := model.TAppConfigInt{}
+	confirmValue := t.SQLGetTAppConfigIntValueByK("k = ? ", "block_confirm_num")
 	// 获取状态 当前处理完成的最新的block number
-	seekValue := model.SQLGetTAppStatusIntValueByK("k = ?", "erc20_seek_num")
+	i := model.TAppStatusInt{}
+	seekValue := i.SQLGetTAppStatusIntValueByK("k = ?", "erc20_seek_num")
 	// rpc 获取当前最新区块数
 	rpcBlockNum, err := ethclient.RpcBlockNumber(context.Background())
 	if err != nil {
@@ -1056,7 +1092,8 @@ func CheckErc20BlockSeek() {
 		// 获取所有token
 		var configTokenRowAddresses []string
 		configTokenRowMap := make(map[string]*model.TAppConfigToken)
-		configTokenRows, err := model.SQLSelectTAppConfigTokenColAll()
+		token := model.TAppConfigToken{}
+		configTokenRows, err := token.SQLSelectTAppConfigTokenColAll()
 		if err != nil {
 			return
 		}
@@ -1094,7 +1131,8 @@ func CheckErc20BlockSeek() {
 					toAddressLogMap[toAddress] = append(toAddressLogMap[toAddress], log)
 				}
 				// 从db中查询这些地址是否是冲币地址中的地址
-				dbAddressRows, err := model.SQLSelectTAddressKeyColByAddress(toAddresses)
+				address := model.Address{}
+				dbAddressRows, err := address.SQLSelectTAddressKeyColByAddress(toAddresses)
 				if err != nil {
 					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 					return
@@ -1194,14 +1232,16 @@ func CheckErc20BlockSeek() {
 						})
 					}
 				}
-				_, err = model.SQLCreateIgnoreManyTTxErc20(txErc20Rows)
+				erc20 := model.TTxErc20{}
+				_, err = erc20.SQLCreateIgnoreManyTTxErc20(txErc20Rows)
 				if err != nil {
 					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 					return
 				}
 			}
 			// 更新检查到的最新区块数
-			err = model.SQLUpdateTAppStatusIntByKGreater(
+			statusInt := model.TAppStatusInt{}
+			err = statusInt.SQLUpdateTAppStatusIntByKGreater(
 				&model.TAppStatusInt{
 					K: "erc20_seek_num",
 					V: i,
@@ -1217,7 +1257,8 @@ func CheckErc20BlockSeek() {
 
 // CheckErc20TxNotify 创建erc20冲币通知
 func CheckErc20TxNotify() {
-	txRows, err := model.SQLSelectTTxErc20ColByStatus(hcommon.TxStatusInit)
+	erc20 := model.TTxErc20{}
+	txRows, err := erc20.SQLSelectTTxErc20ColByStatus(hcommon.TxStatusInit)
 	if err != nil {
 		return
 	}
@@ -1231,7 +1272,8 @@ func CheckErc20TxNotify() {
 			tokenIDs = append(tokenIDs, txRow.TokenID)
 		}
 	}
-	tokenMap, err := model.SQLGetAppConfigTokenMap(tokenIDs)
+	token := model.TAppConfigToken{}
+	tokenMap, err := token.SQLGetAppConfigTokenMap(tokenIDs)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -1275,12 +1317,14 @@ func CheckErc20TxNotify() {
 		})
 		notifyTxIDs = append(notifyTxIDs, txRow.ID)
 	}
-	_, err = model.SQLCreateIgnoreManyTProductNotify(notifyRows)
+	notify := model.TProductNotify{}
+	_, err = notify.SQLCreateIgnoreManyTProductNotify(notifyRows)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
-	_, err = model.SQLUpdateTTxErc20StatusByIDs(
+	txErc20 := model.TTxErc20{}
+	_, err = txErc20.SQLUpdateTTxErc20StatusByIDs(
 		notifyTxIDs,
 		model.TTxErc20{
 			HandleStatus: hcommon.TxStatusNotify,
@@ -1298,8 +1342,10 @@ func CheckErc20TxNotify() {
 // CheckErc20TxOrg erc20零钱整理
 func CheckErc20TxOrg() {
 	// 计算转账token所需的手续费
-	erc20GasUseValue := model.SQLGetTAppConfigIntValueByK("k = ?", "erc20_gas_use")
-	gasPriceValue := model.SQLGetTAppStatusIntValueByK("k = ?", "to_cold_gas_price")
+	configInt := model.TAppConfigInt{}
+	statusInt := model.TAppStatusInt{}
+	erc20GasUseValue := configInt.SQLGetTAppConfigIntValueByK("k = ?", "erc20_gas_use")
+	gasPriceValue := statusInt.SQLGetTAppStatusIntValueByK("k = ?", "to_cold_gas_price")
 
 	erc20Fee := big.NewInt(erc20GasUseValue.V * gasPriceValue.V)
 	ethGasUse := int64(21000)
@@ -1335,7 +1381,8 @@ func CheckErc20TxOrg() {
 			tokenIDs = append(tokenIDs, txRow.TokenID)
 		}
 	}
-	tokenMap, err := model.SQLGetAppConfigTokenMap(tokenIDs)
+	token := model.TAppConfigToken{}
+	tokenMap, err := token.SQLGetAppConfigTokenMap(tokenIDs)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -1518,13 +1565,15 @@ func CheckErc20TxOrg() {
 			}
 		}
 		// 插入发送队列
-		_, err = model.SQLCreateIgnoreManyTSend(sendRows)
+		send := model.TSend{}
+		_, err = send.SQLCreateIgnoreManyTSend(sendRows)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更新整理状态
-		err = model.SQLUpdateTTxErc20OrgStatusByIDs(
+		erc20 := model.TTxErc20{}
+		err = erc20.SQLUpdateTTxErc20OrgStatusByIDs(
 			orgInfo.TxIDs,
 			&model.TTxErc20{
 				OrgStatus: hcommon.TxOrgStatusHex,
@@ -1540,7 +1589,8 @@ func CheckErc20TxOrg() {
 	// 生成eth转账
 	if len(needEthFeeMap) > 0 {
 		// 获取热钱包地址
-		feeAddressValue := model.SQLGetTAppConfigStrValueByK("k = ?", "fee_wallet_address")
+		str := model.TAppConfigStr{}
+		feeAddressValue := str.SQLGetTAppConfigStrValueByK("k = ?", "fee_wallet_address")
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
@@ -1551,8 +1601,8 @@ func CheckErc20TxOrg() {
 			return
 		}
 		// 获取私钥
-		// 获取私钥
-		privateKey, err := model.GetPkOfAddress(feeAddressValue.V)
+		address := model.Address{}
+		privateKey, err := address.GetPkOfAddress(feeAddressValue.V)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
@@ -1565,7 +1615,8 @@ func CheckErc20TxOrg() {
 			hcommon.Log.Errorf("RpcBalanceAt err: [%T] %s", err, err.Error())
 			return
 		}
-		pendingBalanceReal, err := model.SQLGetTSendPendingBalanceReal(feeAddressValue.V)
+		tSend := model.TSend{}
+		pendingBalanceReal, err := tSend.SQLGetTSendPendingBalanceReal(feeAddressValue.V)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
@@ -1657,13 +1708,14 @@ func CheckErc20TxOrg() {
 				}
 			}
 			// 插入发送数据
-			_, err = model.SQLCreateIgnoreManyTSend(sendRows)
+			_, err = tSend.SQLCreateIgnoreManyTSend(sendRows)
 			if err != nil {
 				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			// 更新整理状态
-			err = model.SQLUpdateTTxErc20OrgStatusByIDs(
+			txErc20 := model.TTxErc20{}
+			err = txErc20.SQLUpdateTTxErc20OrgStatusByIDs(
 				orgInfo.TxIDs,
 				&model.TTxErc20{
 					OrgStatus: hcommon.TxOrgStatusFeeHex,
@@ -1690,7 +1742,8 @@ func CheckErc20Withdraw() {
 	addressKeyMap := make(map[string]*ecdsa.PrivateKey)
 	addressEthBalanceMap := make(map[string]*big.Int)
 	addressTokenBalanceMap := make(map[string]*big.Int)
-	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
+	token := model.TAppConfigToken{}
+	tokenRows, err :=token .SQLSelectTAppConfigTokenColAll()
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
@@ -1710,7 +1763,8 @@ func CheckErc20Withdraw() {
 		_, ok := addressKeyMap[hotAddress]
 		if !ok {
 			// 获取私钥
-			keyRow, err := model.SQLGetTAddressKeyColByAddress(hotAddress)
+			address := model.Address{}
+			keyRow, err := address.SQLGetTAddressKeyColByAddress(hotAddress)
 			if err != nil {
 				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
@@ -1744,7 +1798,8 @@ func CheckErc20Withdraw() {
 				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
-			pendingBalanceReal, err := model.SQLGetTSendPendingBalanceReal(hotAddress)
+			send := model.TSend{}
+			pendingBalanceReal, err := send.SQLGetTSendPendingBalanceReal(hotAddress)
 			if err != nil {
 				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
@@ -1771,40 +1826,44 @@ func CheckErc20Withdraw() {
 			}
 			addressTokenBalanceMap[tokenBalanceKey] = tokenBalance
 		}
-	}
-	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
-	if err != nil {
-		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-		return
-	}
-	if len(withdrawRows) == 0 {
-		return
-	}
-	// 获取gap price
-	gasPriceValue := model.SQLGetTAppStatusIntValueByK("k = ? ", "to_user_gas_price")
-	if err != nil {
-		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-		return
-	}
-	gasPrice := gasPriceValue
-	erc20GasUseValue := model.SQLGetTAppConfigIntValueByK("k = ?", "erc20_gas_use")
-	if err != nil {
-		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-		return
-	}
-	gasLimit := erc20GasUseValue
-	// eth fee
-	feeValue := big.NewInt(gasLimit.V * gasPrice.V)
-	chainID, err := ethclient.RpcNetworkID(context.Background())
-	if err != nil {
-		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-		return
-	}
-	for _, withdrawRow := range withdrawRows {
-		err = handleErc20Withdraw(withdrawRow.ID, chainID, &tokenMap, &addressKeyMap, &addressEthBalanceMap, &addressTokenBalanceMap, gasLimit.V, gasPrice.V, feeValue)
+		pick := model.Pick{}
+		withdrawRows, err := pick.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
+		if len(withdrawRows) == 0 {
+			return
+		}
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-			continue
+			return
+		}
+
+		// 获取gap price
+		statusInt := model.TAppStatusInt{}
+		gasPriceValue := statusInt.SQLGetTAppStatusIntValueByK("k = ? ", "to_user_gas_price")
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		gasPrice := gasPriceValue
+		configInt := model.TAppConfigInt{}
+		erc20GasUseValue := configInt.SQLGetTAppConfigIntValueByK("k = ?", "erc20_gas_use")
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		gasLimit := erc20GasUseValue
+		// eth fee
+		feeValue := big.NewInt(gasLimit.V * gasPrice.V)
+		chainID, err := ethclient.RpcNetworkID(context.Background())
+		if err != nil {
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		for _, withdrawRow := range withdrawRows {
+			err = handleErc20Withdraw(withdrawRow.ID, chainID, &tokenMap, &addressKeyMap, &addressEthBalanceMap, &addressTokenBalanceMap, gasLimit.V, gasPrice.V, feeValue)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				continue
+			}
 		}
 	}
 }
@@ -1812,7 +1871,8 @@ func CheckErc20Withdraw() {
 //提币
 func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*model.TAppConfigToken, addressKeyMap *map[string]*ecdsa.PrivateKey, addressEthBalanceMap *map[string]*big.Int, addressTokenBalanceMap *map[string]*big.Int, gasLimit, gasPrice int64, feeValue *big.Int) error {
 	// 处理业务
-	withdrawRow, err := model.SQLGetTWithdrawColForUpdate(
+	pick := model.Pick{}
+	withdrawRow, err := pick.SQLGetTWithdrawColForUpdate(
 		withdrawID,
 		hcommon.WithdrawStatusInit,
 	)
@@ -1842,7 +1902,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		return nil
 	}
 	tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
-	tokenBalance, err := TokenEthStrToWeiBigInit(withdrawRow.BalanceReal, tokenRow.TokenDecimals)
+	tokenBalance, err := TokenEthStrToWeiBigInit(strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64), tokenRow.TokenDecimals)
 	if err != nil {
 		return err
 	}
@@ -1891,8 +1951,9 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	rawTxHex := hex.EncodeToString(rawTxBytes)
 	txHash := strings.ToLower(signedTx.Hash().Hex())
 	now := time.Now().Unix()
-	err = model.SQLUpdateTWithdrawGenTx(
-		&model.TWithdraw{
+	p := model.Pick{}
+	err = p.SQLUpdateTWithdrawGenTx(
+		&model.Pick{
 			ID:           withdrawID,
 			TxHash:       txHash,
 			HandleStatus: hcommon.WithdrawStatusHex,
@@ -1903,14 +1964,15 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	if err != nil {
 		return err
 	}
-	_, err = model.SQLCreateTSend(
+	send := model.TSend{}
+	_, err = send.SQLCreateTSend(
 		&model.TSend{
 			RelatedType:  hcommon.SendRelationTypeWithdraw,
 			RelatedID:    withdrawID,
 			TxID:         txHash,
 			FromAddress:  hotAddress,
 			ToAddress:    withdrawRow.ToAddress,
-			BalanceReal:  withdrawRow.BalanceReal,
+			BalanceReal:  strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64),
 			Gas:          gasLimit,
 			GasPrice:     gasPrice,
 			Nonce:        nonce,
@@ -1962,7 +2024,8 @@ func CheckGasPrice() {
 	}
 	toUserGasPrice := resp.Fast * int64(math.Pow10(8))
 	toColdGasPrice := resp.Average * int64(math.Pow10(8))
-	err = model.SQLUpdateTAppStatusIntByK(
+	statusInt := model.TAppStatusInt{}
+	err = statusInt.SQLUpdateTAppStatusIntByK(
 		&model.TAppStatusInt{
 			K: "to_user_gas_price",
 			V: toUserGasPrice,
@@ -1972,7 +2035,8 @@ func CheckGasPrice() {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
-	err = model.SQLUpdateTAppStatusIntByK(
+
+	err = statusInt.SQLUpdateTAppStatusIntByK(
 		&model.TAppStatusInt{
 			K: "to_cold_gas_price",
 			V: toColdGasPrice,

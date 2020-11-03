@@ -103,13 +103,13 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 		if err != nil {
 			return err, response.PickAddr{}
 		}
-		amount = detail.OriginalRate * pick.Amount
+		amount = detail.OriginalRate / pick.Amount
 	case "TWB":
 		detail, err := TypeDetail(pick.Currency)
 		if err != nil {
 			return err, response.PickAddr{}
 		}
-		amount = detail.OriginalRate * pick.Amount
+		amount = detail.OriginalRate / pick.Amount
 
 	default:
 		amount = pick.Amount
@@ -118,7 +118,8 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 	tokenDecimalsMap := make(map[string]int64)
 	ethSymbols := []string{heth.CoinSymbol}
 	tokenDecimalsMap[heth.CoinSymbol] = 18
-	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
+	token := model.TAppConfigToken{}
+	tokenRows, err := token.SQLSelectTAppConfigTokenColAll()
 	if err != nil {
 		return err, response.PickAddr{}
 	}
@@ -232,7 +233,8 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 	tokenDecimalsMap := make(map[string]int64)
 	ethSymbols := []string{heth.CoinSymbol}
 	tokenDecimalsMap[heth.CoinSymbol] = 18
-	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
+	token := model.TAppConfigToken{}
+	tokenRows, err := token.SQLSelectTAppConfigTokenColAll()
 	if err != nil {
 		return err, response.PickAddr{}
 	}

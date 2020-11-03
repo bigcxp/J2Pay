@@ -49,7 +49,8 @@ func GetNonce(address string) (int64, error) {
 		return 0, err
 	}
 	// 获取db nonce
-	dbNonce, err := model.SQLGetTSendMaxNonce(address)
+	send := model.TSend{}
+	dbNonce, err := send.SQLGetTSendMaxNonce(address)
 	if nil != err {
 		return 0, err
 	}
@@ -138,7 +139,8 @@ func TokenWeiBigIntToEthStr(wei *big.Int, tokenDecimals int64) (string, error) {
 // GetPKMapOfAddresses 获取地址私钥
 func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey, error) {
 	addressPKMap := make(map[string]*ecdsa.PrivateKey)
-	addressKeyMap, err := model.SQLGetAddressKeyMap(addresses)
+	address := model.Address{}
+	addressKeyMap, err := address.SQLGetAddressKeyMap(addresses)
 	if err != nil {
 		return nil, err
 	}
