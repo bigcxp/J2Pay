@@ -49,7 +49,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/orderIndex", controller.OrderIndex)
 	r.GET("/main", controller.MainIndex)
 	//加入签名中间件
-	r.Use(middleware.SetUp())
+	//r.Use(middleware.SetUp())
 	//创建新订单（充币）
 	r.POST("/order", controller.OrderAdd)
 	//提领,代发
