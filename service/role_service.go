@@ -39,7 +39,7 @@ func RoleDetail(id int) (response.RoleList, error) {
 // 添加角色
 func RoleAdd(role request.RoleAdd) error {
 	defer casbin.ClearEnforcer()
-	Pid, _ := strconv.Atoi(role.Pid)
+	Pid:= role.Pid
 	r := model.Role{
 		Pid:  Pid,
 		Name: role.Name,
@@ -78,7 +78,7 @@ func RoleAdd(role request.RoleAdd) error {
 // 编辑角色
 func RoleEdit(role request.RoleEdit) error {
 	defer casbin.ClearEnforcer()
-	Pid, _ := strconv.Atoi(role.Pid)
+	Pid:= role.Pid
 	r := model.Role{
 		Id:   role.ID,
 		Pid:  Pid,

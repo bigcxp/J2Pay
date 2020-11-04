@@ -8,6 +8,7 @@ import (
 	"j2pay-server/pkg/casbin"
 	"j2pay-server/pkg/logger"
 	_ "j2pay-server/pkg/util"
+	"time"
 )
 
 // 系统所有公告列表
@@ -78,8 +79,8 @@ func MessageAdd(message request.MessageAdd) error {
 	defer casbin.ClearEnforcer()
 	m := model.SystemMessage{
 		Title: message.Title,
-		BeginTime: message.BeginTime,
-		EndTime: message.EndTime,
+		BeginTime: time.Unix(message.BeginTime,0),
+		EndTime: time.Unix(message.EndTime,0),
 	}
 	// 判断用户是否存在
 	hasUsers, err := model.GetUsersByWhere("id in (?)", message.Users)
@@ -98,8 +99,8 @@ func MessageEdit(message request.MessageEdit) error {
 	m := model.SystemMessage{
 		Id:       message.ID,
 		Title: message.Title,
-		BeginTime: message.BeginTime,
-		EndTime: message.EndTime,
+		BeginTime: time.Unix(message.BeginTime,0),
+		EndTime: time.Unix(message.EndTime,0),
 	}
 	// 判断用户是否存在
 	hasUsers, err := model.GetUsersByWhere("id in (?)", message.Users)
