@@ -1,8 +1,6 @@
 package response
 
-import (
-	"time"
-)
+import "time"
 
 type AdminUserPage struct {
 	Total       int             `json:"total"`        // 总共多少页
@@ -30,7 +28,7 @@ type AdminUserList struct {
 	Remark        string    `json:"remark"`          //备注
 	Status        int8      `json:"status"`          // 用户状态
 	WhitelistIP   []string  `json:"whitelist_ip"`    //ip白名单
-	LastLoginTime time.Time `json:"last_login_time"` //最后登录时间
+	LastLoginTime int64     `json:"last_login_time"` //最后登录时间
 	Roles         []CasRole `json:"roles"`           // 角色信息
 }
 

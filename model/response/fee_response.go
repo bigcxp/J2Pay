@@ -1,8 +1,6 @@
 package response
 
-import (
-	"time"
-)
+import "time"
 
 type FeePage struct {
 	Total       int       `json:"total"`        // 总共多少页

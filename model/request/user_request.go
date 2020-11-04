@@ -1,14 +1,14 @@
 package request
 
 type LoginUser struct {
-	Username   string `binding:"required,max=255" example:"admin"` // 用户名
-	Password   string `binding:"required,max=255" example:"admin"` // 密码
+	Username   string `json:"username" binding:"required,max=255" example:"admin"` // 用户名
+	Password   string `json:"password" binding:"required,max=255" example:"admin"` // 密码
 	GoogleCode string `json:"google_code" example:"952721"`        // google 动态验证码
 }
 
 type UserAdd struct {
 	CommonUser
-	Password string `binding:"required,max=255" example:"test"` // 密码
+	Password string `json:"password" binding:"required,max=255" example:"test"` // 密码
 
 }
 
@@ -17,7 +17,7 @@ type UserEdit struct {
 	IsOpen int    `json:"is_open"` //是否开启双重验证 0：关闭 1：开启
 	Code   string `json:"code"`    //动态码
 	CommonUser
-	Password string `example:"test"` // 密码（非必填）
+	Password string `json:"password" example:"test"` // 密码（非必填）
 
 }
 
@@ -32,7 +32,7 @@ type CommonUser struct {
 	RealName      string  `json:"real_name" binding:"required,max=255" example:"test"`  // 组织名称
 	Pid           int     `json:"pid" binding:"required,max=11" example:"1"`            // 所属组织ID
 	Status        int8    `json:"status" binding:"oneof=0 1" example:"1"`               // 状态 1：正常 0：禁用
-	WhitelistIP   string  `json:"whitelist_ip" binding:"" example:"多个地址之间用逗号隔开"`        //IP白名单
+	WhitelistIP   string  `json:"whitelist_ip" binding:"" example:"多个地址之间用逗号隔开"` //IP白名单
 	Tel           string  `json:"tel" binding:"required,max=12" example:"17585534067"`  // 电话号码
 	Address       string  `json:"address" binding:"required,max=255" example:"test"`    // 商户地址
 	ReturnUrl     string  `json:"return_url" binding:"required,max=255" example:"test"` // 回传URL
@@ -57,5 +57,5 @@ type CommonUser struct {
 	MinOrderCount float64 `json:"min_order_count" binding:"required" example:"1"`       //最小交易总量
 	Limit         float64 `json:"limit" binding:"required" example:"1"`                 //结账限制
 	UserLessTime  int64   `json:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
-	Roles         []int   `binding:"required,min=1" example:"1,2"`                      // 所属角色
+	Roles         []int   `json:"roles" binding:"required,min=1" example:"1,2"`                      // 所属角色
 }

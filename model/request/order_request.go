@@ -3,7 +3,7 @@ package request
 //新增订单
 type OrderAdd struct {
 	Uts       int64   `json:"uts" binding:"required" example:"1231244520"`      //时间戳
-	OrderCode string  `binding:"required,max=255" example:"asfasgdsasfgas"`     //商户订单编号
+	OrderCode string  `json:"order_code" binding:"required,max=255" example:"asfasgdsasfgas"`     //商户订单编号
 	Amount    float64 `json:"amount" binding:"required" example:"1"`            //数量
 	Remark    string  `example:"备注" json:"remark"`                              //备注
 	Currency  string  `json:"currency";binding:"oneof=RMB TWD 1" example:"RMB"` //换算汇率

@@ -1,4 +1,5 @@
 package request
+//手续费
 
 type FeeAdd struct {
 	Amount float64 `json:"amount" binding:"required" example:"1"`  //实收金额金额
