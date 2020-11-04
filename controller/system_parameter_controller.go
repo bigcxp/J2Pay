@@ -41,7 +41,7 @@ func SystemParameterEdit(c *gin.Context) {
 	response := util.Response{c}
 	var parameter request.ParameterEdit
 	parameter.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&parameter); err != nil {
+	if err := c.ShouldBind(&parameter); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -62,7 +62,7 @@ func SystemGasPriceEdit(c *gin.Context) {
 	response := util.Response{c}
 	var parameter request.ParameterEdit
 	parameter.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&parameter); err != nil {
+	if err := c.ShouldBind(&parameter); err != nil {
 		response.SetValidateError(err)
 		return
 	}

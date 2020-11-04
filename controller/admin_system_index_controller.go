@@ -48,7 +48,7 @@ func SystemIndex(c *gin.Context) {
 func UpdatePassword(c *gin.Context) {
 	response := util.Response{c}
 	Id, _ := strconv.Atoi(c.Param("id"))
-	if err := c.Bind(&Id); err != nil {
+	if err := c.ShouldBind(&Id); err != nil {
 		response.SetValidateError(err)
 		return
 	}

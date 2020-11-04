@@ -81,7 +81,7 @@ func UserDetail(c *gin.Context) {
 func UserAdd(c *gin.Context) {
 	response := util.Response{c}
 	var user request.UserAdd
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBind(&user); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -102,7 +102,7 @@ func UserEdit(c *gin.Context) {
 	response := util.Response{c}
 	var user request.UserEdit
 	user.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBind(&user); err != nil {
 		response.SetValidateError(err)
 		return
 	}

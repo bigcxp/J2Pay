@@ -8,36 +8,36 @@ type LoginUser struct {
 
 type UserAdd struct {
 	CommonUser
-	Password string `json:"password" binding:"required,max=255" example:"test"` // 密码
+	Password string `json:"password" binding:"required,max=255" example:"test" form:"password"` // 密码
 
 }
 
 type UserEdit struct {
 	ID     int    `json:"id" form:"id"`
 	IsOpen int    `json:"is_open" form:"is_open" ` //是否开启双重验证 0：关闭 1：开启
-	Code   string `json:"code"`                    //动态码
+	Code   string `json:"code" form:"code"`        //动态码
 	CommonUser
-	Password string `json:"password" example:"test"` // 密码（非必填）
+	Password string `json:"password" example:"test" form:"password"` // 密码（非必填）
 
 }
 
 type Google struct {
 	ID         int    `json:"id" form:"id"`
-	IsOpen     int    `json:"is_open" binding:"oneof=0 1" example:"1" form:"is_open"`  //是否开启google双重验证 默认0：不开启 1：开启
-	GoogleCode string `json:"google_code" binding:"required,max=255" example:"852079"` //google验证码
+	IsOpen     int    `json:"is_open" binding:"oneof=0 1" example:"1" form:"is_open"`                     //是否开启google双重验证 默认0：不开启 1：开启
+	GoogleCode string `json:"google_code" binding:"required,max=255" example:"852079" form:"google_code"` //google验证码
 }
 
 type CommonUser struct {
-	UserName      string  `json:"user_name" binding:"required,max=255" example:"test"`                        // 账号
-	RealName      string  `json:"real_name" binding:"required,max=255" example:"test"`                        // 组织名称
+	UserName      string  `json:"user_name" binding:"required,max=255" example:"test" form:"user_name"`       // 账号
+	RealName      string  `json:"real_name" binding:"required,max=255" example:"test" form:"real_name"`       // 组织名称
 	Pid           int     `json:"pid" form:"pid" binding:"required,max=11" example:"1"`                       // 所属组织ID
 	Status        int8    `json:"status" form:"status" binding:"oneof=0 1" example:"1"`                       // 状态 1：正常 0：禁用
-	WhitelistIP   string  `json:"whitelist_ip" binding:"" example:"多个地址之间用逗号隔开"`                              //IP白名单
-	Tel           string  `json:"tel" binding:"required,max=12" example:"17585534067"`                        // 电话号码
-	Address       string  `json:"address" binding:"required,max=255" example:"test"`                          // 商户地址
-	ReturnUrl     string  `json:"return_url" binding:"required,max=255" example:"test"`                       // 回传URL
-	DaiUrl        string  `json:"dai_url" binding:"required,max=255" example:"test"`                          // 代发URL
-	Remark        string  `json:"remark" binding:"required,max=255" example:"test"`                           // 备注
+	WhitelistIP   string  `json:"whitelist_ip" binding:"" example:"多个地址之间用逗号隔开" form:"whitelist_ip"`   //IP白名单
+	Tel           string  `json:"tel" binding:"required,max=12" example:"17585534067" form:"tel"`             // 电话号码
+	Address       string  `json:"address" binding:"required,max=255" example:"test" form:"address"`           // 商户地址
+	ReturnUrl     string  `json:"return_url" binding:"required,max=255" example:"test" form:"return_url"`     // 回传URL
+	DaiUrl        string  `json:"dai_url" binding:"required,max=255" example:"test" form:"dai_url"`           // 代发URL
+	Remark        string  `json:"remark" binding:"required,max=255" example:"test" form:"remark"`             // 备注
 	IsCollection  int     `json:"is_collection" form:"is_collection" binding:"oneof=0 1" example:"1"`         //是否开启收款功能 1：是 0：否
 	IsCreation    int     `json:"is_creation" form:"is_creation" binding:"oneof=0 1" example:"1"`             //是否开启手动建单 1：是 0：否
 	More          int     `json:"more" form:"more" binding:"required,max=11" example:"1"`                     //地址多单收款

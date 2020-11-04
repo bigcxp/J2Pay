@@ -79,7 +79,7 @@ func OrderDetail(c *gin.Context) {
 func OrderAdd(c *gin.Context) {
 	response := util.Response{c}
 	var order request.OrderAdd
-	if err := c.ShouldBindJSON(&order); err != nil {
+	if err := c.ShouldBind(&order); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -101,7 +101,7 @@ func OrderEdit(c *gin.Context) {
 	response := util.Response{c}
 	var order request.OrderEdit
 	order.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&order); err != nil {
+	if err := c.ShouldBind(&order); err != nil {
 		response.SetValidateError(err)
 		return
 	}

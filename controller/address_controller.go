@@ -46,7 +46,7 @@ func AddrList(c *gin.Context) {
 func CreateAddress(c *gin.Context) {
 	response := util.Response{c}
 	var addr request.AddressAdd
-	if err := c.ShouldBindJSON(&addr); err != nil {
+	if err := c.ShouldBind(&addr); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -84,7 +84,7 @@ func AddrRestart(c *gin.Context) {
 func UpdateBalance(c *gin.Context) {
 	response := util.Response{c}
 	var addr request.UpdateAmount
-	if err := c.ShouldBindJSON(&addr); err != nil {
+	if err := c.ShouldBind(&addr); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -103,7 +103,7 @@ func UpdateBalance(c *gin.Context) {
 func AddrEdit(c *gin.Context) {
 	response := util.Response{c}
 	var addr request.AddressEdit
-	if err := c.ShouldBindJSON(&addr); err != nil {
+	if err := c.ShouldBind(&addr); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -122,7 +122,7 @@ func AddrEdit(c *gin.Context) {
 func AddrDel(c *gin.Context) {
 	response := util.Response{c}
 	var addr request.AddressDel
-	if err := c.ShouldBindJSON(&addr); err != nil {
+	if err := c.ShouldBind(&addr); err != nil {
 		response.SetValidateError(err)
 		return
 	}

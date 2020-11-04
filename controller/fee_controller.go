@@ -57,7 +57,7 @@ func Settle(c *gin.Context) {
 		response := util.Response{c}
 		var fee request.FeeEdit
 		fee.ID, _ = strconv.Atoi(c.Param("id"))
-		if err := c.ShouldBindJSON(&fee); err != nil {
+		if err := c.ShouldBind(&fee); err != nil {
 			response.SetValidateError(err)
 			return
 		}

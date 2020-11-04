@@ -82,7 +82,7 @@ func SystemMessageByUserId(c *gin.Context)  {
 func SystemMessageAdd(c *gin.Context) {
 	response := util.Response{c}
 	var message request.MessageAdd
-	if err := c.ShouldBindJSON(&message); err != nil {
+	if err := c.ShouldBind(&message); err != nil {
 		response.SetValidateError(err).SetMeta(map[string]string{"Title": "标题"})
 		return
 	}
@@ -118,7 +118,7 @@ func SystemMessageEdit(c *gin.Context)  {
 	response := util.Response{c}
 	var  systemMessage request.MessageEdit
 	systemMessage.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&systemMessage); err != nil {
+	if err := c.ShouldBind(&systemMessage); err != nil {
 		response.SetValidateError(err)
 		return
 	}

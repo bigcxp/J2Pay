@@ -72,7 +72,7 @@ func ReturnDetail(c *gin.Context) {
 func ReturnAdd(c *gin.Context) {
 	response := util.Response{c}
 	var returns request.ReturnAdd
-	if err := c.ShouldBindJSON(&returns); err != nil {
+	if err := c.ShouldBind(&returns); err != nil {
 		response.SetValidateError(err)
 		return
 	}

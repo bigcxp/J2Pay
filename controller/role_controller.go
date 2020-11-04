@@ -64,7 +64,7 @@ func RoleDetail(c *gin.Context) {
 func RoleAdd(c *gin.Context) {
 	response := util.Response{c}
 	var role request.RoleAdd
-	if err := c.ShouldBindJSON(&role); err != nil {
+	if err := c.ShouldBind(&role); err != nil {
 		response.SetValidateError(err).SetMeta(map[string]string{"Name": "角色名"})
 		return
 	}
@@ -85,7 +85,7 @@ func RoleEdit(c *gin.Context) {
 	response := util.Response{c}
 	var role request.RoleEdit
 	role.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&role); err != nil {
+	if err := c.ShouldBind(&role); err != nil {
 		response.SetValidateError(err).SetMeta(map[string]string{"Name": "角色名"})
 		return
 	}

@@ -173,7 +173,7 @@ func SendDetail(c *gin.Context) {
 func PickAdd(c *gin.Context)  {
 	response := util.Response{c}
 	var pick request.PickAdd
-	if err := c.ShouldBindJSON(&pick); err != nil {
+	if err := c.ShouldBind(&pick); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -193,7 +193,7 @@ func PickAdd(c *gin.Context)  {
 func SendAdd(c *gin.Context)  {
 	response := util.Response{c}
 	var send request.SendAdd
-	if err := c.ShouldBindJSON(&send); err != nil {
+	if err := c.ShouldBind(&send); err != nil {
 		response.SetValidateError(err)
 		return
 	}
@@ -214,7 +214,7 @@ func PickEdit(c *gin.Context) {
 	response := util.Response{c}
 	var send request.SendEdit
 	send.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&send); err != nil {
+	if err := c.ShouldBind(&send); err != nil {
 		response.SetValidateError(err)
 		return
 	}
