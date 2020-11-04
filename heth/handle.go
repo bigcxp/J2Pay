@@ -13,7 +13,8 @@ import (
 // CheckDoNotify 检测发送回调
 func CheckDoNotify() {
 	// 初始化的
-	initNotifyRows, err := model.SQLSelectTProductNotifyColByStatusAndTime(
+	notify := model.TProductNotify{}
+	initNotifyRows, err := notify.SQLSelectTProductNotifyColByStatusAndTime(
 		[]string{
 			model.DBColTProductNotifyID,
 			model.DBColTProductNotifyURL,
@@ -27,7 +28,7 @@ func CheckDoNotify() {
 		return
 	}
 	// 错误的
-	delayNotifyRows, err := model.SQLSelectTProductNotifyColByStatusAndTime(
+	delayNotifyRows, err := notify.SQLSelectTProductNotifyColByStatusAndTime(
 		[]string{
 			model.DBColTProductNotifyID,
 			model.DBColTProductNotifyURL,
@@ -46,7 +47,7 @@ func CheckDoNotify() {
 		gresp, body, errs := gorequest.New().Post(initNotifyRow.URL).Timeout(time.Second * 30).Send(initNotifyRow.Msg).End()
 		if errs != nil {
 			hcommon.Log.Errorf("err: [%T] %s", errs[0], errs[0].Error())
-			 err = model.SQLUpdateTProductNotifyStatusByID(
+			 err = notify.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
 					HandleStatus: hcommon.NotifyStatusFail,
@@ -62,7 +63,7 @@ func CheckDoNotify() {
 		if gresp.StatusCode != http.StatusOK {
 			// 状态错误
 			hcommon.Log.Errorf("req status error: %d", gresp.StatusCode)
-			 err = model.SQLUpdateTProductNotifyStatusByID(
+			 err = notify.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
 					HandleStatus: hcommon.NotifyStatusFail,
@@ -79,7 +80,7 @@ func CheckDoNotify() {
 		err = json.Unmarshal([]byte(body), &resp)
 		if err != nil {
 			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-			err = model.SQLUpdateTProductNotifyStatusByID(
+			err = notify.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
 					HandleStatus: hcommon.NotifyStatusFail,
@@ -95,7 +96,7 @@ func CheckDoNotify() {
 		_, ok := resp["error"]
 		if ok {
 			// 处理成功
-			err = model.SQLUpdateTProductNotifyStatusByID(
+			err = notify.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
 					HandleStatus: hcommon.NotifyStatusPass,
@@ -108,7 +109,7 @@ func CheckDoNotify() {
 			}
 		} else {
 			//hcommon.Log.Errorf("no error in resp")
-			err = model.SQLUpdateTProductNotifyStatusByID(
+			err = notify.SQLUpdateTProductNotifyStatusByID(
 				&model.TProductNotify{
 					ID:           initNotifyRow.ID,
 					HandleStatus: hcommon.NotifyStatusFail,
