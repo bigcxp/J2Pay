@@ -478,7 +478,7 @@ func CheckRawTxSend() {
 			}
 		}
 	}
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 	withdrawMap, err := pick.SQLGetWithdrawMap(withdrawIDs)
 	// 执行发送
 	var sendIDs []int64
@@ -599,7 +599,7 @@ func CheckRawTxSend() {
 		// 更新提币状态
 		err = pick.SQLUpdateTWithdrawStatusByIDs(
 			withdrawIDs,
-			&model.Pick{
+			&model.TWithdraw{
 				HandleStatus: hcommon.WithdrawStatusSend,
 				HandleMsg:    "send",
 				HandleTime:   now,
@@ -676,7 +676,7 @@ func CheckRawTxConfirm() {
 			}
 		}
 	}
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 	withdrawMap, err := pick.SQLGetWithdrawMap(withdrawIDs)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -775,7 +775,7 @@ func CheckRawTxConfirm() {
 	// 更新提币状态
 	err = pick.SQLUpdateTWithdrawStatusByIDs(
 		withdrawIDs,
-		&model.Pick{
+		&model.TWithdraw{
 			HandleStatus: hcommon.WithdrawStatusConfirm,
 			HandleMsg:    "confirmed",
 			HandleTime:   now,
@@ -840,7 +840,7 @@ func CheckRawTxConfirm() {
 // CheckWithdraw 检测提现
 func CheckWithdraw() {
 	// 获取需要处理的提币数据
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 	withdrawRows, err := pick.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
 	if err != nil {
 		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
@@ -912,7 +912,7 @@ func CheckWithdraw() {
 func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateKey *ecdsa.PrivateKey, hotAddressBalance *big.Int, gasLimit, gasPrice, feeValue int64) error {
 
 	// 处理业务
-	p := model.Pick{}
+	p := model.TWithdraw{}
 	withdrawRow, err := p.SQLGetTWithdrawColForUpdate(
 		withdrawID,
 		hcommon.WithdrawStatusInit,
@@ -965,9 +965,9 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	rawTxHex := hex.EncodeToString(rawTxBytes)
 	txHash := strings.ToLower(signedTx.Hash().Hex())
 	now := time.Now().Unix()
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 	err = pick.SQLUpdateTWithdrawGenTx(
-		&model.Pick{
+		&model.TWithdraw{
 			ID:           withdrawID,
 			TxHash:       txHash,
 			HandleStatus: hcommon.WithdrawStatusHex,
@@ -1826,7 +1826,7 @@ func CheckErc20Withdraw() {
 			}
 			addressTokenBalanceMap[tokenBalanceKey] = tokenBalance
 		}
-		pick := model.Pick{}
+		pick := model.TWithdraw{}
 		withdrawRows, err := pick.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
 		if len(withdrawRows) == 0 {
 			return
@@ -1871,7 +1871,7 @@ func CheckErc20Withdraw() {
 //提币
 func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*model.TAppConfigToken, addressKeyMap *map[string]*ecdsa.PrivateKey, addressEthBalanceMap *map[string]*big.Int, addressTokenBalanceMap *map[string]*big.Int, gasLimit, gasPrice int64, feeValue *big.Int) error {
 	// 处理业务
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 	withdrawRow, err := pick.SQLGetTWithdrawColForUpdate(
 		withdrawID,
 		hcommon.WithdrawStatusInit,
@@ -1951,9 +1951,9 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	rawTxHex := hex.EncodeToString(rawTxBytes)
 	txHash := strings.ToLower(signedTx.Hash().Hex())
 	now := time.Now().Unix()
-	p := model.Pick{}
+	p := model.TWithdraw{}
 	err = p.SQLUpdateTWithdrawGenTx(
-		&model.Pick{
+		&model.TWithdraw{
 			ID:           withdrawID,
 			TxHash:       txHash,
 			HandleStatus: hcommon.WithdrawStatusHex,

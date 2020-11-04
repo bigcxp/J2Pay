@@ -80,7 +80,7 @@ func AutoMigrate() {
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '权限'").AutoMigrate(&Auth{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT 'casbin policy 配置'").AutoMigrate(&CasbinRule{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '系统公告'").AutoMigrate(&SystemMessage{})
-	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '商户提领代发记录'").AutoMigrate(&Pick{})
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '商户提领代发记录'").AutoMigrate(&TWithdraw{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '订单'").AutoMigrate(&Order{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '退款订单'").AutoMigrate(&Return{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '手续费结账'").AutoMigrate(&Fee{})
@@ -98,8 +98,7 @@ func AutoMigrate() {
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '合约配置表'").AutoMigrate(&TAppConfigToken{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT 'eth交易记录表'").AutoMigrate(&EthTransaction{})
 	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '热钱包交易记录表'").AutoMigrate(&HotTransaction{})
-
-
+	db.Set("gorm:table_options", "ENGINE=Innodb DEFAULT CHARSET=utf8 COMMENT '运行锁'").AutoMigrate(&AppLock{})
 
 }
 

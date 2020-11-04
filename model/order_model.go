@@ -1,16 +1,13 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
 	"j2pay-server/model/request"
 	"j2pay-server/model/response"
 	"j2pay-server/validate"
-
-	"time"
 )
 
 type Order struct {
-	gorm.Model
+	ID				 int64
 	IdCode           string    `gorm:"default:'';comment:'系统编号';"json:"id_code"`
 	OrderCode        string    `gorm:"default:'';comment:'商户订单编号';"json:"order_code"`
 	Amount           float64   `gorm:"default:0;comment:'金额';";json:"amount"`
@@ -76,7 +73,7 @@ func (o *Order) GetCount(where ...interface{}) (count int) {
 func (o *Order) GetDetail(id ...int) (res response.RealOrderList, err error) {
 	searchId := o.ID
 	if len(id) > 0 {
-		searchId = uint(id[0])
+		searchId =int64(id[0])
 	}
 	err = Getdb().Table("order").
 		Where("id = ?", searchId).
@@ -94,9 +91,6 @@ func (o *Order) GetDetail(id ...int) (res response.RealOrderList, err error) {
 // 创建订单
 func (o *Order) Create() error {
 	tx := Getdb().Begin()
-	o.CreatedAt = time.Now()
-	o.FinishTime = time.Now().Unix()
-	o.ExprireTime = time.Now().Unix()
 	if err := tx.Create(o).Error; err != nil {
 		tx.Rollback()
 		return err

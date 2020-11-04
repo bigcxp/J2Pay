@@ -51,7 +51,7 @@ type AdminUser struct {
 	MinOrderCount  float64         `gorm:"default:0;comment:'最小交易数量';"`
 	Limit          float64         `gorm:"default:0;comment:'结账限制';"`
 	UserLessTime   int64           `gorm:"default:0;comment:'订单无效时间';"`
-	Pick           []Pick          `gorm:"FOREIGNKEY:UserId;ASSOCIATION_FOREIGNKEY:Id"`
+	Pick           []TWithdraw     `gorm:"FOREIGNKEY:UserId;ASSOCIATION_FOREIGNKEY:Id"`
 	SystemMessages []SystemMessage `gorm:"many2many:system_message_user;"`
 }
 

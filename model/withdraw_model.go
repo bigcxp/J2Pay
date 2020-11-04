@@ -5,10 +5,10 @@ import (
 	"j2pay-server/validate"
 )
 
-//提领订单
-type Pick struct {
+//提领 代发
+type TWithdraw struct {
 	ID           int64
-	WithdrawType int     `gorm:"default:0;comment:' 类型 1 提币 2 代发'";json:"related_type"`                      // 类型 1 提币 2 代发
+	WithdrawType int       `gorm:"default:0;comment:' 类型 1 提币 2 代发'";json:"related_type"`                      // 类型 1 提币 2 代发
 	SystemID     string    `gorm:"default:'';comment:'系统编号'";json:"system_id"`                                 // 系统编号
 	MerchantID   string    `gorm:"default:'';comment:'商户订单编号'";json:"merchant_id"`                             // 商户订单编号
 	ToAddress    string    `gorm:"default:'';comment:'提币地址'";json:"to_address"`                                // 提币地址
@@ -17,16 +17,16 @@ type Pick struct {
 	TxHash       string    `gorm:"default:'';comment:'提币tx hash'";json:"tx_hash"`                              // 提币tx hash
 	Fee          float64   `gorm:"default:0;comment:'手续费'";json:"fee"`                                         //手续费
 	CreateTime   int64     `gorm:"default:0;comment:'创建时间'";json:"create_time"`                                // 创建时间
-	HandleStatus int       `gorm:"default:0;comment:'处理状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败 '";json:"handle_status"` // 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
+	HandleStatus int64     `gorm:"default:0;comment:'处理状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败 '";json:"handle_status"` // 状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
 	HandleMsg    string    `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`                                // 处理消息
 	HandleTime   int64     `gorm:"default:'0';comment:'处理时间'";json:"handle_time"`                              // 处理时间
-	Remark       string    `gorm:"default:'';comment:'备注';";json:"remark"`
+	Remark       string    `gorm:"default:'';comment:'备注';";json:"remark"`                                     //备注
 	UserId       int       `gorm:"TYPE:int(11);NOT NULL;INDEX";json:"user_id"`
 	AdminUser    AdminUser `json:"admin_user";gorm:"foreignkey:UserId"` //指定关联外键
 }
 
 // 管理端获取所有提领订单列表
-func (p *Pick) GetAllPick(page, pageSize int, where ...interface{}) (response.PickUpPage, error) {
+func (p *TWithdraw) GetAllPick(page, pageSize int, where ...interface{}) (response.PickUpPage, error) {
 	all := response.PickUpPage{
 		Total:       p.GetCount(where...),
 		PerPage:     pageSize,
@@ -47,7 +47,7 @@ func (p *Pick) GetAllPick(page, pageSize int, where ...interface{}) (response.Pi
 }
 
 // 管理端获取所有代发订单列表
-func (p *Pick) GetAllSend(page, pageSize int, where ...interface{}) (response.SendPage, error) {
+func (p *TWithdraw) GetAllSend(page, pageSize int, where ...interface{}) (response.SendPage, error) {
 	all := response.SendPage{
 		Total:       p.GetCount(where...),
 		PerPage:     pageSize,
@@ -69,7 +69,7 @@ func (p *Pick) GetAllSend(page, pageSize int, where ...interface{}) (response.Se
 }
 
 // 商户端获取所有提领代发订单列表
-func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.MerchantPickSendPage, error) {
+func (p *TWithdraw) GetAll(page, pageSize int, where ...interface{}) (response.MerchantPickSendPage, error) {
 	all := response.MerchantPickSendPage{
 		Total:       p.GetCount(where...),
 		PerPage:     pageSize,
@@ -94,7 +94,7 @@ func (p *Pick) GetAll(page, pageSize int, where ...interface{}) (response.Mercha
 }
 
 // 获取所有提领订单数量
-func (p *Pick) GetCount(where ...interface{}) (count int) {
+func (p *TWithdraw) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
 		Getdb().Model(&p).Count(&count)
 		return
@@ -104,7 +104,7 @@ func (p *Pick) GetCount(where ...interface{}) (count int) {
 }
 
 // 管理端根据ID获取提领订单详情
-func (p *Pick) GetPickDetail(id ...int) (res response.PickList, err error) {
+func (p *TWithdraw) GetPickDetail(id ...int) (res response.PickList, err error) {
 	err = Getdb().Table("pick").
 		Where("id = ?", p.ID).
 		First(&res).
@@ -114,7 +114,7 @@ func (p *Pick) GetPickDetail(id ...int) (res response.PickList, err error) {
 }
 
 // 管理端根据ID获取提领订单详情
-func (p *Pick) GetSendDetail(id ...int) (res response.SendList, err error) {
+func (p *TWithdraw) GetSendDetail(id ...int) (res response.SendList, err error) {
 	err = Getdb().Table("pick").
 		Where("id = ?", p.ID).
 		First(&res).
@@ -125,7 +125,7 @@ func (p *Pick) GetSendDetail(id ...int) (res response.SendList, err error) {
 }
 
 // 商户端根据ID获取提领代发订单详情
-func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err error) {
+func (p *TWithdraw) GetPickSendDetail(id ...int) (res response.MerchantPickList, err error) {
 
 	err = Getdb().Table("pick").
 		Where("id = ?", p.ID).
@@ -138,7 +138,7 @@ func (p *Pick) GetPickSendDetail(id ...int) (res response.MerchantPickList, err 
 }
 
 //取消代发 取消提领
-func (p *Pick) CancelPick(id, status int) (err error) {
+func (p *TWithdraw) CancelPick(id, status int64) (err error) {
 	tx := Getdb().Begin()
 	defer func() {
 		if err != nil {
@@ -149,12 +149,12 @@ func (p *Pick) CancelPick(id, status int) (err error) {
 	}()
 	pick := GetPickByWhere("id = ?", id)
 	err = tx.Model(&pick).
-		Updates(Pick{HandleStatus: status}).Error
+		Updates(TWithdraw{HandleStatus: status}).Error
 	return
 }
 
 // 商户端创建提领或者代发订单
-func (p *Pick) Create() error {
+func (p *TWithdraw) Create() error {
 	tx := Getdb().Begin()
 	if err := tx.Create(p).Error; err != nil {
 		tx.Rollback()
@@ -165,7 +165,7 @@ func (p *Pick) Create() error {
 }
 
 //获取提领总金额
-func (p *Pick) getAmount() float64 {
+func (p *TWithdraw) getAmount() float64 {
 	var totalAmount float64
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
@@ -181,7 +181,7 @@ func (p *Pick) getAmount() float64 {
 }
 
 //总手续费
-func (p *Pick) getFee() float64 {
+func (p *TWithdraw) getFee() float64 {
 	var totalFee float64
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
@@ -197,7 +197,7 @@ func (p *Pick) getFee() float64 {
 }
 
 // 根据条件获取详情
-func GetPickByWhere(where ...interface{}) (pi Pick) {
+func GetPickByWhere(where ...interface{}) (pi TWithdraw) {
 	Getdb().First(&pi, where...)
 	return
 }

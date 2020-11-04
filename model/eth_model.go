@@ -58,7 +58,6 @@ type TAppConfigToken struct {
 	OrgMinBalance string `gorm:"default:'0';comment:'最小金额'";json:"org_min_balance"` //最小金额
 	CreateTime    int64  `gorm:"default:0;comment:'创建时间'" ;json:"create_time"`      //创建时间
 }
-
 // const TProductNotify
 const (
 	DBColTProductNotifyID           = "t_product_notify.id"
@@ -75,7 +74,6 @@ const (
 	DBColTProductNotifyCreateTime   = "t_product_notify.create_time"
 	DBColTProductNotifyUpdateTime   = "t_product_notify.update_time"
 )
-
 //通知
 type TProductNotify struct {
 	ID           int64
@@ -131,22 +129,6 @@ type TTxErc20 struct {
 	OrgTime      int64  `gorm:"default:0;comment:'零钱整理时间'" json:"org_time"`         // 零钱整理时间
 }
 
-// DBTWithdraw t_withdraw 数据表  提币 代发
-type TWithdraw struct {
-	ID           int64
-	WithdrawType int64  `gorm:"default:0;comment:' 类型 1 提币 2 代发'";json:"related_type"` // 类型 1 提币 2 代发
-	SystemID     string `gorm:"default:'';comment:'系统编号'";json:"system_id"`            // 系统编号
-	MerchantID   string `gorm:"default:'';comment:'商户订单编号'";json:"merchant_id"`        // 商户订单编号
-	ToAddress    string `gorm:"default:'';comment:'提币地址'";json:"to_address"`           // 提币地址
-	Symbol       string `gorm:"default:'';comment:'币种'";json:"symbol"`                 //币种
-	BalanceReal  string `gorm:"default:'';comment:'金额'";json:"balance_real"`           // 提币金额
-	TxHash       string `gorm:"default:'';comment:'提币tx hash'";json:"tx_hash"`         // 提币tx hash
-	CreateTime   int64  `gorm:"default:0;comment:'创建时间'";json:"create_time"`           // 创建时间
-	HandleStatus int64  `gorm:"default:0;comment:'处理状态'";json:"handle_status"`         // 处理状态
-	HandleMsg    string `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`           // 处理消息
-	HandleTime   int64  `gorm:"default:'0';comment:'处理时间'";json:"handle_time"`         // 处理时间
-
-}
 
 // 根据条件获取配置
 func (c *TAppConfigInt)SQLGetTAppConfigIntValueByK(where ...interface{}) (ci TAppConfigInt) {
@@ -206,15 +188,15 @@ func (a *Address)SQLGetTAddressKeyColByAddress(address string) (*Address, error)
 }
 
 //根据status 、id查询
-func (t *Pick)SQLGetTWithdrawColForUpdate(id int64, status int) (*Pick, error) {
-	var rows *Pick
-	err := Getdb().Model(&Pick{}).Find(&rows, "handle_status = ? and id = ?", status, id).Error
+func (t *TWithdraw)SQLGetTWithdrawColForUpdate(id int64, status int) (*TWithdraw, error) {
+	var rows *TWithdraw
+	err := Getdb().Model(&TWithdraw{}).Find(&rows, "handle_status = ? and id = ?", status, id).Error
 	return rows, err
 }
 
 //根据status 查询需要处理的提币数据
-func (t *Pick)SQLSelectTWithdrawColByStatus(twithdraws int) ([]*Pick, error) {
-	var rows []*Pick
+func (t *TWithdraw)SQLSelectTWithdrawColByStatus(twithdraws int) ([]*TWithdraw, error) {
+	var rows []*TWithdraw
 	err := Getdb().Find(&rows, "handle_status = ?", twithdraws).Error
 	return rows, err
 }
@@ -268,9 +250,9 @@ func (a *Address)GetPkOfAddress(address string) (*ecdsa.PrivateKey, error) {
 }
 
 //获取提币map
-func (p *Pick)SQLGetWithdrawMap(ids []int64) (map[int64]*Pick, error) {
-	itemMap := make(map[int64]*Pick)
-	var pick []*Pick
+func (p *TWithdraw)SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
+	itemMap := make(map[int64]*TWithdraw)
+	var pick []*TWithdraw
 	err := Getdb().Where("id in (?)", ids).Find(&pick).Error
 	if err != nil {
 		return nil, err
@@ -472,13 +454,13 @@ func (t *TTx)SQLUpdateTTxStatusByIDs(ids []int64, row *TTx) (err error) {
 }
 
 //更新提币状态
-func (t *Pick)SQLUpdateTWithdrawStatusByIDs(ids []int64, row *Pick) (err error) {
+func (t *TWithdraw)SQLUpdateTWithdrawStatusByIDs(ids []int64, row *TWithdraw) (err error) {
 	tx := Getdb().Begin()
 	for _, v := range ids {
-		var tw Pick
+		var tw TWithdraw
 		Getdb().First(&tw, v)
 		err = tx.Model(&tw).
-			Updates(Pick{HandleStatus: row.HandleStatus, HandleMsg: row.HandleMsg, HandleTime: row.HandleTime}).Error
+			Updates(TWithdraw{HandleStatus: row.HandleStatus, HandleMsg: row.HandleMsg, HandleTime: row.HandleTime}).Error
 		if err != nil {
 			tx.Rollback()
 		} else {
@@ -526,10 +508,10 @@ func (e *TTxErc20)SQLUpdateTTxErc20StatusByIDs(ids []int64, row TTxErc20) (int64
 }
 
 //更新pICK
-func (p *Pick)SQLUpdateTWithdrawGenTx(row *Pick) (err error) {
+func (p *TWithdraw)SQLUpdateTWithdrawGenTx(row *TWithdraw) (err error) {
 	tx := Getdb().Begin()
 	err = tx.Model(&row).
-		Updates(Pick{TxHash: row.TxHash, HandleStatus: row.HandleStatus, HandleMsg: row.HandleMsg, HandleTime: row.HandleTime}).Error
+		Updates(TWithdraw{TxHash: row.TxHash, HandleStatus: row.HandleStatus, HandleMsg: row.HandleMsg, HandleTime: row.HandleTime}).Error
 	if err != nil {
 		tx.Rollback()
 	} else {

@@ -17,7 +17,7 @@ import (
 
 // 商户端  提领订单列表 + 代发订单列表
 func MerchantPickList(fromDate, toDate, code string, types, userId, status, page, pageSize int) (res response.MerchantPickSendPage, err error) {
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 	if userId == 0 {
 		return res, myerr.NewDbValidateError("没有此用户信息")
 	}
@@ -33,7 +33,7 @@ func MerchantPickList(fromDate, toDate, code string, types, userId, status, page
 
 // 管理端 提领订单列表
 func PickUpList(fromDate, toDate string, status, types, userId, page, pageSize int) (res response.PickUpPage, err error) {
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 
 	if status == 0 && fromDate == "" && toDate == "" && userId == 0 {
 		res, err = pick.GetAllPick(page, pageSize, "type = ?", types)
@@ -46,7 +46,7 @@ func PickUpList(fromDate, toDate string, status, types, userId, page, pageSize i
 
 // 管理端  代发订单列表
 func SendList(fromDate, toDate, orderCode string, status, types, userId, page, pageSize int) (res response.SendPage, err error) {
-	pick := model.Pick{}
+	pick := model.TWithdraw{}
 	if orderCode == "" && status == 0 && fromDate == "" && toDate == "" && userId == 0 {
 		res, err = pick.GetAllSend(page, pageSize, "type = ?", types)
 	} else {
@@ -58,7 +58,7 @@ func SendList(fromDate, toDate, orderCode string, status, types, userId, page, p
 
 // 商户端提领订单或者代发订单详情
 func MerchantPickDetail(id int64) (res response.MerchantPickList, err error) {
-	pick := model.Pick{
+	pick := model.TWithdraw{
 		ID: id,
 	}
 	res, err = pick.GetPickSendDetail()
@@ -70,7 +70,7 @@ func MerchantPickDetail(id int64) (res response.MerchantPickList, err error) {
 
 // 管理端提领订单详情
 func PickDetail(id int64) (res response.PickList, err error) {
-	pick := model.Pick{
+	pick := model.TWithdraw{
 		ID: id,
 	}
 	res, err = pick.GetPickDetail()
@@ -82,7 +82,7 @@ func PickDetail(id int64) (res response.PickList, err error) {
 
 // 管理端代发订单详情
 func SendDetail(id int64) (res response.SendList, err error) {
-	pick := model.Pick{
+	pick := model.TWithdraw{
 		ID: id,
 	}
 	res, err = pick.GetSendDetail()
@@ -173,7 +173,7 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 	} else {
 		fee = user.OrderCharge
 	}
-	var status int
+	var status int64
 	var handleMsg string
 	//是否需要审核
 	if user.Examine == 1 {
@@ -183,7 +183,7 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 		status = hcommon.PickStatusDo
 		handleMsg = "执行中"
 	}
-	p := model.Pick{
+	p := model.TWithdraw{
 		SystemID:     util.RandString(20),
 		BalanceReal:  pick.Amount,
 		TxHash:       "",
@@ -284,7 +284,7 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 		fee = user.OrderCharge
 	}
 	//是否需要审核
-	var status int
+	var status int64
 	var handleMsg string
 	//是否需要审核
 	if user.Examine == 1 {
@@ -294,7 +294,7 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 		status = hcommon.PickStatusDo
 		handleMsg = "执行中"
 	}
-	p := model.Pick{
+	p := model.TWithdraw{
 		SystemID:     util.RandString(20),
 		MerchantID:   send.OrderCode,
 		BalanceReal:  send.Amount,
@@ -324,7 +324,7 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 //取消提领 代发
 func CancelPick(send request.SendEdit) error {
 	defer casbin.ClearEnforcer()
-	p := model.Pick{}
+	p := model.TWithdraw{}
 	//逻辑
-	return p.CancelPick(send.ID, send.Status)
+	return p.CancelPick(int64(send.ID), send.Status)
 }

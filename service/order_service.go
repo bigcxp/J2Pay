@@ -35,7 +35,7 @@ func OrderList(fromDate string, toDate string, status int, chargeAddress string,
 // 订单详情
 func OrderDetail(id uint) (res response.RealOrderList, err error) {
 	order := model.Order{}
-	order.ID = id
+	order.ID = int64(id)
 	res, err = order.GetDetail()
 	if err != nil {
 		return
@@ -176,7 +176,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 func OrderEdit(order request.OrderEdit) error {
 	defer casbin.ClearEnforcer()
 	o := model.Order{}
-	o.ID = uint(order.ID)
+	o.ID = int64(uint(order.ID))
 	return o.UpdateOrder(order)
 }
 
