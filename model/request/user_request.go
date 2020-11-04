@@ -32,6 +32,7 @@ type CommonUser struct {
 	RealName      string  `json:"real_name" binding:"required,max=255" example:"test"`  // 组织名称
 	Pid           int     `json:"pid" binding:"required,max=11" example:"1"`            // 所属组织ID
 	Status        int8    `json:"status" binding:"oneof=0 1" example:"1"`               // 状态 1：正常 0：禁用
+	WhitelistIP   string  `json:"whitelist_ip" binding:"" example:"多个地址之间用逗号隔开"`        //IP白名单
 	Tel           string  `json:"tel" binding:"required,max=12" example:"17585534067"`  // 电话号码
 	Address       string  `json:"address" binding:"required,max=255" example:"test"`    // 商户地址
 	ReturnUrl     string  `json:"return_url" binding:"required,max=255" example:"test"` // 回传URL
@@ -47,12 +48,14 @@ type CommonUser struct {
 	IsDai         int     `json:"is_dai" binding:"oneof=0 1" example:"1"`               //是否启用代发功能
 	DaiType       int     `json:"dai_type" binding:"oneof=0 1" example:"1"`             //代发手续费类型 1：百分比 0：固定
 	DaiCharge     float64 `json:"dai_charge" binding:"required" example:"1"`            //代发手续费
+	PickType      int     `json:"pick_type" binding:"oneof=0 1" example:"1"`            //提领手续费类型 1：百分比 0：固定
+	PickCharge    float64 `json:"pick_charge" binding:"required" example:"1"`           //提领手续费
 	IsGas         int     `json:"is_gas" binding:"oneof=0 1" example:"1"`               //是否启用gas预估 1：是 0：否
 	Examine       float64 `json:"examine" binding:"required" example:"1"`               //代发审核
 	DayTotalCount float64 `json:"day_total_count" binding:"required" example:"1"`       //每日交易总量
 	MaxOrderCount float64 `json:"max_order_count" binding:"required" example:"1"`       //最大交易总量
 	MinOrderCount float64 `json:"min_order_count" binding:"required" example:"1"`       //最小交易总量
 	Limit         float64 `json:"limit" binding:"required" example:"1"`                 //结账限制
-	UserLessTime  int64     `json:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
+	UserLessTime  int64   `json:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
 	Roles         []int   `binding:"required,min=1" example:"1,2"`                      // 所属角色
 }

@@ -107,6 +107,8 @@ func UserAdd(user request.UserAdd) error {
 		IsDai:         user.IsDai,
 		DaiType:       user.DaiType,
 		DaiCharge:     user.DaiCharge,
+		PickType:      user.PickType,
+		PickCharge:    user.PickCharge,
 		IsGas:         user.IsGas,
 		Examine:       user.Examine,
 		DayTotalCount: user.DayTotalCount,
@@ -118,6 +120,7 @@ func UserAdd(user request.UserAdd) error {
 		UpdateTime:    time.Now().Unix(),
 		LastLoginTime: time.Now().Unix(),
 		IsOpen:        0,
+		WhitelistIP:   user.WhitelistIP,
 	}
 	// 1.判断用户名和手机号是否存在
 	if hasName := model.GetUserByWhere("user_name = ?", user.UserName); hasName.ID > 0 {

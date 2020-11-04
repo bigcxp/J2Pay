@@ -39,8 +39,9 @@ func RoleDetail(id int) (response.RoleList, error) {
 // 添加角色
 func RoleAdd(role request.RoleAdd) error {
 	defer casbin.ClearEnforcer()
+	Pid, _ := strconv.Atoi(role.Pid)
 	r := model.Role{
-		Pid:  role.Pid,
+		Pid:  Pid,
 		Name: role.Name,
 	}
 	if r.Pid > 0 {
@@ -77,15 +78,16 @@ func RoleAdd(role request.RoleAdd) error {
 // 编辑角色
 func RoleEdit(role request.RoleEdit) error {
 	defer casbin.ClearEnforcer()
+	Pid, _ := strconv.Atoi(role.Pid)
 	r := model.Role{
 		Id:   role.ID,
-		Pid:  role.Pid,
+		Pid:  Pid,
 		Name: role.Name,
 	}
 	if r.Id == r.Pid {
 		return myerr.NewNormalValidateError("所属上级和自己一致，数据异常")
 	}
-	if role.Pid > 0 {
+	if Pid > 0 {
 		_, err := r.Detail(r.Pid)
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {

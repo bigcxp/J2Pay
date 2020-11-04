@@ -22,6 +22,7 @@ type AdminUser struct {
 	QrcodeUrl      string          `gorm:"comment:'google二维码图片地址';"`
 	RealName       string          `gorm:"default:'';comment:'组织名称';"`
 	Status         int8            `gorm:"default:1;comment:'状态 1:正常 0:停封'"`
+	WhitelistIP    string          `gorm:"default:'';comment:'ip白名单';"`
 	CreateTime     int64           `gorm:"type:timestamp;comment:'创建时间';"`
 	UpdateTime     int64           `gorm:"type:timestamp;comment:'更新时间';"`
 	Balance        float64         `gorm:"default:0;comment:'用户余额';"`
@@ -39,6 +40,8 @@ type AdminUser struct {
 	ReturnType     int             `gorm:"default:1;comment:'退款手续费类型 1：百分比 0：固定'"`
 	ReturnCharge   float64         `gorm:"default:0;comment:'退款手续费';"`
 	IsDai          int             `gorm:"default:1;comment:'是否启用代发功能 1：是 0：否';"`
+	PickType       int             `gorm:"default:1;comment:'提领手续费类型 1：百分比 0：固定'"`
+	PickCharge     float64         `gorm:"default:0;comment:'提领手续费';"`
 	DaiType        int             `gorm:"default:1;comment:'代发手续费类型 1：百分比 0：固定'"`
 	DaiCharge      float64         `gorm:"default:0;comment:'代发手续费';"`
 	IsGas          int             `gorm:"default:1;comment:'是否启用gas预估 1：是 0：否'"`
@@ -135,11 +138,31 @@ func (u *AdminUser) Create(roles []int) error {
 func (u *AdminUser) Edit(roles []int) error {
 	tx := Getdb().Begin()
 	updateInfo := map[string]interface{}{
-		"user_name":   u.UserName,
-		"real_name":   u.RealName,
-		"status":      u.Status,
-		"tel":         u.Tel,
-		"update_time": time.Now(),
+		"real_name":     u.RealName,
+		"address":       u.Address,
+		"dai_url":       u.DaiUrl,
+		"return_url":    u.ReturnUrl,
+		"whitelist_ip":  u.WhitelistIP,
+		"is_collection": u.IsCollection,
+		"is_creation":   u.IsCreation,
+		"more":          u.More,
+		"order_type":    u.OrderType,
+		"order_charge":  u.OrderCharge,
+		"return_type":   u.ReturnType,
+		"return_charge": u.ReturnCharge,
+		"is_dai":        u.IsDai,
+		"dai_type":      u.DaiType,
+		"dai_charge":    u.DaiCharge,
+		"pick_type" :u.PickType,
+		"pick_charge":u.PickCharge,
+		"is_gas":u.IsGas,
+		"examine":u.Examine,
+		"day_total_count":u.DayTotalCount,
+		"max_order_count":u.MaxOrderCount,
+		"min_order_count":u.MinOrderCount,
+		"limit":u.Limit,
+		"user_less_time":u.UserLessTime,
+		"update_time": time.Now().Unix(),
 	}
 	if err := tx.Model(&AdminUser{ID: u.ID}).
 		Updates(updateInfo).Error; err != nil {
