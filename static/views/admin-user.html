@@ -1,5 +1,5 @@
 
-<blockquote class="layui-elem-quote">角色管理</blockquote>
+<blockquote class="layui-elem-quote">账户管理</blockquote>
 
 <!--<fieldset class="table-search-fieldset">
 	<legend>搜索信息</legend>
@@ -38,14 +38,20 @@ layui.use(['form'],function(){
 	
 	var cols=[[
 		//{type: "checkbox", width: 50},
+		{title: '操作', width: 150, toolbar: '#currentTableBar', align: "center",fixed:'left'},
 		{field: 'id', width: 80, title: 'ID', sort: true},
-		{field: 'name', width:280, title: '角色名称'},
-		{title: '操作', width: 150, toolbar: '#currentTableBar', align: "center"}
+		{field: 'user_name', width:180, title: '用户名'},
+		{field: 'status', width:90, title: '状态'},
+		{field: 'tel', width:120, title: '手机号'},
+		{field: 'real_name', width:120, title: '姓名'},
+		{field: 'name', width:160, title: '角色名称',templet:function(d){return d['roles'][0]['name']} },
+		{field: 'last_login_time', width:220, title: '上次登录时间'},
+		{field: 'remark', width:180, title: '备注'}
 	]];
 
 	window.dataTable=table.render({
 		elem: '#currentTableId',
-		url:'/role',
+		url:'/adminUser',
 		toolbar:'#toolbarDemo',
 		defaultToolbar: ['filter','exports','print'],
 		cols:cols,
@@ -83,15 +89,15 @@ layui.use(['form'],function(){
 	table.on('tool(currentTableFilter)',function (obj){
 		var data = obj.data;
 		if(obj.event === 'edit'){
-			open_dlg('编辑: '+data.name,'/main#0|admin-role-edit?id='+data.id)
+			open_dlg('编辑: '+data.user_name,'/main#0|admin-user-edit?id='+data.id)
 		}else if(obj.event === 'del'){
-			confirmdel('/role/'+data.id,null);
+			confirmdel('/adminUser/'+data.id,null);
 		}
 	});
 	//工具栏事件
 	table.on('toolbar(currentTableFilter)',function(obj){
 		if (obj.event === 'add'){
-			open_dlg('添加: ','/main#0|admin-role-add');
+			open_dlg('添加用户: ','/main#0|admin-user-add');
 		}
 	});
 });

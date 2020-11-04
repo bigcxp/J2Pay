@@ -3,6 +3,7 @@
 	<legend>添加角色</legend>
 </fieldset>
 <form class="layui-form layui-form-pane h5form" action="/role">
+	<input type="hidden" name="id" value="0" />
 	<input type="hidden" name="pid" value="0" />
 	<div class="layui-form-item">
 		<label class="layui-form-label">角色名称</label>
@@ -65,12 +66,24 @@
 layui.use(['laytpl'],function(){
 	var laytpl = layui.laytpl;
 	var tpl=document.getElementById('tpl_list').innerHTML;
-	
+	var hashparams=parseHash();
 	$.get('/auth/tree',function(res){
 		if(res.code!=1){return}
 		laytpl(tpl).render(res,function(html){
 			$('#rolestree').html(html);
 			form.render('checkbox')
+		});
+		
+		$.get('/role/'+hashparams['id'],function(res1){
+			if(res1.code!=1){return}
+			var v=res1.data;
+			$('input[name=name]').val(v.name);
+			$('input[name=id]').val(v.id);
+			var str=v['auth'].join('],input[name=auth][value=');
+			if(str){
+				$('input[name=auth][value='+str+']').prop('checked',true);
+				form.render('checkbox')
+			}
 		});
 	});
 
@@ -120,7 +133,7 @@ layui.use(['laytpl'],function(){
 	});
 
 	form.on('submit(add)',function(data){
-		h5post(data.form);
+		h5post(data.form,'/role/'+hashparams['id'],'PUT');
 		return false;
 	})
 })

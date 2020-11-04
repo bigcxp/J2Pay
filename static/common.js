@@ -110,18 +110,48 @@ function close_dlg(){
 		window.parent.layer.closeAll('iframe')
 	}catch(e){}
 }
-function close_page(){
-	var tabid=(location.pathname).replace(/\//g,'_');
-	try{parent.closeTab(tabid)}catch(e){window.close()}
+
+function confirmdel(url,data) {
+	var idx = layer.prompt({
+		value: '',
+		title: '是否确认删除',
+		success: function () {
+			$('.layui-layer-content input').attr('maxlength', '6').attr('type', 'phone').attr('placeholder','请输入6位Google验证码')
+		}
+	}, function (value, index, elem) {
+		if ($.trim(value) == '') {
+			return;
+		}
+		var loadingidx=layer.load(0,{shade:[0.2,'#000']});
+		$.ajax({
+			type: "DELETE",
+			url: url,
+			dataType: "json",
+			data: data,
+			'headers':{'Authorization':sessionStorage.getItem('token')},
+			success: function (res){
+				window.top.layer.alert(res.msg,{icon: (res.code == "1") ? 1 : 2})
+				if (res.code == "1") {
+					try {
+						window['dataTable'].reload();
+					} catch (e) {}
+					layer.closeAll();
+				}
+			},
+			complete:function(){
+				layer.close(loadingidx);
+			}
+		});
+	});
 }
 
 
-function h5post(form,method){
+function h5post(form,url,method){
 	var $form=$(form);
 	var btn_submit = $form.find('[type=submit]');
 	if(!method){method='POST'}
 	btn_submit.attr('disabled', 'disabled').addClass('layui-disabled').append('<i class="layui-icon layui-icon-loading layui-icon layui-anim layui-anim-rotate layui-anim-loop"></i>')
-	postform(form,null,null,function(res){
+	postform(form,url,null,function(res){
 		btn_submit.removeAttr('disabled').removeClass('layui-disabled').find('i.layui-icon').remove()
 		if(res.code=='1'){
 			alertok(res.msg,function(){
@@ -131,4 +161,17 @@ function h5post(form,method){
 			alerterr(res.msg);
 		}
 	},true,method)
+}
+
+function parseHash(){
+	var hash=(location.hash).replace('#','');
+	var arr=hash.split('?');
+	if(arr.length<2){return {};}
+	var obj={}
+	var arr1=arr[1].split('&');
+	$.each(arr1,function(k,v){
+		var ss=v.split('=')
+		obj[ss[0]]=ss[1];
+	});
+	return obj;
 }
