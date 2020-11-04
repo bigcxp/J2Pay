@@ -31,11 +31,7 @@ func UserIndex(c *gin.Context) {
 	response := util.Response{c}
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	//name := c.Query("name")
 	Pid,_ :=strconv.Atoi(c.Query("Pid"))
-	//if utf8.RuneCountInString(name) > 32 {
-	//	name = string([]rune(name)[:32])
-	//}
 	res, err := service.UserList(Pid, page, pageSize)
 	if err != nil {
 		response.SetOtherError(err)

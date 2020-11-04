@@ -27,7 +27,7 @@ type AdminUserList struct {
 	ReturnCharge  float64   `json:"return_charge"`   //退款fee
 	Remark        string    `json:"remark"`          //备注
 	Status        int8      `json:"status"`          // 用户状态
-	WhitelistIP   []string  `json:"whitelist_ip"`    //ip白名单
+	WhitelistIP   string  `json:"whitelist_ip"`    //ip白名单
 	LastLoginTime int64     `json:"last_login_time"` //最后登录时间
 	Roles         []CasRole `json:"roles"`           // 角色信息
 }
