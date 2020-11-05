@@ -17,6 +17,151 @@
                 "summary": "系统首页"
             }
         },
+        "/account": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "添加账户",
+                "parameters": [
+                    {
+                        "description": "账户",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AccountAdd"
+                        }
+                    }
+                ]
+            }
+        },
+        "/account/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "获取账户详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "账户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AccountList"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "编辑账户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "账户",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AccountEdit"
+                        }
+                    }
+                ]
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "删除账户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        "/accountIndex": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "账户管理"
+            }
+        },
+        "/accountList": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "获取账户列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "账户名称",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页显示多少条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AccountPage"
+                        }
+                    }
+                }
+            }
+        },
         "/addrDel": {
             "delete": {
                 "produces": [
@@ -154,16 +299,10 @@
                     "application/json"
                 ],
                 "tags": [
-                    "账户管理"
+                    "组织管理"
                 ],
-                "summary": "获取账户列表",
+                "summary": "获取组织列表",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "默认0：查商户列表，1:查商户账户列表",
-                        "name": "Pid",
-                        "in": "query"
-                    },
                     {
                         "type": "integer",
                         "description": "页码",
@@ -191,9 +330,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "账户管理"
+                    "组织管理"
                 ],
-                "summary": "添加账户",
+                "summary": "添加组织",
                 "parameters": [
                     {
                         "description": "用户",
@@ -213,9 +352,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "账户管理"
+                    "组织管理"
                 ],
-                "summary": "获取账户详情",
+                "summary": "获取组织详情",
                 "parameters": [
                     {
                         "type": "integer",
@@ -239,9 +378,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "账户管理"
+                    "组织管理"
                 ],
-                "summary": "编辑账户",
+                "summary": "编辑组织",
                 "parameters": [
                     {
                         "type": "integer",
@@ -266,9 +405,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "账户管理"
+                    "组织管理"
                 ],
-                "summary": "删除账户",
+                "summary": "删除组织",
                 "parameters": [
                     {
                         "type": "integer",
@@ -286,9 +425,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "账户管理"
+                    "组织管理"
                 ],
-                "summary": "账户管理"
+                "summary": "组织管理"
             }
         },
         "/auth/list": {
@@ -2082,6 +2221,68 @@
         }
     },
     "definitions": {
+        "request.AccountAdd": {
+            "type": "object",
+            "required": [
+                "password",
+                "re_password",
+                "user_name"
+            ],
+            "properties": {
+                "password": {
+                    "description": "密码",
+                    "type": "string",
+                    "example": "test"
+                },
+                "re_password": {
+                    "description": "确认密码",
+                    "type": "string",
+                    "example": "admin"
+                },
+                "rid": {
+                    "description": "所属角色",
+                    "type": "integer",
+                    "example": 1
+                },
+                "uid": {
+                    "description": "所属组织名称",
+                    "type": "integer",
+                    "example": 1
+                },
+                "user_name": {
+                    "description": "使用者名称",
+                    "type": "string",
+                    "example": "test"
+                }
+            }
+        },
+        "request.AccountEdit": {
+            "type": "object",
+            "required": [
+                "rid"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "is_open": {
+                    "description": "是否开启双重验证 0：关闭 1：开启",
+                    "type": "integer"
+                },
+                "rid": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "description": "是否启用 0：关闭 1：开启",
+                    "type": "integer"
+                },
+                "token": {
+                    "description": "token",
+                    "type": "string"
+                }
+            }
+        },
         "request.AddressAdd": {
             "type": "object",
             "properties": {
@@ -2157,26 +2358,32 @@
         },
         "request.DetailedAdd": {
             "type": "object",
+            "required": [
+                "amount",
+                "charge_address",
+                "from_address",
+                "id_code"
+            ],
             "properties": {
                 "amount": {
                     "description": "金额",
-                    "type": "number"
+                    "type": "number",
+                    "example": 1
                 },
                 "charge_address": {
                     "description": "收款地址",
-                    "type": "string"
-                },
-                "create_at": {
-                    "description": "时间",
-                    "type": "string"
+                    "type": "string",
+                    "example": "test"
                 },
                 "from_address": {
                     "description": "发款地址",
-                    "type": "string"
+                    "type": "string",
+                    "example": "test"
                 },
                 "id_code": {
                     "description": "系统编号",
-                    "type": "string"
+                    "type": "string",
+                    "example": "test"
                 },
                 "txid": {
                     "description": "交易hash",
@@ -2186,6 +2393,9 @@
         },
         "request.DetailedEdit": {
             "type": "object",
+            "required": [
+                "order_code"
+            ],
             "properties": {
                 "id": {
                     "description": "id",
@@ -2197,7 +2407,8 @@
                 },
                 "order_code": {
                     "description": "商户订单编号",
-                    "type": "string"
+                    "type": "string",
+                    "example": "test"
                 }
             }
         },
@@ -2220,6 +2431,10 @@
                 "google_code"
             ],
             "properties": {
+                "code": {
+                    "description": "动态码",
+                    "type": "string"
+                },
                 "google_code": {
                     "description": "google验证码",
                     "type": "string",
@@ -2262,21 +2477,21 @@
         "request.MessageAdd": {
             "type": "object",
             "required": [
-                "beginTime",
-                "endTime",
+                "begin_time",
+                "end_time",
                 "title",
                 "users"
             ],
             "properties": {
-                "beginTime": {
+                "begin_time": {
                     "description": "开始时间",
-                    "type": "string",
-                    "example": "2020-09-15T14:41:46+08:00"
+                    "type": "integer",
+                    "example": 12431421234
                 },
-                "endTime": {
+                "end_time": {
                     "description": "结束时间",
-                    "type": "string",
-                    "example": "2020-09-23T14:41:50+08:00"
+                    "type": "integer",
+                    "example": 124124124
                 },
                 "title": {
                     "description": "系统公告",
@@ -2304,21 +2519,21 @@
         "request.MessageEdit": {
             "type": "object",
             "required": [
-                "beginTime",
-                "endTime",
+                "begin_time",
+                "end_time",
                 "title",
                 "users"
             ],
             "properties": {
-                "beginTime": {
+                "begin_time": {
                     "description": "开始时间",
-                    "type": "string",
-                    "example": "2020-09-15T14:41:46+08:00"
+                    "type": "integer",
+                    "example": 12431421234
                 },
-                "endTime": {
+                "end_time": {
                     "description": "结束时间",
-                    "type": "string",
-                    "example": "2020-09-23T14:41:50+08:00"
+                    "type": "integer",
+                    "example": 124124124
                 },
                 "id": {
                     "type": "integer"
@@ -2377,7 +2592,7 @@
             "type": "object",
             "required": [
                 "amount",
-                "orderCode",
+                "order_code",
                 "uts"
             ],
             "properties": {
@@ -2391,7 +2606,7 @@
                     "type": "string",
                     "example": "RMB"
                 },
-                "orderCode": {
+                "order_code": {
                     "description": "商户订单编号",
                     "type": "string",
                     "example": "asfasgdsasfgas"
@@ -2451,10 +2666,6 @@
                     "description": "交易确认数",
                     "type": "integer",
                     "example": 12
-                },
-                "create_at": {
-                    "description": "更新时间",
-                    "type": "string"
                 },
                 "gas_limit": {
                     "description": "gas Limit",
@@ -2559,7 +2770,7 @@
             "type": "object",
             "required": [
                 "amount",
-                "orderCode",
+                "order_code",
                 "user_id"
             ],
             "properties": {
@@ -2568,7 +2779,7 @@
                     "type": "number",
                     "example": 1
                 },
-                "orderCode": {
+                "order_code": {
                     "description": "商户订单编号",
                     "type": "string",
                     "example": "asfasgdsasfgas"
@@ -2618,11 +2829,6 @@
                     "description": "角色名",
                     "type": "string",
                     "example": "程序员"
-                },
-                "pid": {
-                    "description": "上级ID",
-                    "type": "integer",
-                    "example": 1
                 }
             }
         },
@@ -2667,11 +2873,6 @@
                     "description": "角色名",
                     "type": "string",
                     "example": "程序员"
-                },
-                "pid": {
-                    "description": "上级ID",
-                    "type": "integer",
-                    "example": 1
                 }
             }
         },
@@ -2765,6 +2966,7 @@
             "type": "object",
             "required": [
                 "address",
+                "balance",
                 "dai_charge",
                 "dai_url",
                 "day_total_count",
@@ -2775,13 +2977,12 @@
                 "more",
                 "order_charge",
                 "password",
-                "pid",
+                "pick_charge",
+                "re_password",
                 "real_name",
                 "remark",
                 "return_charge",
                 "return_url",
-                "roles",
-                "tel",
                 "user_less_time",
                 "user_name"
             ],
@@ -2790,6 +2991,11 @@
                     "description": "商户地址",
                     "type": "string",
                     "example": "test"
+                },
+                "balance": {
+                    "description": "余额",
+                    "type": "number",
+                    "example": 1
                 },
                 "dai_charge": {
                     "description": "代发手续费",
@@ -2871,10 +3077,20 @@
                     "type": "string",
                     "example": "test"
                 },
-                "pid": {
-                    "description": "所属组织ID",
+                "pick_charge": {
+                    "description": "提领手续费",
+                    "type": "number",
+                    "example": 1
+                },
+                "pick_type": {
+                    "description": "提领手续费类型 1：百分比 0：固定",
                     "type": "integer",
                     "example": 1
+                },
+                "re_password": {
+                    "description": "确认密码",
+                    "type": "string",
+                    "example": "admin"
                 },
                 "real_name": {
                     "description": "组织名称",
@@ -2901,36 +3117,20 @@
                     "type": "string",
                     "example": "test"
                 },
-                "roles": {
-                    "description": "所属角色",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    },
-                    "example": [
-                        1,
-                        2
-                    ]
-                },
-                "status": {
-                    "description": "状态 1：正常 0：禁用",
-                    "type": "integer",
-                    "example": 1
-                },
-                "tel": {
-                    "description": "电话号码",
-                    "type": "string",
-                    "example": "17585534067"
-                },
                 "user_less_time": {
                     "description": "订单无效时间",
                     "type": "integer",
                     "example": 1
                 },
                 "user_name": {
-                    "description": "账号",
+                    "description": "商户主账号",
                     "type": "string",
                     "example": "test"
+                },
+                "whitelist_ip": {
+                    "description": "IP白名单",
+                    "type": "string",
+                    "example": "多个地址之间用逗号隔开"
                 }
             }
         },
@@ -2938,6 +3138,7 @@
             "type": "object",
             "required": [
                 "address",
+                "balance",
                 "dai_charge",
                 "dai_url",
                 "day_total_count",
@@ -2947,15 +3148,12 @@
                 "min_order_count",
                 "more",
                 "order_charge",
-                "pid",
+                "pick_charge",
                 "real_name",
                 "remark",
                 "return_charge",
                 "return_url",
-                "roles",
-                "tel",
-                "user_less_time",
-                "user_name"
+                "user_less_time"
             ],
             "properties": {
                 "address": {
@@ -2963,9 +3161,10 @@
                     "type": "string",
                     "example": "test"
                 },
-                "code": {
-                    "description": "动态码",
-                    "type": "string"
+                "balance": {
+                    "description": "余额",
+                    "type": "number",
+                    "example": 1
                 },
                 "dai_charge": {
                     "description": "代发手续费",
@@ -3015,10 +3214,6 @@
                     "type": "integer",
                     "example": 1
                 },
-                "is_open": {
-                    "description": "是否开启双重验证 0：关闭 1：开启",
-                    "type": "integer"
-                },
                 "limit": {
                     "description": "结账限制",
                     "type": "number",
@@ -3049,13 +3244,13 @@
                     "type": "integer",
                     "example": 1
                 },
-                "password": {
-                    "description": "密码（非必填）",
-                    "type": "string",
-                    "example": "test"
+                "pick_charge": {
+                    "description": "提领手续费",
+                    "type": "number",
+                    "example": 1
                 },
-                "pid": {
-                    "description": "所属组织ID",
+                "pick_type": {
+                    "description": "提领手续费类型 1：百分比 0：固定",
                     "type": "integer",
                     "example": 1
                 },
@@ -3084,36 +3279,105 @@
                     "type": "string",
                     "example": "test"
                 },
-                "roles": {
-                    "description": "所属角色",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    },
-                    "example": [
-                        1,
-                        2
-                    ]
-                },
-                "status": {
-                    "description": "状态 1：正常 0：禁用",
-                    "type": "integer",
-                    "example": 1
-                },
-                "tel": {
-                    "description": "电话号码",
-                    "type": "string",
-                    "example": "17585534067"
-                },
                 "user_less_time": {
                     "description": "订单无效时间",
                     "type": "integer",
                     "example": 1
                 },
-                "user_name": {
-                    "description": "账号",
+                "whitelist_ip": {
+                    "description": "IP白名单",
                     "type": "string",
-                    "example": "test"
+                    "example": "多个地址之间用逗号隔开"
+                }
+            }
+        },
+        "response.Account": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "description": "Token",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AccountList": {
+            "type": "object",
+            "properties": {
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_login_time": {
+                    "description": "最后登录时间",
+                    "type": "integer"
+                },
+                "qr_code_url": {
+                    "description": "google 二维码地址",
+                    "type": "string"
+                },
+                "rid": {
+                    "description": "角色ID",
+                    "type": "integer"
+                },
+                "roles": {
+                    "description": "角色信息",
+                    "type": "object",
+                    "$ref": "#/definitions/response.CasRole"
+                },
+                "secret": {
+                    "description": "google密钥",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "用户状态",
+                    "type": "integer"
+                },
+                "token": {
+                    "description": "token",
+                    "type": "string"
+                },
+                "uid": {
+                    "description": "组织ID",
+                    "type": "integer"
+                },
+                "update_time": {
+                    "description": "更新时间",
+                    "type": "integer"
+                },
+                "user": {
+                    "description": "商户信息",
+                    "type": "object",
+                    "$ref": "#/definitions/response.User"
+                },
+                "user_name": {
+                    "description": "登录名",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AccountPage": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "每页显示多少条",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AccountList"
+                    }
+                },
+                "per_page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总共多少页",
+                    "type": "integer"
                 }
             }
         },
@@ -3208,28 +3472,86 @@
         "response.AdminUserList": {
             "type": "object",
             "properties": {
+                "account": {
+                    "description": "主账户",
+                    "type": "object",
+                    "$ref": "#/definitions/response.Account"
+                },
                 "address": {
                     "description": "商户地址",
                     "type": "string"
                 },
                 "balance": {
-                    "description": "账户余额",
+                    "description": "余额",
                     "type": "number"
                 },
-                "id": {
+                "dai_charge": {
+                    "description": "代发手续费",
+                    "type": "number"
+                },
+                "dai_type": {
+                    "description": "代发手续费类型 1：百分比 0：固定",
                     "type": "integer"
                 },
-                "last_login_time": {
-                    "description": "最后登录时间",
+                "dai_url": {
+                    "description": "代发URL",
                     "type": "string"
                 },
-                "order_charge": {
-                    "description": "提领fee",
+                "day_total_count": {
+                    "description": "每日交易总量",
                     "type": "number"
                 },
-                "qr_code_url": {
-                    "description": "google 二维码地址",
-                    "type": "string"
+                "examine": {
+                    "description": "代发审核",
+                    "type": "number"
+                },
+                "is_collection": {
+                    "description": "是否开启收款功能 1：是 0：否",
+                    "type": "integer"
+                },
+                "is_creation": {
+                    "description": "是否开启手动建单 1：是 0：否",
+                    "type": "integer"
+                },
+                "is_dai": {
+                    "description": "是否启用代发功能",
+                    "type": "integer"
+                },
+                "is_gas": {
+                    "description": "是否启用gas预估 1：是 0：否",
+                    "type": "integer"
+                },
+                "limit": {
+                    "description": "结账限制",
+                    "type": "number"
+                },
+                "max_order_count": {
+                    "description": "最大交易总量",
+                    "type": "number"
+                },
+                "min_order_count": {
+                    "description": "最小交易总量",
+                    "type": "number"
+                },
+                "more": {
+                    "description": "地址多单收款",
+                    "type": "integer"
+                },
+                "order_charge": {
+                    "description": "订单手续费",
+                    "type": "number"
+                },
+                "order_type": {
+                    "description": "订单手续费类型 1：百分比 0：固定",
+                    "type": "integer"
+                },
+                "pick_charge": {
+                    "description": "提领手续费",
+                    "type": "number"
+                },
+                "pick_type": {
+                    "description": "提领手续费类型 1：百分比 0：固定",
+                    "type": "integer"
                 },
                 "real_name": {
                     "description": "组织名称",
@@ -3240,30 +3562,27 @@
                     "type": "string"
                 },
                 "return_charge": {
-                    "description": "退款fee",
+                    "description": "退款手续费",
                     "type": "number"
                 },
-                "roles": {
-                    "description": "角色信息",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.CasRole"
-                    }
-                },
-                "secret": {
-                    "description": "google密钥",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "用户状态",
+                "return_type": {
+                    "description": "退款手续费类型 1：百分比 0：固定",
                     "type": "integer"
                 },
-                "tel": {
-                    "description": "手机号码",
+                "return_url": {
+                    "description": "回传URL",
                     "type": "string"
                 },
+                "user_less_time": {
+                    "description": "订单无效时间",
+                    "type": "integer"
+                },
                 "user_name": {
-                    "description": "登录名",
+                    "description": "主账号",
+                    "type": "string"
+                },
+                "whitelist_ip": {
+                    "description": "IP白名单",
                     "type": "string"
                 }
             }
@@ -3801,7 +4120,7 @@
                 },
                 "create_at": {
                     "description": "创建时间",
-                    "type": "integer"
+                    "type": "string"
                 },
                 "detailed_record_id": {
                     "description": "实收明细订单编号",
@@ -3813,7 +4132,7 @@
                 },
                 "finish_time": {
                     "description": "完成时间",
-                    "type": "integer"
+                    "type": "string"
                 },
                 "id": {
                     "description": "ID",
@@ -4118,6 +4437,19 @@
                 "total": {
                     "description": "总共多少页",
                     "type": "integer"
+                }
+            }
+        },
+        "response.User": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "组织ID",
+                    "type": "integer"
+                },
+                "real_name": {
+                    "description": "组织名称",
+                    "type": "string"
                 }
             }
         },

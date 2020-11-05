@@ -20,5 +20,5 @@ type RoleList struct {
 type Roles struct {
 	Id       int     `json:"id"`
 	Name     string  `json:"name"`      // 角色名
-	Children []Roles `json:"children"` // 下级角色
+	//Children []Roles `json:"children"` // 下级角色
 }

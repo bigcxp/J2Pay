@@ -1,5 +1,17 @@
 package hcommon
 
+//账户状态
+const (
+	Open = 1
+	Shut = 0
+)
+
+//是否开启google验证
+const (
+	Yes = 1
+	No  = 0
+)
+
 // 交易状态
 const (
 	TxStatusInit   = 0

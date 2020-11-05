@@ -52,7 +52,7 @@ func UpdatePassword(c *gin.Context) {
 		response.SetValidateError(err)
 		return
 	}
-	password, err1 := service.UpdatePassword(Id)
+	password, err1 := service.UpdatePassword(int64(Id))
 	if err1 != nil {
 		return
 	}

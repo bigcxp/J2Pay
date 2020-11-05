@@ -12,11 +12,10 @@ import (
 
 type Claims struct {
 	Username string             `json:"username"`
+	Secret   string             `json:"secret"`
 	Role     []response.CasRole `json:"role"`
 	Auth     []model.Auth       `json:"auth"`
-	Id       int                `json:"id"`
-	RealName string             `json:"real_name"`
-	Tel      string             `json:"tel"`
+	ID       int64              `json:"id"`
 	jwt.StandardClaims
 }
 
@@ -24,14 +23,13 @@ type Claims struct {
 var JwtKey = []byte(setting.JwtConf.Key)
 
 // 生成令牌
-func MakeToken(adminUser model.AdminUser) (string, error) {
+func MakeToken(account model.Account) (string, error) {
 	// 过期时间
 	expTime := time.Now().Add(time.Duration(setting.JwtConf.ExpTime) * time.Hour)
 	tokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
-		Username: adminUser.UserName,
-		Id:       adminUser.ID,
-		RealName: adminUser.RealName,
-		Tel:      adminUser.Tel,
+		Username: account.UserName,
+		ID:       account.ID,
+		Secret:   account.Secret,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expTime.Unix(),
 			Subject:   "j2pay-server",

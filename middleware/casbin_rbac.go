@@ -18,7 +18,7 @@ func Authentication() gin.HandlerFunc {
 			return
 		}
 		userInfo := user.(*util.Claims)
-		userIdStr := "user:" + strconv.Itoa(userInfo.Id)
+		userIdStr := "user:" + strconv.Itoa(int(userInfo.ID))
 		e, err := casbin.InitCasbin()
 		if err != nil {
 			logger.Logger.Panic("初始化 Casbin 出现错误：", err)

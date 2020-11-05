@@ -33,7 +33,8 @@ func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.Retu
 		return response.ReturnPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		user, _ := GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = user.RealName
 	}
 	return all, err
 }
@@ -58,7 +59,8 @@ func (r *Return) GetDetail(id ...int) (res response.ReturnList, err error) {
 		Where("id = ?", searchId).
 		First(&res).
 		Error
-	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
+	user, _ := GetUserByWhere("id = ?", res.UserId)
+	res.RealName = user.RealName
 	return
 }
 

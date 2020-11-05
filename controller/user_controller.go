@@ -17,7 +17,7 @@ func UserInfo(c *gin.Context) {
 	userInfo := user.(*util.Claims)
 	//创建map
 	res := make(map[string]interface{}, 2)
-	res["role"] = model.GetUserRole(userInfo.Id)
-	res["auth"] = model.GetUserAuth(userInfo.Id)
+	res["role"] = model.GetAccountRole(userInfo.ID)
+	res["auth"] = model.GetAccountAuth(userInfo.ID)
 	response.SuccessData(res)
 }

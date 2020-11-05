@@ -38,6 +38,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/index", controller.Index)
 	r.GET("/", controller.Indexs)
 	r.GET("adminUserIndex", controller.AdminUserIndex)
+	r.GET("accountIndex", controller.AccountIndex)
 	r.GET("/roleIndex", controller.IndexRole)
 	r.GET("/systemMessageIndex", controller.SystemMessageIndex)
 	r.GET("/systemIndex", controller.SystemIndex)
@@ -55,7 +56,6 @@ func InitRouter() *gin.Engine {
 	//提领,代发
 	r.POST("/merchantPick", controller.PickAdd)
 	r.POST("/merchantSend", controller.SendAdd)
-
 	//加入jwt中间件
 	r.Use(middleware.JWT())
 	//登录后能做的操作
@@ -78,9 +78,17 @@ func InitRouter() *gin.Engine {
 	r.GET("/userInfo", controller.UserInfo)
 	// 加入鉴权中间件
 	r.Use(middleware.Authentication())
-	// 用户
+	//账户
 	{
 		r.GET("/auth/role", controller.RoleTree)
+		r.GET("/accountList", controller.AccountList)
+		r.GET("/account/:id", controller.AccountDetail)
+		r.POST("/account", controller.Account)
+		r.PUT("/account/:id", controller.AccountEdit)
+		r.DELETE("/account/:id", controller.AccountDel)
+	}
+	// 组织
+	{
 		r.GET("/adminUser", controller.UserIndex)
 		r.GET("/adminUser/:id", controller.UserDetail)
 		r.POST("/adminUser", controller.UserAdd)
@@ -90,7 +98,6 @@ func InitRouter() *gin.Engine {
 
 	// 角色
 	{
-
 		r.GET("/auth/tree", controller.AuthTree)
 		r.GET("/auth/list", controller.AuthList)
 		r.GET("/role", controller.RoleIndex)

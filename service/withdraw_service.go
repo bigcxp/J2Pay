@@ -152,11 +152,11 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 	}
 	//逻辑处理 待完善 ==》判断金额 如果足够 进行交易，返回交易结果 账户减余额
 	//代发功能是否开启
-	if user := model.GetUserByWhere("id = ?", pick.UserId); user.IsDai == 0 {
+	if user,_ := model.GetUserByWhere("id = ?", pick.UserId); user.IsDai == 0 {
 		return myerr.NewDbValidateError("未开启代发功能"), response.PickAddr{}
 	}
 	// 1.判断转账金额是否足够
-	if user := model.GetUserByWhere("id = ?", pick.UserId); user.Balance < pick.Amount {
+	if user,_ := model.GetUserByWhere("id = ?", pick.UserId); user.Balance < pick.Amount {
 		return myerr.NewDbValidateError("余额不足"), response.PickAddr{}
 	}
 	//提领数量不能为负数
@@ -164,7 +164,7 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 		return myerr.NewDbValidateError("提领数量不能为负数"), response.PickAddr{}
 	}
 	//根据类型计算手续费
-	user := model.GetUserByWhere("id = ?", pick.UserId)
+	user ,_:= model.GetUserByWhere("id = ?", pick.UserId)
 	var fee float64
 	if user.OrderCharge != 0 && user.OrderType == 1 {
 		fee = pick.Amount * user.OrderCharge
@@ -270,11 +270,11 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 		return myerr.NewDbValidateError("商户订单编号重复"), response.PickAddr{}
 	}
 	// 判断转账金额是否足够
-	if user := model.GetUserByWhere("id = ?", send.UserId); user.Balance < send.Amount {
+	if user,_ := model.GetUserByWhere("id = ?", send.UserId); user.Balance < send.Amount {
 		return myerr.NewDbValidateError("余额不足"), response.PickAddr{}
 	}
 	//根据类型计算手续费
-	user := model.GetUserByWhere("id = ?", send.UserId)
+	user,_ := model.GetUserByWhere("id = ?", send.UserId)
 	var fee float64
 	if user.OrderCharge != 0 && user.OrderType == 1 {
 		fee = send.Amount * user.OrderCharge

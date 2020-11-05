@@ -7,8 +7,7 @@ import (
 )
 
 type Role struct {
-	Id   int
-	Pid  int    `gorm:"default:0;comment:'上级ID'"`
+	ID   int
 	Name string `gorm:"unique;default:'';comment:'角色名'"`
 	Auth string `gorm:"type:text;comment:'权限ID'"`
 }
@@ -23,9 +22,7 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 	}
 	offset := GetOffset(page, pageSize)
 	scope := Getdb().Table("role").
-		Select([]string{"role.id", "role.pid", "role.name", "p_role.name as parent_name"}).
-		Joins("left join role as p_role on role.pid = p_role.id").
-		Order("role.id desc")
+		Select([]string{"role.id", "role.name"}).Order("role.id desc")
 	err := scope.Offset(offset).Limit(pageSize).Find(&all.Data).Error
 	return all, err
 }
@@ -33,25 +30,21 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 func GetAllRole() (mapping map[int]response.CasRole) {
 	var roles []response.CasRole
 	mapping = make(map[int]response.CasRole)
-	Getdb().Table("role").Select("id,name").Order("id desc").Find(&roles)
+	Getdb().Table("role").Select("id,name").Order("id asc").Find(&roles)
 	for _, role := range roles {
-		mapping[role.Id] = role
+		mapping[role.ID] = role
 	}
 	return
 }
 
 // 获取角色详情
 func (r *Role) Detail(id ...int) (res response.RoleList, err error) {
-	searchId := r.Id
+	searchId := r.ID
 	if len(id) > 0 {
 		searchId = id[0]
 	}
 	err = Getdb().Table("role").
-		Select([]string{"role.id", "role.pid", "role.name", "p_role.name as parent_name", "role.auth as auths"}).
-		Joins("left join role as p_role on role.pid = p_role.id").
-		Where("role.id = ?", searchId).
-		First(&res).
-		Error
+		Select([]string{"role.id", "role.name", "role.auth as auths"}).Where("role.id = ?", searchId).First(&res).Error
 	return
 }
 
@@ -71,7 +64,7 @@ func (r *Role) Create(all []Auth) error {
 		}
 		if err := tx.Create(&CasbinRule{
 			PType: "p",
-			V0:    "role:" + strconv.Itoa(r.Id),
+			V0:    "role:" + strconv.Itoa(r.ID),
 			V1:    v.Api,
 			V2:    v.Action,
 		}).Error; err != nil {
@@ -89,10 +82,9 @@ func (r *Role) Edit(all []Auth) error {
 	tx := Getdb().Begin()
 
 	// 1.更新角色表
-	if err := tx.Model(&Role{Id: r.Id}).
+	if err := tx.Model(&Role{ID: r.ID}).
 		Updates(map[string]interface{}{
 			"name": r.Name,
-			"pid":  r.Pid,
 			"auth": r.Auth,
 		}).Error;
 		err != nil {
@@ -101,7 +93,7 @@ func (r *Role) Edit(all []Auth) error {
 	}
 
 	// 2.删除casbin表
-	if err := tx.Delete(CasbinRule{}, "p_type = 'p' and v0 = ?", "role:"+strconv.Itoa(r.Id)).Error; err != nil {
+	if err := tx.Delete(CasbinRule{}, "p_type = 'p' and v0 = ?", "role:"+strconv.Itoa(r.ID)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -113,7 +105,7 @@ func (r *Role) Edit(all []Auth) error {
 		}
 		if err := tx.Create(&CasbinRule{
 			PType: "p",
-			V0:    "role:" + strconv.Itoa(r.Id),
+			V0:    "role:" + strconv.Itoa(r.ID),
 			V1:    v.Api,
 			V2:    v.Action,
 		}).Error; err != nil {
@@ -131,12 +123,12 @@ func (r *Role) Del() error {
 	tx := Getdb().Begin()
 
 	// 1.删除角色表
-	if err := tx.Where("id = ?", r.Id).Delete(r).Error; err != nil {
+	if err := tx.Where("id = ?", r.ID).Delete(r).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	// 2.删除casbin表
-	key := "role:" + strconv.Itoa(r.Id)
+	key := "role:" + strconv.Itoa(r.ID)
 	if err := tx.Where("p_type = 'g' and (v0 = ? or v1 = ?)", key, key).Delete(CasbinRule{}).Error; err != nil {
 		tx.Rollback()
 		return err

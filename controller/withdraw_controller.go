@@ -234,7 +234,7 @@ func PickEdit(c *gin.Context) {
 func PickNotify(c *gin.Context)  {
 	response := util.Response{c}
 	token := c.Query("token")
-	adminUser := model.GetUserByWhere("token =?", token)
+	adminUser ,_:= model.GetUserByWhere("token =?", token)
 	c.Redirect(302, adminUser.DaiUrl)
 	c.Abort()
 	response.SuccessMsg("成功")

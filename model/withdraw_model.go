@@ -40,7 +40,8 @@ func (p *TWithdraw) GetAllPick(page, pageSize int, where ...interface{}) (respon
 		return response.PickUpPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		user, _ := GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = user.RealName
 	}
 
 	return all, err
@@ -61,7 +62,8 @@ func (p *TWithdraw) GetAllSend(page, pageSize int, where ...interface{}) (respon
 		return response.SendPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		user, _ := GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = user.RealName
 		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
 	}
 
@@ -86,7 +88,8 @@ func (p *TWithdraw) GetAll(page, pageSize int, where ...interface{}) (response.M
 		return response.MerchantPickSendPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		user, _ := GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = user.RealName
 		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
 		all.Data[index].GasFee = GetGasFeeDetail().EthFee
 	}
@@ -109,7 +112,8 @@ func (p *TWithdraw) GetPickDetail(id ...int) (res response.PickList, err error) 
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
-	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
+	user, _ := GetUserByWhere("id = ?", res.UserId)
+	res.RealName = user.RealName
 	return
 }
 
@@ -119,7 +123,8 @@ func (p *TWithdraw) GetSendDetail(id ...int) (res response.SendList, err error) 
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
-	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
+	user, _ := GetUserByWhere("id = ?", res.UserId)
+	res.RealName = user.RealName
 	res.DelMoney = res.Amount + res.Fee
 	return
 }
@@ -131,7 +136,8 @@ func (p *TWithdraw) GetPickSendDetail(id ...int) (res response.MerchantPickList,
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
-	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
+	user, _ := GetUserByWhere("id = ?", res.UserId)
+	res.RealName = user.RealName
 	res.DelMoney = res.Amount + res.Fee
 	//gasFee 待完成·
 	return

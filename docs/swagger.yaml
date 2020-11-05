@@ -1,4 +1,50 @@
 definitions:
+  request.AccountAdd:
+    properties:
+      password:
+        description: 密码
+        example: test
+        type: string
+      re_password:
+        description: 确认密码
+        example: admin
+        type: string
+      rid:
+        description: 所属角色
+        example: 1
+        type: integer
+      uid:
+        description: 所属组织名称
+        example: 1
+        type: integer
+      user_name:
+        description: 使用者名称
+        example: test
+        type: string
+    required:
+    - password
+    - re_password
+    - user_name
+    type: object
+  request.AccountEdit:
+    properties:
+      id:
+        type: integer
+      is_open:
+        description: 是否开启双重验证 0：关闭 1：开启
+        type: integer
+      rid:
+        example: 1
+        type: integer
+      status:
+        description: 是否启用 0：关闭 1：开启
+        type: integer
+      token:
+        description: token
+        type: string
+    required:
+    - rid
+    type: object
   request.AddressAdd:
     properties:
       handle_status:
@@ -57,22 +103,28 @@ definitions:
     properties:
       amount:
         description: 金额
+        example: 1
         type: number
       charge_address:
         description: 收款地址
-        type: string
-      create_at:
-        description: 时间
+        example: test
         type: string
       from_address:
         description: 发款地址
+        example: test
         type: string
       id_code:
         description: 系统编号
+        example: test
         type: string
       txid:
         description: 交易hash
         type: string
+    required:
+    - amount
+    - charge_address
+    - from_address
+    - id_code
     type: object
   request.DetailedEdit:
     properties:
@@ -84,7 +136,10 @@ definitions:
         type: integer
       order_code:
         description: 商户订单编号
+        example: test
         type: string
+    required:
+    - order_code
     type: object
   request.FeeEdit:
     properties:
@@ -97,6 +152,9 @@ definitions:
     type: object
   request.Google:
     properties:
+      code:
+        description: 动态码
+        type: string
       google_code:
         description: google验证码
         example: "852079"
@@ -130,14 +188,14 @@ definitions:
     type: object
   request.MessageAdd:
     properties:
-      beginTime:
+      begin_time:
         description: 开始时间
-        example: "2020-09-15T14:41:46+08:00"
-        type: string
-      endTime:
+        example: 12431421234
+        type: integer
+      end_time:
         description: 结束时间
-        example: "2020-09-23T14:41:50+08:00"
-        type: string
+        example: 124124124
+        type: integer
       title:
         description: 系统公告
         example: 这是一个系统公告
@@ -156,21 +214,21 @@ definitions:
           type: integer
         type: array
     required:
-    - beginTime
-    - endTime
+    - begin_time
+    - end_time
     - title
     - users
     type: object
   request.MessageEdit:
     properties:
-      beginTime:
+      begin_time:
         description: 开始时间
-        example: "2020-09-15T14:41:46+08:00"
-        type: string
-      endTime:
+        example: 12431421234
+        type: integer
+      end_time:
         description: 结束时间
-        example: "2020-09-23T14:41:50+08:00"
-        type: string
+        example: 124124124
+        type: integer
       id:
         type: integer
       title:
@@ -191,8 +249,8 @@ definitions:
           type: integer
         type: array
     required:
-    - beginTime
-    - endTime
+    - begin_time
+    - end_time
     - title
     - users
     type: object
@@ -226,7 +284,7 @@ definitions:
         description: 换算汇率
         example: RMB
         type: string
-      orderCode:
+      order_code:
         description: 商户订单编号
         example: asfasgdsasfgas
         type: string
@@ -244,7 +302,7 @@ definitions:
         type: integer
     required:
     - amount
-    - orderCode
+    - order_code
     - uts
     type: object
   request.OrderEdit:
@@ -276,9 +334,6 @@ definitions:
         description: 交易确认数
         example: 12
         type: integer
-      create_at:
-        description: 更新时间
-        type: string
       gas_limit:
         description: gas Limit
         example: 1
@@ -361,7 +416,7 @@ definitions:
         description: 实收金额
         example: 1
         type: number
-      orderCode:
+      order_code:
         description: 商户订单编号
         example: asfasgdsasfgas
         type: string
@@ -371,7 +426,7 @@ definitions:
         type: integer
     required:
     - amount
-    - orderCode
+    - order_code
     - user_id
     type: object
   request.RoleAdd:
@@ -404,10 +459,6 @@ definitions:
         description: 角色名
         example: 程序员
         type: string
-      pid:
-        description: 上级ID
-        example: 1
-        type: integer
     required:
     - auth
     - name
@@ -444,10 +495,6 @@ definitions:
         description: 角色名
         example: 程序员
         type: string
-      pid:
-        description: 上级ID
-        example: 1
-        type: integer
     required:
     - auth
     - name
@@ -523,6 +570,10 @@ definitions:
         description: 商户地址
         example: test
         type: string
+      balance:
+        description: 余额
+        example: 1
+        type: number
       dai_charge:
         description: 代发手续费
         example: 1
@@ -587,10 +638,18 @@ definitions:
         description: 密码
         example: test
         type: string
-      pid:
-        description: 所属组织ID
+      pick_charge:
+        description: 提领手续费
+        example: 1
+        type: number
+      pick_type:
+        description: 提领手续费类型 1：百分比 0：固定
         example: 1
         type: integer
+      re_password:
+        description: 确认密码
+        example: admin
+        type: string
       real_name:
         description: 组织名称
         example: test
@@ -611,32 +670,21 @@ definitions:
         description: 回传URL
         example: test
         type: string
-      roles:
-        description: 所属角色
-        example:
-        - 1
-        - 2
-        items:
-          type: integer
-        type: array
-      status:
-        description: 状态 1：正常 0：禁用
-        example: 1
-        type: integer
-      tel:
-        description: 电话号码
-        example: "17585534067"
-        type: string
       user_less_time:
         description: 订单无效时间
         example: 1
         type: integer
       user_name:
-        description: 账号
+        description: 商户主账号
         example: test
+        type: string
+      whitelist_ip:
+        description: IP白名单
+        example: 多个地址之间用逗号隔开
         type: string
     required:
     - address
+    - balance
     - dai_charge
     - dai_url
     - day_total_count
@@ -647,13 +695,12 @@ definitions:
     - more
     - order_charge
     - password
-    - pid
+    - pick_charge
+    - re_password
     - real_name
     - remark
     - return_charge
     - return_url
-    - roles
-    - tel
     - user_less_time
     - user_name
     type: object
@@ -663,9 +710,10 @@ definitions:
         description: 商户地址
         example: test
         type: string
-      code:
-        description: 动态码
-        type: string
+      balance:
+        description: 余额
+        example: 1
+        type: number
       dai_charge:
         description: 代发手续费
         example: 1
@@ -704,9 +752,6 @@ definitions:
         description: 是否启用gas预估 1：是 0：否
         example: 1
         type: integer
-      is_open:
-        description: 是否开启双重验证 0：关闭 1：开启
-        type: integer
       limit:
         description: 结账限制
         example: 1
@@ -731,12 +776,12 @@ definitions:
         description: 订单手续费类型 1：百分比 0：固定
         example: 1
         type: integer
-      password:
-        description: 密码（非必填）
-        example: test
-        type: string
-      pid:
-        description: 所属组织ID
+      pick_charge:
+        description: 提领手续费
+        example: 1
+        type: number
+      pick_type:
+        description: 提领手续费类型 1：百分比 0：固定
         example: 1
         type: integer
       real_name:
@@ -759,32 +804,17 @@ definitions:
         description: 回传URL
         example: test
         type: string
-      roles:
-        description: 所属角色
-        example:
-        - 1
-        - 2
-        items:
-          type: integer
-        type: array
-      status:
-        description: 状态 1：正常 0：禁用
-        example: 1
-        type: integer
-      tel:
-        description: 电话号码
-        example: "17585534067"
-        type: string
       user_less_time:
         description: 订单无效时间
         example: 1
         type: integer
-      user_name:
-        description: 账号
-        example: test
+      whitelist_ip:
+        description: IP白名单
+        example: 多个地址之间用逗号隔开
         type: string
     required:
     - address
+    - balance
     - dai_charge
     - dai_url
     - day_total_count
@@ -794,15 +824,77 @@ definitions:
     - min_order_count
     - more
     - order_charge
-    - pid
+    - pick_charge
     - real_name
     - remark
     - return_charge
     - return_url
-    - roles
-    - tel
     - user_less_time
-    - user_name
+    type: object
+  response.Account:
+    properties:
+      token:
+        description: Token
+        type: string
+    type: object
+  response.AccountList:
+    properties:
+      create_time:
+        description: 创建时间
+        type: integer
+      id:
+        type: integer
+      last_login_time:
+        description: 最后登录时间
+        type: integer
+      qr_code_url:
+        description: google 二维码地址
+        type: string
+      rid:
+        description: 角色ID
+        type: integer
+      roles:
+        $ref: '#/definitions/response.CasRole'
+        description: 角色信息
+        type: object
+      secret:
+        description: google密钥
+        type: string
+      status:
+        description: 用户状态
+        type: integer
+      token:
+        description: token
+        type: string
+      uid:
+        description: 组织ID
+        type: integer
+      update_time:
+        description: 更新时间
+        type: integer
+      user:
+        $ref: '#/definitions/response.User'
+        description: 商户信息
+        type: object
+      user_name:
+        description: 登录名
+        type: string
+    type: object
+  response.AccountPage:
+    properties:
+      current_page:
+        description: 每页显示多少条
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.AccountList'
+        type: array
+      per_page:
+        description: 当前页码
+        type: integer
+      total:
+        description: 总共多少页
+        type: integer
     type: object
   response.Address:
     properties:
@@ -869,23 +961,67 @@ definitions:
     type: object
   response.AdminUserList:
     properties:
+      account:
+        $ref: '#/definitions/response.Account'
+        description: 主账户
+        type: object
       address:
         description: 商户地址
         type: string
       balance:
-        description: 账户余额
+        description: 余额
         type: number
-      id:
+      dai_charge:
+        description: 代发手续费
+        type: number
+      dai_type:
+        description: 代发手续费类型 1：百分比 0：固定
         type: integer
-      last_login_time:
-        description: 最后登录时间
+      dai_url:
+        description: 代发URL
         type: string
-      order_charge:
-        description: 提领fee
+      day_total_count:
+        description: 每日交易总量
         type: number
-      qr_code_url:
-        description: google 二维码地址
-        type: string
+      examine:
+        description: 代发审核
+        type: number
+      is_collection:
+        description: 是否开启收款功能 1：是 0：否
+        type: integer
+      is_creation:
+        description: 是否开启手动建单 1：是 0：否
+        type: integer
+      is_dai:
+        description: 是否启用代发功能
+        type: integer
+      is_gas:
+        description: 是否启用gas预估 1：是 0：否
+        type: integer
+      limit:
+        description: 结账限制
+        type: number
+      max_order_count:
+        description: 最大交易总量
+        type: number
+      min_order_count:
+        description: 最小交易总量
+        type: number
+      more:
+        description: 地址多单收款
+        type: integer
+      order_charge:
+        description: 订单手续费
+        type: number
+      order_type:
+        description: 订单手续费类型 1：百分比 0：固定
+        type: integer
+      pick_charge:
+        description: 提领手续费
+        type: number
+      pick_type:
+        description: 提领手续费类型 1：百分比 0：固定
+        type: integer
       real_name:
         description: 组织名称
         type: string
@@ -893,24 +1029,22 @@ definitions:
         description: 备注
         type: string
       return_charge:
-        description: 退款fee
+        description: 退款手续费
         type: number
-      roles:
-        description: 角色信息
-        items:
-          $ref: '#/definitions/response.CasRole'
-        type: array
-      secret:
-        description: google密钥
-        type: string
-      status:
-        description: 用户状态
+      return_type:
+        description: 退款手续费类型 1：百分比 0：固定
         type: integer
-      tel:
-        description: 手机号码
+      return_url:
+        description: 回传URL
         type: string
+      user_less_time:
+        description: 订单无效时间
+        type: integer
       user_name:
-        description: 登录名
+        description: 主账号
+        type: string
+      whitelist_ip:
+        description: IP白名单
         type: string
     type: object
   response.AdminUserMessageList:
@@ -1296,7 +1430,7 @@ definitions:
         type: number
       create_at:
         description: 创建时间
-        type: integer
+        type: string
       detailed_record_id:
         description: 实收明细订单编号
         type: number
@@ -1305,7 +1439,7 @@ definitions:
         type: number
       finish_time:
         description: 完成时间
-        type: integer
+        type: string
       id:
         description: ID
         type: integer
@@ -1526,6 +1660,15 @@ definitions:
         description: 总共多少页
         type: integer
     type: object
+  response.User:
+    properties:
+      id:
+        description: 组织ID
+        type: integer
+      real_name:
+        description: 组织名称
+        type: string
+    type: object
   response.UserNames:
     properties:
       id:
@@ -1547,6 +1690,100 @@ paths:
       summary: 系统首页
       tags:
       - 管理员首页
+  /account:
+    post:
+      parameters:
+      - description: 账户
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AccountAdd'
+      produces:
+      - application/json
+      summary: 添加账户
+      tags:
+      - 账户管理
+  /account/{id}:
+    delete:
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      summary: 删除账户
+      tags:
+      - 账户管理
+    get:
+      parameters:
+      - description: 账户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AccountList'
+      summary: 获取账户详情
+      tags:
+      - 账户管理
+    put:
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 账户
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AccountEdit'
+      produces:
+      - application/json
+      summary: 编辑账户
+      tags:
+      - 账户管理
+  /accountIndex:
+    get:
+      produces:
+      - application/json
+      summary: 账户管理
+      tags:
+      - 账户管理
+  /accountList:
+    get:
+      parameters:
+      - description: 账户名称
+        in: query
+        name: username
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页显示多少条
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AccountPage'
+      summary: 获取账户列表
+      tags:
+      - 账户管理
   /addrDel:
     delete:
       parameters:
@@ -1635,10 +1872,6 @@ paths:
   /adminUser:
     get:
       parameters:
-      - description: 默认0：查商户列表，1:查商户账户列表
-        in: query
-        name: Pid
-        type: integer
       - description: 页码
         in: query
         name: page
@@ -1654,9 +1887,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.AdminUserPage'
-      summary: 获取账户列表
+      summary: 获取组织列表
       tags:
-      - 账户管理
+      - 组织管理
     post:
       parameters:
       - description: 用户
@@ -1667,9 +1900,9 @@ paths:
           $ref: '#/definitions/request.UserAdd'
       produces:
       - application/json
-      summary: 添加账户
+      summary: 添加组织
       tags:
-      - 账户管理
+      - 组织管理
   /adminUser/{id}:
     delete:
       parameters:
@@ -1680,9 +1913,9 @@ paths:
         type: integer
       produces:
       - application/json
-      summary: 删除账户
+      summary: 删除组织
       tags:
-      - 账户管理
+      - 组织管理
     get:
       parameters:
       - description: 用户ID
@@ -1697,9 +1930,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.AdminUserList'
-      summary: 获取账户详情
+      summary: 获取组织详情
       tags:
-      - 账户管理
+      - 组织管理
     put:
       parameters:
       - description: 用户ID
@@ -1715,16 +1948,16 @@ paths:
           $ref: '#/definitions/request.UserEdit'
       produces:
       - application/json
-      summary: 编辑账户
+      summary: 编辑组织
       tags:
-      - 账户管理
+      - 组织管理
   /adminUserIndex:
     get:
       produces:
       - application/json
-      summary: 账户管理
+      summary: 组织管理
       tags:
-      - 账户管理
+      - 组织管理
   /auth/list:
     get:
       produces:

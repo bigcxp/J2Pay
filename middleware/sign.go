@@ -43,8 +43,8 @@ func verifySign(c *gin.Context) (map[string]string, error) {
 	sn    := strings.Join(c.Request.Form["sn"], "")
 	ts    := strings.Join(c.Request.Form["ts"], "")
 	// 验证来源
-	user := model.GetUserByWhere("real_name = ? and password = ?", ak, ts)
-	AppSecret =user.Password
+	user,_:= model.GetUserByWhere("real_name = ? and password = ?", ak, ts)
+	AppSecret =user.UserName
 	if debug == "1" {
 		currentUnix := timeUtil.GetCurrentUnix()
 		req.Set("ts", strconv.FormatInt(currentUnix, 10))

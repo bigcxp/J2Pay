@@ -1,40 +1,25 @@
 package request
 
-type LoginUser struct {
-	Username   string `json:"username" binding:"required,max=255" example:"admin"` // 用户名
-	Password   string `json:"password" binding:"required,max=255" example:"admin"` // 密码
-	GoogleCode string `json:"google_code" example:"952721"`                        // google 动态验证码
-}
-
+//新增组织
 type UserAdd struct {
+	UserName   string `json:"user_name" binding:"required,max=255" example:"test" form:"user_name"`      // 商户主账号
+	Password   string `json:"password" binding:"required,max=255" example:"test" form:"password"`        // 密码
+	RePassword string `json:"re_password" binding:"required,max=255" example:"admin" form:"re_password"` // 确认密码
 	CommonUser
-	Password string `json:"password" binding:"required,max=255" example:"test" form:"password"` // 密码
-
 }
 
+//编辑组织
 type UserEdit struct {
-	ID     int    `json:"id" form:"id"`
-	IsOpen int    `json:"is_open" form:"is_open" ` //是否开启双重验证 0：关闭 1：开启
-	Code   string `json:"code" form:"code"`        //动态码
+	ID int64 `json:"id" form:"id"`
 	CommonUser
-	Password string `json:"password" example:"test" form:"password"` // 密码（非必填）
-
 }
 
-type Google struct {
-	ID         int    `json:"id" form:"id"`
-	IsOpen     int    `json:"is_open" binding:"oneof=0 1" example:"1" form:"is_open"`                     //是否开启google双重验证 默认0：不开启 1：开启
-	GoogleCode string `json:"google_code" binding:"required,max=255" example:"852079" form:"google_code"` //google验证码
-}
-
+//组织
 type CommonUser struct {
-	UserName      string  `json:"user_name" binding:"required,max=255" example:"test" form:"user_name"`       // 账号
 	RealName      string  `json:"real_name" binding:"required,max=255" example:"test" form:"real_name"`       // 组织名称
-	Pid           int     `json:"pid" form:"pid" binding:"required,max=11" example:"1"`                       // 所属组织ID
-	Status        int8    `json:"status" form:"status" binding:"oneof=0 1" example:"1"`                       // 状态 1：正常 0：禁用
-	WhitelistIP   string  `json:"whitelist_ip" binding:"" example:"多个地址之间用逗号隔开" form:"whitelist_ip"`   //IP白名单
-	Tel           string  `json:"tel" binding:"required,max=12" example:"17585534067" form:"tel"`             // 电话号码
+	WhitelistIP   string  `json:"whitelist_ip" binding:"" example:"多个地址之间用逗号隔开" form:"whitelist_ip"`          //IP白名单
 	Address       string  `json:"address" binding:"required,max=255" example:"test" form:"address"`           // 商户地址
+	Balance       float64 `json:"balance" binding:"required" example:"1" form:"balance"`                      //余额
 	ReturnUrl     string  `json:"return_url" binding:"required,max=255" example:"test" form:"return_url"`     // 回传URL
 	DaiUrl        string  `json:"dai_url" binding:"required,max=255" example:"test" form:"dai_url"`           // 代发URL
 	Remark        string  `json:"remark" binding:"required,max=255" example:"test" form:"remark"`             // 备注
@@ -57,5 +42,4 @@ type CommonUser struct {
 	MinOrderCount float64 `json:"min_order_count" form:"min_order_count" binding:"required" example:"1"`      //最小交易总量
 	Limit         float64 `json:"limit" form:"limit" binding:"required" example:"1"`                          //结账限制
 	UserLessTime  int64   `json:"user_less_time" form:"user_less_time" binding:"required,max=11" example:"1"` //订单无效时间
-	Roles         []int   `json:"roles" form:"roles" binding:"required,min=1" example:"1,2"`                  // 所属角色
 }

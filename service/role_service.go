@@ -19,7 +19,7 @@ func RoleList(page, pageSize int) (response.RolePage, error) {
 
 // 角色详情
 func RoleDetail(id int) (response.RoleList, error) {
-	role := model.Role{Id: id}
+	role := model.Role{ID: id}
 	res, err := role.Detail()
 	if err != nil {
 		return res, err
@@ -39,27 +39,15 @@ func RoleDetail(id int) (response.RoleList, error) {
 // 添加角色
 func RoleAdd(role request.RoleAdd) error {
 	defer casbin.ClearEnforcer()
-	Pid:= role.Pid
 	r := model.Role{
-		Pid:  Pid,
 		Name: role.Name,
 	}
-	if r.Pid > 0 {
-		_, err := r.Detail(r.Pid)
-		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return myerr.NewDbValidateError("所选上级不存在")
-			}
-			return err
-		}
-	}
-
 	// 判断是否有重复的角色名
 	hasRole, err := model.GetRoleByWhere("name = ?", r.Name)
 	if err != nil && !gorm.IsRecordNotFoundError(err) {
 		return err
 	}
-	if hasRole.Id > 0 {
+	if hasRole.ID > 0 {
 		return myerr.NewDbValidateError("角色名已存在")
 	}
 
@@ -78,31 +66,16 @@ func RoleAdd(role request.RoleAdd) error {
 // 编辑角色
 func RoleEdit(role request.RoleEdit) error {
 	defer casbin.ClearEnforcer()
-	Pid:= role.Pid
 	r := model.Role{
-		Id:   role.ID,
-		Pid:  Pid,
+		ID:   role.ID,
 		Name: role.Name,
 	}
-	if r.Id == r.Pid {
-		return myerr.NewNormalValidateError("所属上级和自己一致，数据异常")
-	}
-	if Pid > 0 {
-		_, err := r.Detail(r.Pid)
-		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return myerr.NewDbValidateError("所选上级不存在")
-			}
-			return err
-		}
-	}
-
 	// 判断是否有重复的角色名
-	hasRole, err := model.GetRoleByWhere("name = ? and id <> ?", r.Name, r.Id)
+	hasRole, err := model.GetRoleByWhere("name = ? and id <> ?", r.Name, r.ID)
 	if err != nil && !gorm.IsRecordNotFoundError(err) {
 		return err
 	}
-	if hasRole.Id > 0 {
+	if hasRole.ID > 0 {
 		return myerr.NewDbValidateError("角色名已存在")
 	}
 
@@ -121,7 +94,7 @@ func RoleEdit(role request.RoleEdit) error {
 // 删除角色
 func RoleDel(id int) error {
 	defer casbin.ClearEnforcer()
-	role := model.Role{Id: id}
+	role := model.Role{ID: id}
 
 	// 查看用户是否使用该角色
 	key := "role:" + strconv.Itoa(id)
@@ -138,17 +111,10 @@ func RoleDel(id int) error {
 }
 
 // 获取角色树
-func RoleTree(self, pid int) (res []response.Roles, err error) {
-	if self > 0 {
-		res, err = model.GetRoleTreeByWhere("id <> ? and pid = ?", self, pid)
-	} else {
-		res, err = model.GetRoleTreeByWhere("pid = ?", pid)
-	}
+func RoleTree(self int) (res []response.Roles, err error) {
+	res, err = model.GetRoleTreeByWhere("id <> ?", self)
 	if err != nil {
 		return
-	}
-	for i, v := range res {
-		res[i].Children, err = RoleTree(self, v.Id)
 	}
 	return
 }

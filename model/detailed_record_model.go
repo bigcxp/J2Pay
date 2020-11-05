@@ -39,7 +39,8 @@ func (d *DetailedRecord) GetAll(page, pageSize int, where ...interface{}) (respo
 		//如果没绑定 则没有组织和商户订单号
 		if v.Status == 2 {
 			all.Data[index].OrderCode = GetOrderByWhere("id = ?", v.OrderId).OrderCode
-			all.Data[index].RealName = GetUserByWhere("id =?", v.UserId).RealName
+			user, _ := GetUserByWhere("id =?", v.UserId)
+			all.Data[index].RealName = user.RealName
 		}
 
 	}
@@ -71,7 +72,7 @@ func (d *DetailedRecord) GetDetail(id ...int) (res response.DetailedList, err er
 	if d.Status == 2 {
 		order := GetOrderByWhere("id = ?", d.IdCode)
 		res.OrderCode = order.OrderCode
-		user := GetUserByWhere("id = ?", d.UserId)
+		user,_ := GetUserByWhere("id = ?", d.UserId)
 		res.RealName = user.RealName
 	}
 	return

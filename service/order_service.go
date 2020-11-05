@@ -82,7 +82,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 		}
 		userInfo := user.(*util.Claims)
 		//获取用户
-		user1 := model.GetUserByWhere("id = ?", userInfo.Id)
+		user1 ,_:= model.GetUserByWhere("id = ?", userInfo.Id)
 		//用户是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}
@@ -100,7 +100,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			fee = user1.OrderCharge
 		}
 		//检测当前用户的收钱地址是否满足 随机查询一个状态为已完成的地址
-		address, err := model.GetAddress(userInfo.Id)
+		address, err := model.GetAddress(int(userInfo.ID))
 		if err != nil {
 			return myerr.NewNormalValidateError("用户收款地址不足"), response.UserAddr{}
 		}
@@ -110,7 +110,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			Amount:      amount,
 			Address:     address.UserAddress,
 			Fee:         fee,
-			UserId:      userInfo.Id,
+			UserId:      int(userInfo.ID),
 			CreateTime:  order.Uts,
 			ExprireTime: order.Uts + user1.UserLessTime,
 			Remark:      order.Remark,
@@ -127,7 +127,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 		//管理员添加订单
 	} else {
 		//获取用户
-		user1 := model.GetUserByWhere("id = ?", order.UserId)
+		user1 ,_:= model.GetUserByWhere("id = ?", order.UserId)
 		//用户是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}

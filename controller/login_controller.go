@@ -39,7 +39,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	//更新用户最后登录时间 并更新用户的GooGle验证码路径
-	service.EditToken(user.Username)
+	service.EditToken(user.Username,token)
 	c.SetCookie(middleware.JwtName, token, setting.JwtConf.ExpTime*3600, "/", setting.ApplicationConf.Domain, false, true)
 	response.SuccessData(token)
 }

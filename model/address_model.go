@@ -36,7 +36,8 @@ func (a *Address) GetAllAddress(page, pageSize int, where ...interface{}) (respo
 		return response.AddressPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		user, _ := GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = user.RealName
 	}
 	return all, err
 }

@@ -58,7 +58,7 @@ func CreateHotTx(hot request.HotTxAdd) error {
 	//获取eth钱包地址
 	hotAddress := model.GetAddressByWhere("handle_status = ? and use_tag = ?", 1, -1)
 	//获取商户钱包地址 商户充币地址归集到主钱包
-	adminUser := model.GetUserByWhere("id = ?", hotAddress.UseTag)
+	adminUser,_ := model.GetUserByWhere("id = ?", hotAddress.UseTag)
 	//获取手续费 先检测gaslimit
 	heth.CheckGasPrice()
 	//获取gasPrice

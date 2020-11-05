@@ -47,7 +47,8 @@ func (o *Order) GetAllMerchantOrder(page, pageSize int, where ...interface{}) (r
 		return response.OrderPage{}, err
 	}
 	for index, v := range all.Data {
-		all.Data[index].RealName = GetUserByWhere("id = ?", v.UserId).RealName
+		user, _ := GetUserByWhere("id = ?", v.UserId)
+		all.Data[index].RealName = user.RealName
 		detailedRecord := GetDetailByWhere("order_id = ?", v.ID)
 		if detailedRecord.OrderId != 0 {
 			all.Data[index].ReceiptAmount = detailedRecord.Amount
@@ -79,7 +80,8 @@ func (o *Order) GetDetail(id ...int) (res response.RealOrderList, err error) {
 		Where("id = ?", searchId).
 		First(&res).
 		Error
-	res.RealName = GetUserByWhere("id = ?", res.UserId).RealName
+	user, _ := GetUserByWhere("id = ?", res.UserId)
+	res.RealName = user.RealName
 	detailedRecord := GetDetailByWhere("order_id = ?", res.ID)
 	res.ReceiptAmount = detailedRecord.Amount
 	res.TXID = detailedRecord.TXID
