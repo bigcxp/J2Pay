@@ -23,7 +23,7 @@ type Account struct {
 	LastLoginTime int64  `gorm:"type:timestamp;comment:'最后登录时间';"`
 	CreateTime    int64  `gorm:"default:0;comment:'创建时间'";json:"create_time"`
 	UpdateTime    int64  `gorm:"default:0;comment:'修改时间'";json:"update_time"`
-	Status        int    `gorm:"default:0;comment:'是否启用 1:正常 2:停封'"`
+	Status        int    `gorm:"default:1;comment:'是否启用 1:正常 2:停封'"`
 	IsMain        int    `gorm:"default:0;comment:'是否是主账号 1:是 0:否'"`
 }
 

@@ -152,7 +152,6 @@ func AccountAdd(user request.AccountAdd) error {
 // 编辑账户
 func AccountEdit(account request.AccountEdit) error {
 	defer casbin.ClearEnforcer()
-
 		u := model.Account{
 			ID:         account.ID,
 			Status:     account.Status,
