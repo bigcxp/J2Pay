@@ -108,7 +108,6 @@ func InitSql() {
 	//db.Exec("truncate role")
 	//db.Exec("truncate casbin_rule")
 	//db.Exec("truncate auth")
-
 	// 初始化
 	//db.Exec("insert into admin_user (id, user_name, password, real_name, tel, status) values (1, 'admin', '$2a$10$057uuCLoKja2J04GLuWl1eNnwQtS7HxvookpbBa0thTHq7/fIaNF6', 'joy', '13054174174', 1)")
 

@@ -30,7 +30,7 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 func GetAllRole() (mapping map[int]response.CasRole) {
 	var roles []response.CasRole
 	mapping = make(map[int]response.CasRole)
-	Getdb().Table("role").Select("id,name").Order("id asc").Find(&roles)
+	Getdb().Table("role").Select("role.id,role.name").Order("role.id asc").Find(&roles)
 	for _, role := range roles {
 		mapping[role.ID] = role
 	}

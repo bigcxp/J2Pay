@@ -18,7 +18,7 @@ type Address struct {
 	HandleStatus int     `gorm:"default:1;comment:'指派状态 0：所有，1：启用，2：停用';";json:"status"`                                 //指派状态 0：所有，1：启用，2：停用
 	UseTag       int64   `gorm:"default:0;comment:'占用标志 -2：作为eth钱包占用， -1：作为热钱包占用 ，0：未占用->其他 作为用户冲币地址占用'";json:"use_tag"` // HandleStatus
 	CreateTime   int64   `gorm:"default:0;comment:'创建时间戳'";json:"create_time"`                                           //创建时间戳
-	UpdateTime   int64   `gorm:"default:0;comment:'更新时间戳'";json:"update_time"`                                           //更新时间戳
+	UpdateTime   int64                                             //更新时间戳
 }
 
 //查询所有收款地址
