@@ -79,7 +79,7 @@ func UserAdd(c *gin.Context) {
 // @Tags 组织管理
 // @Summary 编辑组织
 // @Produce json
-// @Param id path int true "用户ID"
+// @Param id path int true "组织ID"
 // @Param body body request.UserEdit true "用户"
 // @Router /adminUser/{id} [put]
 func UserEdit(c *gin.Context) {
@@ -91,6 +91,7 @@ func UserEdit(c *gin.Context) {
 		response.SetValidateError(err)
 		return
 	}
+	user.ID = int64(account1)
 	if err := service.UserEdit(user); err != nil {
 		response.SetOtherError(err)
 		return

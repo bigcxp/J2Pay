@@ -164,8 +164,8 @@ func UserEdit(user request.UserEdit) error {
 		CreateTime:    time,
 	}
 	// 1.判断组织名和手机号是否存在
-	if hasName, _ := model.GetUserByWhere("real_name = ? and id <> ?", user.RealName, user.ID); hasName.ID > 0 {
-		return myerr.NewDbValidateError("组织名已存在")
-	}
+	//if hasName, _ := model.GetUserByWhere("real_name = ? and id <> ?", user.RealName, user.ID); hasName.ID > 0 {
+	//	return myerr.NewDbValidateError("组织名已存在")
+	//}
 	return u.Edit()
 }

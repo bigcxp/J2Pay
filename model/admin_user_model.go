@@ -138,7 +138,7 @@ func (u *AdminUser) Edit() error {
 		"user_less_time":  u.UserLessTime,
 		"update_time":     time.Now().Unix(),
 	}
-	if err := tx.Model(&AdminUser{ID: u.ID}).
+	if err := tx.Model(AdminUser{}).Where("id = ?",u.ID).
 		Updates(updateInfo).Error; err != nil {
 		tx.Rollback()
 		return err
