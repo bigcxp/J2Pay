@@ -42,7 +42,7 @@ func (a *Account) GetAll(page, pageSize int, where ...interface{}) (response.Acc
 		Data:        []response.AccountList{},
 	}
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Model(&Account{}).
+	err := Getdb().Table("account").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&all.Data, where...).Error
@@ -58,7 +58,7 @@ func (a *Account) AccountDetail(id ...int64) (res response.AccountList, err erro
 	if len(id) > 0 {
 		searchId = int64(id[0])
 	}
-	err = Getdb().Model(&Account{}).
+	err = Getdb().Table("account").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
