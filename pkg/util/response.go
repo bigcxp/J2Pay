@@ -75,6 +75,15 @@ func (g *Response) SuccessData(data interface{}) {
 	})
 }
 
+func (g *Response) SuccessUserInfo(data,user interface{}) {
+	g.C.JSON(200, gin.H{
+		"code": 1,
+		"data": data,
+		"user":user,
+		"msg":  "",
+	})
+}
+
 func (g *Response) ErrorData(data interface{}) {
 	g.C.JSON(200, gin.H{
 		"code": 0,

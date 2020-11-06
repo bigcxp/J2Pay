@@ -18,8 +18,8 @@ type AccountAdd struct {
 //编辑账户
 type AccountEdit struct {
 	ID     int64  `json:"id" form:"id"`
-	Status int    `json:"status" form:"status"`                  //是否启用 1：开启 2：关闭
-	Token  string `json:"token" form:"token"`                   //token
+	Status int    `json:"status" form:"status"`    //是否启用 1：开启 2：关闭
+	Token  string `json:"token" form:"token"`      //token
 	IsOpen int    `json:"is_open" form:"is_open" ` //是否开启双重验证 1：开启 2：关闭
 	RID    int    `json:"rid" form:"rid" binding:"required" example:"1"`
 }

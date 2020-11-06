@@ -19,5 +19,5 @@ func UserInfo(c *gin.Context) {
 	res := make(map[string]interface{}, 2)
 	res["role"] = model.GetAccountRole(userInfo.ID)
 	res["auth"] = model.GetAccountAuth(userInfo.ID)
-	response.SuccessData(res)
+	response.SuccessUserInfo(res,userInfo)
 }
