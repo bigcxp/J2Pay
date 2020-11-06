@@ -3,13 +3,13 @@ package hcommon
 //账户状态
 const (
 	Open = 1
-	Shut = 0
+	Shut = 2
 )
 
 //是否开启google验证
 const (
 	Yes = 1
-	No  = 0
+	No  = 2
 )
 
 // 交易状态

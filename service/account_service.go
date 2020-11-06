@@ -18,7 +18,7 @@ func Login(user *request.LoginUser) (string, error) {
 	//获取用户
 	account, _ := model.GetAccountByWhere("user_name = ?", user.Username)
 	//验证google Code
-	if account.IsOpen != 0 {
+	if account.IsOpen != hcommon.No {
 		code, err := validate.NewGoogleAuth().VerifyCode(account.Secret, user.GoogleCode)
 		if err != nil {
 			return "", err
@@ -29,6 +29,9 @@ func Login(user *request.LoginUser) (string, error) {
 	}
 	if account.ID == 0 {
 		return "", myerr.NewNormalValidateError("用户不存在")
+	}
+	if account.Status ==2{
+		return "", myerr.NewNormalValidateError("用户已被禁用")
 	}
 	if bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(user.Password)) != nil {
 		return "", myerr.NewNormalValidateError("用户密码错误")
@@ -149,12 +152,13 @@ func AccountAdd(user request.AccountAdd) error {
 // 编辑账户
 func AccountEdit(account request.AccountEdit) error {
 	defer casbin.ClearEnforcer()
-	u := model.Account{
-		ID:         account.ID,
-		Status:     account.Status,
-		UpdateTime: time.Now().Unix(),
-	}
-	return u.Edit(account.RID)
+
+		u := model.Account{
+			ID:         account.ID,
+			Status:     account.Status,
+			UpdateTime: time.Now().Unix(),
+		}
+		return u.Edit(account)
 }
 
 //修改密码

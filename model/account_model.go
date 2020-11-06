@@ -18,12 +18,12 @@ type Account struct {
 	Password      string `gorm:"comment:'密码';"`
 	Token         string `gorm:"default:'';comment:'Token'"`
 	Secret        string `gorm:"comment:'google私钥';"`
-	IsOpen        int    `gorm:"default:0;comment:'是否开启google双重验证 默认0：不开启 1：开启';"`
+	IsOpen        int    `gorm:"default:2;comment:'是否开启google双重验证 默认1：开启 ，2：关闭 ';"`
 	QrcodeUrl     string `gorm:"comment:'google二维码图片地址';"`
 	LastLoginTime int64  `gorm:"type:timestamp;comment:'最后登录时间';"`
 	CreateTime    int64  `gorm:"default:0;comment:'创建时间'";json:"create_time"`
 	UpdateTime    int64  `gorm:"default:0;comment:'修改时间'";json:"update_time"`
-	Status        int    `gorm:"default:1;comment:'是否启用 1:正常 0:停封'"`
+	Status        int    `gorm:"default:0;comment:'是否启用 1:正常 2:停封'"`
 	IsMain        int    `gorm:"default:0;comment:'是否是主账号 1:是 0:否'"`
 }
 
@@ -85,14 +85,11 @@ func (a *Account) Create(role int) error {
 }
 
 // 编辑账户
-func (a *Account) Edit(role int) error {
+func (a *Account) Edit(account request.AccountEdit) error {
 	tx := Getdb().Begin()
-	updateInfo := map[string]interface{}{
-		"status":      a.Status,
-		"update_time": a.UpdateTime,
-	}
-	if err := tx.Model(&Account{ID: a.ID}).
-		Updates(updateInfo).Error; err != nil {
+	account1, _ := GetAccountByWhere("id = ?", a.ID)
+	if err := tx.Model(&account1).
+		Updates(Account{RID:account.RID,Status: account.Status,UpdateTime: a.UpdateTime}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -103,7 +100,7 @@ func (a *Account) Edit(role int) error {
 	if err := tx.Create(&CasbinRule{
 		PType: "g",
 		V0:    "user:" + strconv.Itoa(int(a.ID)),
-		V1:    "role:" + strconv.Itoa(role),
+		V1:    "role:" + strconv.Itoa(account.RID),
 	}).Error; err != nil {
 		tx.Rollback()
 		return err
