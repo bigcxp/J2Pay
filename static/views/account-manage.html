@@ -1,14 +1,14 @@
 
-<blockquote class="layui-elem-quote">角色管理</blockquote>
+<blockquote class="layui-elem-quote">账户管理</blockquote>
 
-<!--<fieldset class="table-search-fieldset">
+<fieldset class="table-search-fieldset">
 	<legend>搜索信息</legend>
 	<div style="margin: 10px 10px 10px 10px">
 		<form action="" class="layui-form layui-form-pane">
 			<div class="layui-form-item">
 				<div class="layui-inline">
-					<label class="layui-form-label">角色名称</label>
-					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="name" type="text"/></div>
+					<label class="layui-form-label">用户名</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="username" type="text"/></div>
 				</div>
 				<div class="layui-inline">
 					<button class="layui-btn layui-btn-primary" lay-filter="data-search-btn" lay-submit="" type="submit">
@@ -21,9 +21,10 @@
 			</div>
 		</form>
 	</div>
-</fieldset>-->
+</fieldset>
 
 <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
 
 
 <script type="text/javascript">
@@ -31,14 +32,17 @@ layui.use(['form'],function(){
 	
 	var cols=[[
 		//{type: "checkbox", width: 50},
+		{title: '操作', width: 150, toolbar: '#tablebar', align: "center",fixed:'left'},
 		{field: 'id', width: 80, title: 'ID', sort: true},
-		{field: 'name', width:280, title: '角色名称'},
-		{title: '操作', width: 150, toolbar: '#tablebar', align: "center"}
+		{field:'user_name',width:120,title:'用户名'},
+		{field:'status',width:120,title:'状态',align:'center',templet:function(d){return render_bool(d['status'],'正常','禁用');}},
+		{field:'roles',width:120,title:'角色',templet:function(d){return d['roles']['name'];}},
+		{field:'last_login_time',width:160,title:'最后登录时间',templet:function(d){return render_timestamp(d['last_login_time'])} }
 	]];
 
 	window.dataTable=table.render({
 		elem: '#currentTableId',
-		url:'/role',
+		url:'/accountList',
 		toolbar:'#toolbar',
 		defaultToolbar: ['filter','exports','print'],
 		cols:cols,
@@ -79,15 +83,15 @@ layui.use(['form'],function(){
 	table.on('tool(currentTableFilter)',function (obj){
 		var data = obj.data;
 		if(obj.event === 'edit'){
-			open_dlg('编辑: '+data.name,'/main#0|admin-role-edit?id='+data.id)
+			open_dlg('编辑: '+data.user_name,'/main#0|account-manage-edit?id='+data.id)
 		}else if(obj.event === 'del'){
-			confirmdel('/role/'+data.id,null);
+			confirmdel('/account/'+data.id,null);
 		}
 	});
 	//工具栏事件
 	table.on('toolbar(currentTableFilter)',function(obj){
 		if (obj.event === 'add'){
-			open_dlg('添加: ','/main#0|admin-role-add');
+			open_dlg('添加用户: ','/main#0|account-manage-add');
 		}
 	});
 });
