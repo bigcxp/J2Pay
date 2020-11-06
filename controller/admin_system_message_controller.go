@@ -7,7 +7,6 @@ import (
 	"j2pay-server/service"
 	"net/http"
 	"strconv"
-	"unicode/utf8"
 )
 
 
@@ -45,24 +44,19 @@ func SystemMessage(c *gin.Context)  {
 }
 
 // @Tags 系统公告
-// @Summary 获取用户公告列表
+// @Summary 账户获取公告列表
 // @Produce json
-// @Param username query string true "用户名"
+// @Param uid query string true "组织id"
 // @Param page query int false "页码"
 // @Param pageSize query int false "每页显示多少条"
 // @Success 200 {object} response.AdminUserMessagePage
 // @Router /systemMessageByUser [get]
 func SystemMessageByUserId(c *gin.Context)  {
 	response := util.Response{c}
-
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	username := c.Query("username")
-
-	if utf8.RuneCountInString(username) > 32 {
-		username = string([]rune(username)[:32])
-	}
-	res, err := service.MessageListByUser(username, page, pageSize)
+	uid,_:= strconv.Atoi(c.Query("uid"))
+	res, err := service.MessageListByUser(uid, page, pageSize)
 	if err != nil {
 		response.SetOtherError(err)
 		return
@@ -71,7 +65,6 @@ func SystemMessageByUserId(c *gin.Context)  {
 
 
 }
-
 
 // @Tags 系统公告
 // @Summary 添加系统公告

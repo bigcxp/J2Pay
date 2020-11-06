@@ -7,7 +7,7 @@ import (
 )
 
 type SystemMessage struct {
-	Id         int
+	ID         int
 	Title      string      `gorm:"default:'';comment:'标题';"`
 	BeginTime  time.Time   `gorm:"comment:'开始时间';type:timestamp;";json:"beginTime"`
 	EndTime    time.Time   `gorm:"comment:'结束时间';type:timestamp;";json:"endTime"`
@@ -36,7 +36,7 @@ func (s *SystemMessage) GetAll(page, pageSize int, where ...interface{}) (respon
 
 // 根据ID获取公告详情
 func (s *SystemMessage) Detail(id ...int) (res response.SystemMessageList, err error) {
-	searchId := s.Id
+	searchId := s.ID
 	if len(id) > 0 {
 		searchId = id[0]
 	}
@@ -52,7 +52,7 @@ func (s *SystemMessage) Create(user []int) error {
 	Getdb().Save(&s)
 	for _,v  := range user {
 			Getdb().Save(&SystemMessageUser{
-				SystemMessageId: s.Id,
+				SystemMessageId: s.ID,
 				AdminUserId: v,
 			})
 	}
@@ -71,18 +71,18 @@ func (s *SystemMessage) Edit(users []int) error {
 		updateInfo["title"] = s.Title
 	}
 
-	if err := tx.Model(&SystemMessage{Id: s.Id}).
+	if err := tx.Model(&SystemMessage{ID: s.ID}).
 		Updates(updateInfo).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	if err := tx.Delete(SystemMessageUser{}, "system_message_id = ?", s.Id).Error; err != nil {
+	if err := tx.Delete(SystemMessageUser{}, "system_message_id = ?", s.ID).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	for _, v := range users {
 		err := tx.Create(&SystemMessageUser{
-			SystemMessageId: s.Id,
+			SystemMessageId: s.ID,
 			AdminUserId: v,
 		}).Error
 		if err != nil {
@@ -97,11 +97,11 @@ func (s *SystemMessage) Edit(users []int) error {
 // 删除系统公告
 func (s *SystemMessage) Del() error {
 	tx := Getdb().Begin()
-	if err := tx.Delete(s, "id = ?", s.Id).Error; err != nil {
+	if err := tx.Delete(s, "id = ?", s.ID).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	if err := tx.Delete(SystemMessageUser{}, "system_message_id = ?", s.Id).Error; err != nil {
+	if err := tx.Delete(SystemMessageUser{}, "system_message_id = ?", s.ID).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

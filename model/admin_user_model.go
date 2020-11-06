@@ -12,8 +12,8 @@ type AdminUser struct {
 	UserName       string          `gorm:"unique;comment:'主账户名';"`
 	RealName       string          `gorm:"unique;comment:'组织名称';"`
 	WhitelistIP    string          `gorm:"default:'';comment:'ip白名单';"`
-	CreateTime     int64           `gorm:"type:timestamp;comment:'创建时间';"`
-	UpdateTime     int64           `gorm:"type:timestamp;comment:'更新时间';"`
+	CreateTime     int64           `gorm:"default:0;comment:'创建时间'";json:"create_time"`
+	UpdateTime     int64           `gorm:"default:0;comment:'修改时间'";json:"update_time"`
 	Balance        float64         `gorm:"default:0;comment:'组织余额';"`
 	Address        string          `gorm:"default:'';comment:'商户地址';"`
 	ReturnUrl      string          `gorm:"default:'';comment:'回传URL'"`
@@ -38,7 +38,7 @@ type AdminUser struct {
 	MinOrderCount  float64         `gorm:"default:0;comment:'最小交易数量';"`
 	Limit          float64         `gorm:"default:0;comment:'结账限制';"`
 	UserLessTime   int64           `gorm:"default:0;comment:'订单无效时间';"`
-	TWithdraw      []TWithdraw     `gorm:"FOREIGNKEY:UserId;ASSOCIATION_FOREIGNKEY:Id"`
+	TWithdraw      []TWithdraw     `gorm:"FOREIGNKEY:UserId;ASSOCIATION_FOREIGNKEY:ID"`
 	SystemMessages []SystemMessage `gorm:"many2many:system_message_user;"`
 }
 
@@ -98,14 +98,14 @@ func (u *AdminUser) Detail(id ...int64) (res response.AdminUserList, err error) 
 }
 
 // 创建组织
-func (u *AdminUser) Create()(int64,error) {
+func (u *AdminUser) Create() (int64, error) {
 	tx := Getdb().Begin()
 	if err := tx.Create(&u).Error; err != nil {
 		tx.Rollback()
-		return 0,err
+		return 0, err
 	}
 	tx.Commit()
-	return u.ID,nil
+	return u.ID, nil
 }
 
 // 编辑组织

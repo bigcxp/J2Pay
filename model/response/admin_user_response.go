@@ -11,12 +11,13 @@ type AdminUserPage struct {
 
 //主账户
 type Account struct {
-	Token    string `json:"token"`     //Token
+	Token string `json:"token"` //Token
 }
 
 //组织详情
 type AdminUserList struct {
-	UserName string `json:"user_name"` //主账号
+	ID            int64   `json:"id"`               //ID
+	UserName      string  `json:"user_name"`        //主账号
 	Account       Account `json:"account"`          // 主账户
 	RealName      string  `json:"real_name"`        // 组织名称
 	WhitelistIP   string  `json:"whitelist_ip" `    //IP白名单

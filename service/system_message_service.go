@@ -12,7 +12,7 @@ import (
 )
 
 // 系统所有公告列表
-func MessageList(title string,page, pageSize int) (res response.SystemMessagePage, err error) {
+func MessageList(title string, page, pageSize int) (res response.SystemMessagePage, err error) {
 	systemMessage := model.SystemMessage{}
 	if title == "" {
 		res, err = systemMessage.GetAll(page, pageSize)
@@ -32,7 +32,7 @@ func MessageList(title string,page, pageSize int) (res response.SystemMessagePag
 		res.Data[i].Users = []response.UserNames{}
 		for _, user := range mappings[v.Id] {
 			if _, ok := users[user]; !ok {
-				logger.Logger.Error("用户获取错误: message_id = ", v.Id)
+				logger.Logger.Error("商户获取错误: message_id = ", v.Id)
 				continue
 			}
 			res.Data[i].Users = append(res.Data[i].Users, users[user])
@@ -42,11 +42,11 @@ func MessageList(title string,page, pageSize int) (res response.SystemMessagePag
 }
 
 //根据用户名获取公告列表
-func MessageListByUser(username string,page, pageSize int) (res response.AdminUserMessagePage, err error) {
+func MessageListByUser(uid, page, pageSize int) (res response.AdminUserMessagePage, err error) {
 	user := model.AdminUser{}
 
-	if username != "" {
-		res, err = user.GetAllMessage(page, pageSize, "user_name = ?", username)
+	if uid != 0 {
+		res, err = user.GetAllMessage(page, pageSize, "uid = ?", uid)
 
 	} else {
 		return
@@ -78,9 +78,9 @@ func MessageListByUser(username string,page, pageSize int) (res response.AdminUs
 func MessageAdd(message request.MessageAdd) error {
 	defer casbin.ClearEnforcer()
 	m := model.SystemMessage{
-		Title: message.Title,
-		BeginTime: time.Unix(message.BeginTime,0),
-		EndTime: time.Unix(message.EndTime,0),
+		Title:     message.Title,
+		BeginTime: time.Unix(message.BeginTime, 0),
+		EndTime:   time.Unix(message.EndTime, 0),
 	}
 	// 判断用户是否存在
 	hasUsers, err := model.GetUsersByWhere("id in (?)", message.Users)
@@ -88,7 +88,7 @@ func MessageAdd(message request.MessageAdd) error {
 		return err
 	}
 	if len(hasUsers) != len(message.Users) {
-		return myerr.NewDbValidateError("选择的用户不存在")
+		return myerr.NewDbValidateError("选择的商户不存在")
 	}
 	return m.Create(message.Users)
 }
@@ -97,10 +97,10 @@ func MessageAdd(message request.MessageAdd) error {
 func MessageEdit(message request.MessageEdit) error {
 	defer casbin.ClearEnforcer()
 	m := model.SystemMessage{
-		Id:       message.ID,
-		Title: message.Title,
-		BeginTime: time.Unix(message.BeginTime,0),
-		EndTime: time.Unix(message.EndTime,0),
+		ID:        message.ID,
+		Title:     message.Title,
+		BeginTime: time.Unix(message.BeginTime, 0),
+		EndTime:   time.Unix(message.EndTime, 0),
 	}
 	// 判断用户是否存在
 	hasUsers, err := model.GetUsersByWhere("id in (?)", message.Users)
@@ -108,7 +108,7 @@ func MessageEdit(message request.MessageEdit) error {
 		return err
 	}
 	if len(hasUsers) != len(message.Users) {
-		return myerr.NewDbValidateError("选择的用户不存在")
+		return myerr.NewDbValidateError("选择的商户不存在")
 	}
 	return m.Edit(message.Users)
 }
@@ -117,8 +117,7 @@ func MessageEdit(message request.MessageEdit) error {
 func MessageDel(id int) error {
 	defer casbin.ClearEnforcer()
 	m := model.SystemMessage{
-		Id: id,
+		ID: id,
 	}
 	return m.Del()
 }
-

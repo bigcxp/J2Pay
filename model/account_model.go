@@ -21,8 +21,8 @@ type Account struct {
 	IsOpen        int    `gorm:"default:0;comment:'是否开启google双重验证 默认0：不开启 1：开启';"`
 	QrcodeUrl     string `gorm:"comment:'google二维码图片地址';"`
 	LastLoginTime int64  `gorm:"type:timestamp;comment:'最后登录时间';"`
-	CreateTime    int64  `gorm:"type:timestamp;comment:'创建时间';"`
-	UpdateTime    int64  `gorm:"type:timestamp;comment:'更新时间';"`
+	CreateTime    int64  `gorm:"default:0;comment:'创建时间'";json:"create_time"`
+	UpdateTime    int64  `gorm:"default:0;comment:'修改时间'";json:"update_time"`
 	Status        int    `gorm:"default:1;comment:'是否启用 1:正常 0:停封'"`
 	IsMain        int    `gorm:"default:0;comment:'是否是主账号 1:是 0:否'"`
 }
@@ -165,7 +165,7 @@ func (a *Account) Del() error {
 	return nil
 }
 
-// 根据用户 Id 获取所属角色
+// 根据用户 ID 获取所属角色
 func GetAccountRole(userId int64) (userRoles response.CasRole) {
 	roles := GetAllRole()
 	mappings := GetAccountRoleMapping()
@@ -177,7 +177,7 @@ func GetAccountRole(userId int64) (userRoles response.CasRole) {
 	return
 }
 
-// 根据账户 Id 获取权限
+// 根据账户 ID 获取权限
 func GetAccountAuth(Id int64) (auth []Auth) {
 	role := GetAccountRole(Id)
 	var dbRole Role
