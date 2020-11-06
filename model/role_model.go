@@ -145,7 +145,7 @@ func (r *Role) getCount() (total int) {
 
 // 根据条件获取角色
 func GetRoleByWhere(where ...interface{}) (res Role, err error) {
-	err = Getdb().First(&res, where...).Error
+	err = Getdb().Where(where).Take(&res).Error
 	return
 }
 
