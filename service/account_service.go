@@ -43,7 +43,7 @@ func Login(user *request.LoginUser) (string, error) {
 func AccountList(userName string, page, pageSize int) (res response.AccountPage, err error) {
 	account := model.Account{}
 	if userName == "" {
-		res, err = account.GetAll(page, pageSize, "pid = 0")
+		res, err = account.GetAll(page, pageSize)
 	} else {
 		res, err = account.GetAll(page, pageSize, "user_name like ?", "%"+userName+"%")
 	}

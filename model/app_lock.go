@@ -5,7 +5,7 @@ package model
 type AppLock struct {
 	ID         int64  `db:"id" json:"id"`
 	K          string `gorm:"unique;comment:'上锁键值'";json:"k"`               // 上锁键值
-	V          int64  `gorm:"comment:'是否锁定 1:锁定，0：解锁'";json:"v"`                      // 是否锁定(1:锁定，0：释放)
+	V          int64  `gorm:"comment:'是否锁定 1:锁定，0：解锁'";json:"v"`        // 是否锁定(1:锁定，0：释放)
 	CreateTime int64  `gorm:"default:0;comment:'创建时间戳'";json:"create_time"` // 上锁时间戳
 }
 

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/ethereum/go-ethereum/accounts/keystore"
+	"j2pay-server/cron"
 	"j2pay-server/ethclient"
 	"j2pay-server/model"
 	"j2pay-server/pkg/logger"
@@ -24,7 +25,7 @@ func main() {
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
 	//初始化定时器检测
-//	cron.Cron()
+ 	cron.Cron()
 	//网关
 	router := routers.InitRouter()
 	//启动
