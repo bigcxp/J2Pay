@@ -1,6 +1,6 @@
 module j2pay-server
 
-go 1.14
+go 1.15
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
@@ -63,5 +63,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
 	moul.io/http2curl v1.0.0 // indirect
-
 )

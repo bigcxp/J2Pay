@@ -1,6 +1,8 @@
 package model
 
-import "j2pay-server/model/response"
+import (
+	"j2pay-server/model/response"
+)
 
 //eth 钱包交易明细实体
 type EthTransaction struct {

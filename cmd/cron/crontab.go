@@ -1,4 +1,4 @@
-package cron
+package main
 
 import (
 	"github.com/robfig/cron/v3"
@@ -7,7 +7,7 @@ import (
 	"j2pay-server/pkg/logger"
 )
 // 定时处理检测任务
-func Cron() {
+func main() {
 	c := cron.New(
 		cron.WithSeconds(),
 		cron.WithLogger(cron.VerbosePrintfLogger(logger.Logger)),
