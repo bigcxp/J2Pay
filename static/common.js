@@ -20,7 +20,7 @@ function postform(form,url,datas,fn,isjson,method){
 		'headers':{'Authorization':sessionStorage.getItem('token')},
 		'type':method||'POST',
 		'data':data,
-		'contentType': (true==isjson)?'application/json':null,
+		'contentType': (true==isjson)?'application/json':'application/x-www-form-urlencoded',
 		success:function(res){
 			if(typeof(fn)=='function'){fn(res);return;}
 			if(res.code=='1'){
@@ -155,12 +155,13 @@ function h5post(form,url,method){
 		btn_submit.removeAttr('disabled').removeClass('layui-disabled').find('i.layui-icon').remove()
 		if(res.code=='1'){
 			alertok(res.msg,function(){
+				try{parent['dataTable'].reload();}catch(e){}
 				try{parent.layer.closeAll('iframe')}catch(e){}
 			});
 		}else{
 			alerterr(res.msg);
 		}
-	},true,method)
+	},false,method)
 }
 
 function parseHash(){
@@ -174,4 +175,53 @@ function parseHash(){
 		obj[ss[0]]=ss[1];
 	});
 	return obj;
+}
+
+//格式化是否
+function render_bool(v,yes,no){
+	return (true==v)? '<font color="green">'+(!!yes?yes:'是 √')+'</font>': '<font color="red">'+(!!no?no:'否 ×')+'</font>';
+}
+function render_timestamp(t){
+	var dt=new Date(parseInt(t)*1000);
+	return dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()+' '+dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds();
+}
+
+/*
+表单验证
+*/
+
+function chk_rate(v, item) {
+	if (v == '') {
+		return
+	}
+	v = 1 * v;
+	if (1 * v == 0) {
+		return
+	}
+	if (v < 0 || v > 1000) {
+		return '错误的金额格式'
+	}
+}
+function chk_username(v,d){
+	var reg = /^[a-zA-Z0-9_]{5,16}$/;
+	if(!reg.test(v)){
+		return '用户名由5~16位 数字/字母/下划线 组成!'
+	}
+	if(/^[0-9]/.test(v)){
+		return '用户名用户名不能以数字开头!'
+	}
+}
+function chk_password(v){
+	if(!/^[\S]{8,30}$/.test(v)){
+		return '密码长度8~30位!';
+	};
+	if(!(/[0-9]/.test(v) && /[a-z]/.test(v) && /[A-Z]/.test(v))){
+		return '密码必须包含数字和大小写字母';
+	};
+}
+function chk_repassword(v,d){
+	var fo=form.val('password');
+	if(v!=fo.password){
+		return '两次输入的密码不同！';
+	}
 }

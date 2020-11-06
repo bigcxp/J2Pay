@@ -1,0 +1,152 @@
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+	<legend>添加用户</legend>
+</fieldset>
+<form class="layui-form layui-form-pane h5form" action="/account">
+	<div class="layui-form-item">
+		<label class="layui-form-label">用户名</label>
+		<div class="layui-input-inline">
+			<input type="text" name="user_name" value="" lay-verify="required|username" placeholder="用户名" class="layui-input" />
+		</div>
+	</div>
+	
+	<div class="layui-form-item">
+		<label class="layui-form-label">所属组织名称</label>
+		<div class="layui-input-inline">
+			<input type="text" ts-selected="" placeholder="选择组织" class="layui-input" id="uid_input" readonly />
+			<input type="hidden" name="uid" value="" />
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">所属角色</label>
+		<div class="layui-input-inline">
+			<input type="text" ts-selected="" placeholder="选择角色" class="layui-input" id="rid_input" readonly />
+			<input type="hidden" name="rid" value="" />
+		</div>
+	</div>
+	
+	<div class="layui-form-item">
+		<label class="layui-form-label">密码</label>
+		<div class="layui-input-inline">
+			<input type="text" name="password" value="" lay-verify="required|password" placeholder="密码" class="layui-input" />
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">确认密码</label>
+		<div class="layui-input-inline">
+			<input type="text" name="re_password" value="" lay-verify="required|password|repassword" placeholder="确认密码" class="layui-input" />
+		</div>
+	</div>
+
+	<!--<div class="layui-form-item">
+		<label class="layui-form-label">G2fa</label>
+		<div class="layui-input-inline">
+			<input type="text" name="g2fa" maxlength="6" lay-verify="required" placeholder="Google验证码" class="layui-input">
+		</div>
+		<div class="layui-form-mid layui-word-aux">请输入6位数字Google验证码</div>
+	</div>-->
+
+	<div class="layui-form-item formbtn">
+		<button type="submit" class="layui-btn" lay-submit="" lay-filter="add">提交</button>
+	</div>
+</form>
+
+
+<script type="text/javascript">
+layui.use(['tableSelect'],function(){
+	var tableSelect = layui.tableSelect;
+	
+	tableSelect.render({
+		elem: '#rid_input',	//定义输入框input对象 必填
+		checkedKey: 'id', //表格的唯一建值，非常重要，影响到选中状态 必填
+		searchKey: 'name',	//搜索输入框的name值 默认keyword
+		searchPlaceholder:'角色名',	//搜索输入框的提示文字 默认关键词搜索
+		height:'400',  //自定义高度
+		width:'560',  //自定义宽度
+		table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+			url:'/role',
+			cols: [[
+				{type:'radio'},
+				{field:'id',width:80,title:'ID'},
+				{field:'name', width:280, title: '角色名称'}
+			]],
+			request:{
+				'pageName':'page',
+				'limitName':'pageSize'
+			},
+			parseData:function(res){
+				return {
+				"code": (res.code==1)?0:(res.code*-1), //解析接口状态
+				"msg": res.msg, //解析提示文本
+				"count": res.data.total, //解析数据长度
+				"data": res.data.data //解析数据列表
+				};
+			},
+			limit:20,
+			page:true
+		},
+		done: function (elem, data){
+			if(!data.data.length){return}
+			var v=data['data'][0];
+			elem.attr('ts-selected',v['id']).val(v['name']);
+			$('input[name=rid]').val(v['id'])
+		}
+	});
+
+	tableSelect.render({
+		elem: '#uid_input',	//定义输入框input对象 必填
+		checkedKey: 'id', //表格的唯一建值，非常重要，影响到选中状态 必填
+		searchKey: 'real_name',	//搜索输入框的name值 默认keyword
+		searchPlaceholder:'组织名',	//搜索输入框的提示文字 默认关键词搜索
+		height:'400',  //自定义高度
+		width:'560',  //自定义宽度
+		table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+			url:'/adminUser',
+			cols: [[
+				{type:'radio'},
+				{field:'id',width:80,title:'ID'},
+				{field:'real_name',width:280,title:'组织名称'},
+			]],
+			request:{
+				'pageName':'page',
+				'limitName':'pageSize'
+			},
+			parseData:function(res){
+				return {
+				"code": (res.code==1)?0:(res.code*-1), //解析接口状态
+				"msg": res.msg, //解析提示文本
+				"count": res.data.total, //解析数据长度
+				"data": res.data.data //解析数据列表
+				};
+			},
+			limit:20,
+			page:true
+		},
+		done:function (elem, data){
+			if(!data.data.length){return}
+			var v=data['data'][0];
+			elem.attr('ts-selected',v['id']).val(v['real_name']);
+			$('input[name=uid]').val(v['id'])
+		}
+	});
+	
+	form.verify({
+		username:chk_username,
+		password:chk_password,
+		repassword:function(v,d){
+			var fo=$('input[name=password]').val();
+			console.log(fo)
+			if(v!=fo){
+				return '两次输入的密码不同！';
+			}
+		}
+	});
+	form.on('submit(add)',function(data){
+		h5post(data.form);
+		return false;
+	});
+	form.render()
+})
+</script>

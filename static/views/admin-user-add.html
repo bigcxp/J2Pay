@@ -15,7 +15,17 @@
 	<div class="layui-form-item">
 		<label class="layui-form-label">所属角色</label>
 		<div class="layui-input-inline">
-			
+			<select name="pid">
+				<option value="">请选择..</option>
+			</select>
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">账号状态</label>
+		<div class="layui-input-inline">
+			<input type="radio" name="status" title="正常" value="1" checked />
+			<input type="radio" name="status" title="禁用" value="0" />
 		</div>
 	</div>
 
@@ -24,13 +34,35 @@
 		<div class="layui-input-inline">
 			<input type="text" name="real_name" lay-verify="required" placeholder="姓名" class="layui-input">
 		</div>
-	</div>
-	<div class="layui-form-item">
+		
 		<label class="layui-form-label">手机号</label>
 		<div class="layui-input-inline">
 			<input type="tel" name="tel" lay-verify="required" placeholder="手机号" class="layui-input">
 		</div>
 	</div>
+	
+	<div class="layui-form-item">
+		<label class="layui-form-label">商户地址</label>
+		<div class="layui-input-block">
+			<input type="text" name="address" lay-verify="required" placeholder="商户地址" class="layui-input">
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">回传URL</label>
+		<div class="layui-input-block">
+			<input type="text" name="return_url" lay-verify="required" placeholder="商户地址" class="layui-input">
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">代发URL</label>
+		<div class="layui-input-block">
+			<input type="text" name="dai_url" lay-verify="required" placeholder="商户地址" class="layui-input">
+		</div>
+	</div>
+
+	
 
 	<div class="layui-form-item">
 		<label class="layui-form-label">最大订单数</label>
@@ -43,6 +75,31 @@
 		<label class="layui-form-label">每日最大收款次数</label>
 		<div class="layui-input-inline">
 			<input type="number" name="day_total_count" min="0" lay-verify="required" placeholder="最大订单数" class="layui-input" />
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">开启收款</label>
+		<div class="layui-input-inline">
+			<input type="radio" name="is_collection" title="允许" value="1" checked />
+			<input type="radio" name="is_collection" title="禁用" value="0" />
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">手动建单</label>
+		<div class="layui-input-inline">
+			<input type="radio" name="is_creation" title="允许" value="1" checked />
+			<input type="radio" name="is_creation" title="禁用" value="0" />
+		</div>
+	</div>
+
+	
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">备注</label>
+		<div class="layui-input-block">
+			<input type="text" name="remark" lay-verify="required" placeholder="备注" class="layui-input">
 		</div>
 	</div>
 
@@ -66,6 +123,7 @@ layui.use(['form'],function(){
 	form.on('submit(add)',function(data){
 		h5post(data.form);
 		return false;
-	})
+	});
+	form.render()
 })
 </script>

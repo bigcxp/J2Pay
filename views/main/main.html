@@ -25,6 +25,18 @@
 	</div>
 </div>
 
+<script type="text/html" id="toolbar">
+	<div class="layui-btn-container">
+		<a class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add" operate="add"> 添加 </a>
+	</div>
+</script>
+<script type="text/html" id="tablebar">
+	<a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit" operate="edit">编辑</a>
+	<a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="del" operate="del">删除</a>
+</script>
+
+
+
 <script src="/static/lib/jquery-3.4.1/jquery-3.4.1.min.js"></script>
 <script src="/static/lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
 <script src="/static/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
@@ -51,7 +63,7 @@ layui.use(['layer','form','table','laydate'],function(){
 	_loading_index=layer.load(0,{shade:[0.2,'#000']});
 	$.ajax({
 		url:_tpl_path,
-		cache:true,
+		cache:false,
 		type:'GET',
 		dataType:'html',
 		success:function(res){
