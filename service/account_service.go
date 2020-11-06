@@ -86,12 +86,14 @@ func AccountDetail(id int64) (res response.AccountList, err error) {
 	res.Roles.ID = role.ID
 	res.Roles.Name = role.Name
 	//查询用户对应组织
-	user, err := model.GetUserByWhere("id = ?", res.UID)
-	if err != nil {
-		return
+	if res.UID != 0 {
+		user, err1 := model.GetUserByWhere("id = ?", res.UID)
+		if err1 != nil {
+			return
+		}
+		res.User.ID = user.ID
+		res.User.RealName = user.RealName
 	}
-	res.User.ID = user.ID
-	res.User.RealName = user.RealName
 	return
 }
 
