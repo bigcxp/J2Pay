@@ -108,6 +108,7 @@ func AccountAdd(user request.AccountAdd) error {
 	defer casbin.ClearEnforcer()
 	u := model.Account{
 		UID:           user.UID,
+		RID:           user.RID,
 		UserName:      user.UserName,
 		Password:      user.Password,
 		Secret:        validate.NewGoogleAuth().GetSecret(), //生成google唯一密钥

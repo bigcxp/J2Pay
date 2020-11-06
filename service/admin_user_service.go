@@ -115,7 +115,8 @@ func UserAdd(user request.UserAdd) error {
 	}
 	account.Password = string(bcryptPassword)
 	a := model.Account{
-		UID:           account.UID,
+		UID: account.UID,
+		RID: 0,
 		UserName:      account.UserName,
 		Password:      account.Password,
 		Secret:        validate.NewGoogleAuth().GetSecret(), //生成google唯一密钥
