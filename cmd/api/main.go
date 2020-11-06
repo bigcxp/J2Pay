@@ -24,6 +24,8 @@ func main() {
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
 	//网关
 	router := routers.InitRouter()
+	//定时器
+	//cron.Cron()
 	//启动
 	panic(router.Run(fmt.Sprintf("%s:%d", setting.ApplicationConf.Host, setting.ApplicationConf.Port)))
 }

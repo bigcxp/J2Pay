@@ -1,4 +1,4 @@
-package main
+package cron
 
 import (
 	"github.com/robfig/cron/v3"
@@ -6,7 +6,7 @@ import (
 	"j2pay-server/heth"
 )
 // 定时处理检测任务
-func main() {
+func Cron() {
 	c := cron.New(
 		cron.WithSeconds(),
 		cron.WithChain(

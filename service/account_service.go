@@ -16,7 +16,7 @@ import (
 // 登录逻辑
 func Login(user *request.LoginUser) (string, error) {
 	//获取用户
-	account ,_:= model.GetAccountByWhere("user_name = ?", user.Username)
+	account, _ := model.GetAccountByWhere("user_name = ?", user.Username)
 	//验证google Code
 	if account.IsOpen != 0 {
 		code, err := validate.NewGoogleAuth().VerifyCode(account.Secret, user.GoogleCode)
@@ -54,19 +54,23 @@ func AccountList(userName string, page, pageSize int) (res response.AccountPage,
 		res.Data[i].Roles = response.CasRole{}
 		res.Data[i].User = response.User{}
 		//查询用户对应角色
-		role, err1 := model.GetRoleByWhere("id = ?", v.RID)
-		if err1 != nil {
-			return
+		if v.RID != 0 {
+			role, err1 := model.GetRoleByWhere("id = ?", v.RID)
+			if err1 != nil {
+				return
+			}
+			res.Data[i].Roles.ID = role.ID
+			res.Data[i].Roles.Name = role.Name
 		}
-		res.Data[i].Roles.ID = role.ID
-		res.Data[i].Roles.Name = role.Name
 		//查询用户对应组织
-		user, err1 := model.GetUserByWhere("id = ?", v.UID)
-		if err1 != nil {
-			return
+		if v.UID != 0 {
+			user, err1 := model.GetUserByWhere("id = ?", v.UID)
+			if err1 != nil {
+				return
+			}
+			res.Data[i].User.ID = user.ID
+			res.Data[i].User.RealName = user.RealName
 		}
-		res.Data[i].User.ID = user.ID
-		res.Data[i].User.RealName = user.RealName
 	}
 	return
 }
@@ -79,12 +83,14 @@ func AccountDetail(id int64) (res response.AccountList, err error) {
 		return
 	}
 	//查询用户对应角色
-	role, err := model.GetRoleByWhere("id = ?", res.RID)
-	if err != nil {
-		return
+	if res.RID != 0 {
+		role, err1 := model.GetRoleByWhere("id = ?", res.RID)
+		if err1 != nil {
+			return
+		}
+		res.Roles.ID = role.ID
+		res.Roles.Name = role.Name
 	}
-	res.Roles.ID = role.ID
-	res.Roles.Name = role.Name
 	//查询用户对应组织
 	if res.UID != 0 {
 		user, err1 := model.GetUserByWhere("id = ?", res.UID)
@@ -108,14 +114,14 @@ func AccountAdd(user request.AccountAdd) error {
 		QrcodeUrl:     "",
 		Status:        hcommon.Open,
 		IsOpen:        hcommon.No,
-		IsMain: 	   hcommon.No,
+		IsMain:        hcommon.No,
 		Token:         "",
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 		LastLoginTime: time.Now().Unix(),
 	}
 	// 1.判断账户名是否存在
-	if hasName,_ := model.GetAccountByWhere("user_name = ?", user.UserName); hasName.ID > 0 {
+	if hasName, _ := model.GetAccountByWhere("user_name = ?", user.UserName); hasName.ID > 0 {
 		return myerr.NewDbValidateError("用户名已存在")
 	}
 	// 2.判断密码是否一致
@@ -167,7 +173,7 @@ func UpdatePassword(id int64) (password response.Password, err error) {
 //开启google验证
 func OpenGoogle(google request.Google) (err error) {
 	defer casbin.ClearEnforcer()
-	user ,_:= model.GetAccountByWhere("id = ?", google.ID)
+	user, _ := model.GetAccountByWhere("id = ?", google.ID)
 	code, err2 := validate.NewGoogleAuth().VerifyCode(user.Secret, google.GoogleCode)
 	if err2 != nil {
 		return err2
