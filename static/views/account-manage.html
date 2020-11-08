@@ -32,7 +32,7 @@ layui.use(['form'],function(){
 	
 	var cols=[[
 		//{type: "checkbox", width: 50},
-		{title: '操作', width: 150, toolbar: '#tablebar', align: "center",fixed:'left'},
+		{title: '操作', width: 160, toolbar: '#tablebar', align: "center",fixed:'left'},
 		{field: 'id', width: 80, title: 'ID', sort: true},
 		{field:'user_name',width:120,title:'用户名'},
 		{field:'status',width:120,title:'状态',align:'center',templet:function(d){return render_bool(d['status'],'正常','禁用');}},

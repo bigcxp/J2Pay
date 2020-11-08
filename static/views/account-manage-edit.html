@@ -155,7 +155,7 @@ layui.use(['tableSelect'],function(){
 		}
 	});
 	form.on('submit(add)',function(data){
-		h5post(data.form,'/account/'+hashparams['id'],'PUT');
+		h5edit(data.form,'/account/'+hashparams['id']);
 		return false;
 	});
 

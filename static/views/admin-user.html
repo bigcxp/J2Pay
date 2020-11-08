@@ -32,7 +32,7 @@ layui.use(['form'],function(){
 	
 	var cols=[[
 		//{type: "checkbox", width: 50},
-		{title: '操作', width: 150, toolbar: '#currentTableBar', align: "center",fixed:'left'},
+		{title: '操作', width: 160, toolbar: '#tablebar1', align: "center",fixed:'left'},
 		{field: 'id', width: 80, title: 'ID', sort: true},
 		{field:'real_name',width:120,title:'组织名称'},
 		{field:'whitelist_ip',width:120,title:'IP白名单'},
@@ -104,7 +104,10 @@ layui.use(['form'],function(){
 	//表格行toolbar按钮事件
 	table.on('tool(currentTableFilter)',function (obj){
 		var data = obj.data;
-		if(obj.event === 'edit'){
+
+		if(obj.event === 'detail'){
+			open_dlg('详情: '+data.user_name,'/main#0|admin-user-detail?id='+data.id)
+		}else if(obj.event === 'edit'){
 			open_dlg('编辑: '+data.user_name,'/main#0|admin-user-edit?id='+data.id)
 		}else if(obj.event === 'del'){
 			confirmdel('/adminUser/'+data.id,null);

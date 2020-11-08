@@ -54,7 +54,7 @@ function alertok(str,fn){
 		function(){if(typeof(fn)=='function'){fn()}}
 	);
 }
-function alerterr(str){layer.alert(str,{icon:2,anim:6});}
+function alerterr(str,fn){layer.alert(str,{icon:2,anim:6},function(){if(typeof(fn)=='function'){fn()}});}
 function objlen(obj){
 	var len=0;
 	$.each(obj,function(){len++;});
@@ -163,6 +163,9 @@ function h5post(form,url,method){
 		}
 	},false,method)
 }
+function h5edit(form,url){
+	h5post(form,url,'PUT')
+}
 
 function parseHash(){
 	var hash=(location.hash).replace('#','');
@@ -220,10 +223,27 @@ function chk_password(v){
 		return '密码必须包含数字和大小写字母';
 	};
 }
-function chk_repassword(v,d){
+function chk_url(v){
 	if(!v){return;}
-	var fo=form.val('password');
-	if(v!=fo.password){
-		return '两次输入的密码不同！';
+	if(!/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/.test(v)){
+		return '错误的网址格式!';
+	};
+}
+function chk_ipv4(str){
+	if(str==''){return;}
+	str=str.replace(/\n/g,',');
+	str=str.replace(/\r/g,'');
+	var arr=str.split(',');
+	var pass=false;
+	for(var i=0;i<arr.length;i++){
+		var v=arr[i];
+		v = v.replace(/\s/g,'')
+		if(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v)){
+			var pts=v.split('.');
+			if( 0==(1*pts[0])){return '首位IP不能是0!';}
+			if(pts[0]>255||pts[1]>255||pts[2]>255||pts[3]>255){return 'IP段值不能大于255!';}
+		}else{
+			return '错误的IP格式';
+		}
 	}
 }
