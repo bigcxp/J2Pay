@@ -1,0 +1,123 @@
+
+<blockquote class="layui-elem-quote">组织管理</blockquote>
+
+<!--<fieldset class="table-search-fieldset">
+	<legend>搜索信息</legend>
+	<div style="margin: 10px 10px 10px 10px">
+		<form action="" class="layui-form layui-form-pane">
+			<div class="layui-form-item">
+				<div class="layui-inline">
+					<label class="layui-form-label">角色名称</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="name" type="text"/></div>
+				</div>
+				<div class="layui-inline">
+					<button class="layui-btn layui-btn-primary" lay-filter="data-search-btn" lay-submit="" type="submit">
+						<i class="layui-icon">&#xe615;</i>搜索
+					</button>
+					<button class="layui-btn layui-btn-primary" lay-filter="data-reset" lay-submit="" type="submit">
+						<i class="layui-icon">&#xe666;</i>重置
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</fieldset>-->
+
+<table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+
+
+<script type="text/javascript">
+layui.use(['form'],function(){
+	
+	var cols=[[
+		//{type: "checkbox", width: 50},
+		{title: '操作', width: 160, toolbar: '#tablebar1', align: "center",fixed:'left'},
+		{field: 'id', width: 80, title: 'ID', sort: true},
+		{field:'real_name',width:120,title:'组织名称'},
+		{field:'whitelist_ip',width:120,title:'IP白名单'},
+		{field:'address',width:120,title:'商户地址'},
+		{field:'balance',width:120,title:'余额'},
+		{field:'return_url',width:120,title:'回传URL'},
+		{field:'dai_url',width:120,title:'代发URL'},
+		{field:'remark',width:120,title:'备注'},
+		{field:'is_collection',width:120,title:'开启收款',templet:function(d){return render_bool(d['is_collection']);}},
+		{field:'is_creation',width:120,title:'开启手动建单',templet:function(d){return render_bool(d['is_creation']);}},
+		{field:'more',width:120,title:'多地址收款',templet:function(d){return render_bool(d['more']);}},
+		{field:'order_type',width:120,title:'手续费类型',templet:function(d){return render_bool(d['order_type'],'百分比','固定');}},
+		{field:'order_charge',width:120,title:'订单手续费'},
+		{field:'return_type',width:120,title:'退款手续费类型',templet:function(d){return render_bool(d['return_type'],'百分比','固定');}},
+		{field:'return_charge',width:120,title:'退款手续费'},
+		{field:'is_dai',width:120,title:'启用代发',templet:function(d){return render_bool(d['is_dai']);}},
+		{field:'dai_type',width:120,title:'代发手续费类型',templet:function(d){return render_bool(d['dai_type'],'百分比','固定');}},
+		{field:'dai_charge',width:120,title:'代发手续费'},
+		{field:'pick_type',width:120,title:'提领手续费类型',templet:function(d){return render_bool(d['pick_type'],'百分比','固定');}},
+		{field:'pick_charge',width:120,title:'提领手续费'},
+		{field:'is_gas',width:120,title:'启用gas预估',templet:function(d){return render_bool(d['is_collection']);}},
+		{field:'examine',width:120,title:'代发审核'},
+		{field:'day_total_count',width:120,title:'每日交易总量'},
+		{field:'max_order_count',width:120,title:'最大交易总量'},
+		{field:'min_order_count',width:120,title:'最小交易总量'},
+		{field:'limit',width:120,title:'结账限制'},
+		{field:'user_less_time',width:120,title:'订单无效时间'}
+	]];
+
+	window.dataTable=table.render({
+		elem: '#currentTableId',
+		url:'/adminUser',
+		toolbar:'#toolbar',
+		defaultToolbar: ['filter','exports','print'],
+		cols:cols,
+		request:{
+			'pageName':'page',
+			'limitName':'pageSize'
+		},
+		parseData:function(res){
+			return {
+			"code": (res.code==1)?0:(res.code*-1), //解析接口状态
+			"msg": res.msg, //解析提示文本
+			"count": res.data.total, //解析数据长度
+			"data": res.data.data //解析数据列表
+			};
+		},
+		limits: [10,20,50,100],
+		limit: 20,
+		page: true,
+		done:function(res){
+			
+		}
+	});
+
+	//搜索
+	form.on('submit(data-search-btn)',function(data){
+		table.reload('currentTableId',{page: {curr: 1}, where:data.field});
+		return false;
+	});
+	//reset
+	form.on('submit(data-reset)',function(data){
+		table.reload('currentTableId',{page:{curr:1},where:''});
+		document.forms[0].reset();
+		form.render();
+		return false;
+	});
+	
+	//表格行toolbar按钮事件
+	table.on('tool(currentTableFilter)',function (obj){
+		var data = obj.data;
+
+		if(obj.event === 'detail'){
+			open_dlg('详情: '+data.user_name,'/main#0|admin-user-detail?id='+data.id)
+		}else if(obj.event === 'edit'){
+			open_dlg('编辑: '+data.user_name,'/main#0|admin-user-edit?id='+data.id)
+		}else if(obj.event === 'del'){
+			confirmdel('/adminUser/'+data.id,null);
+		}
+	});
+	//工具栏事件
+	table.on('toolbar(currentTableFilter)',function(obj){
+		if (obj.event === 'add'){
+			open_dlg('添加用户: ','/main#0|admin-user-add');
+		}
+	});
+});
+</script>

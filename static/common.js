@@ -188,7 +188,10 @@ function render_timestamp(t){
 	var dt=new Date(parseInt(t)*1000);
 	return dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()+' '+dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds();
 }
-
+//格式化日期
+function render_date(d){
+	return d.replace(/T/g,' ').replace(/\+.+/g,'').replace(/Z/,'');
+}
 /*
 表单验证
 */
