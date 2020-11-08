@@ -48,7 +48,7 @@ var _urlid=_tmp_arr[0]
 var _urlpath=_tmp_arr[1].split('?')[0]
 var _tpl_path='/static/views/'+_urlpath+'.html';
 var _loading_index=0;
-
+var hashparams=parseHash();
 
 
 $.ajaxSetup({

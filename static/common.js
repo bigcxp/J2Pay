@@ -179,7 +179,7 @@ function parseHash(){
 
 //格式化是否
 function render_bool(v,yes,no){
-	return (true==v)? '<font color="green">'+(!!yes?yes:'是 √')+'</font>': '<font color="red">'+(!!no?no:'否 ×')+'</font>';
+	return (1==v)? '<font color="green">'+(!!yes?yes:'是 √')+'</font>': '<font color="red">'+(!!no?no:'否 ×')+'</font>';
 }
 function render_timestamp(t){
 	var dt=new Date(parseInt(t)*1000);
@@ -212,6 +212,7 @@ function chk_username(v,d){
 	}
 }
 function chk_password(v){
+	if(!v){return;}
 	if(!/^[\S]{8,30}$/.test(v)){
 		return '密码长度8~30位!';
 	};
@@ -220,6 +221,7 @@ function chk_password(v){
 	};
 }
 function chk_repassword(v,d){
+	if(!v){return;}
 	var fo=form.val('password');
 	if(v!=fo.password){
 		return '两次输入的密码不同！';
