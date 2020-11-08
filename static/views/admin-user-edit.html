@@ -234,7 +234,10 @@ layui.use(['tableSelect'],function(){
 	});
 
 	$.get('/adminUser/'+hashparams['id'],function(res1){
-		if(res1.code!=1){return}
+		if(res.code!=1){
+			alerterr('数据不存在或服务器异常!',function(){close_dlg();});
+			return
+		}
 		var v=res1.data;
 		/*$('input[name=name]').val(v.name);
 		$('input[name=id]').val(v.id);*/
