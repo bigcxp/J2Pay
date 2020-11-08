@@ -11,9 +11,9 @@ type AppLock struct {
 
 //根据k查询
 func SQLGetAppLockColByK(k string) (*AppLock, error) {
-	var row *AppLock
-	err := Getdb().Model(&AppLock{}).First(&row, k).Error
-	return row, err
+	var row AppLock
+	err := Getdb().Where("k = ?",k).First(&row).Error
+	return &row, err
 }
 
 // 创建锁

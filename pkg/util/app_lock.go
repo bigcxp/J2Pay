@@ -1,4 +1,4 @@
-package service
+package util
 
 import (
 	"j2pay-server/hcommon"
@@ -25,9 +25,6 @@ func GetLock(k string) (bool, error) {
 
 	lockRow, err := model.SQLGetAppLockColByK(k)
 	if err != nil {
-		return false, err
-	}
-	if lockRow == nil {
 		err = genLock()
 		if err != nil {
 			return false, err
