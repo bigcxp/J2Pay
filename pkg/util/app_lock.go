@@ -42,7 +42,7 @@ func GetLock(k string) (bool, error) {
 }
 
 // ReleaseLock 释放运行锁
-func ReleaseLock( k string) error {
+func ReleaseLock(k string) error {
 	_, err := model.SQLUpdateTAppLockByK(
 		&model.AppLock{
 			K:          k,

@@ -25,7 +25,7 @@ func main() {
 	//网关
 	router := routers.InitRouter()
 	//定时器
-//	cron.Cron()
+	//cron.Cron()
 	//启动
 	panic(router.Run(fmt.Sprintf("%s:%d", setting.ApplicationConf.Host, setting.ApplicationConf.Port)))
 }

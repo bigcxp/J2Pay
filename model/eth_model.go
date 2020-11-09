@@ -94,7 +94,7 @@ type TProductNotify struct {
 //eth 发送交易
 type TSend struct {
 	ID           int64
-	RelatedType  int64  `gorm:"default:0;comment:'关联类型 1 零钱整理 2 提币'";json:"related_type"` // 关联类型 1 零钱整理 2 提币
+	RelatedType  int64  `gorm:"default:0;comment:'关联类型 1 零钱整理 2 提币'";json:"related_type"` // 关联类型 1 零钱整理 2 提币 3 代发
 	RelatedID    int64  `gorm:"default:0;comment:'管理id'";json:"related_id"`               // 关联id
 	TxID         string `gorm:"default:'';comment:'tx hash'";json:"tx_id"`                // tx hash
 	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`                 //合约id

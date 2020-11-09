@@ -32,8 +32,8 @@ func SQLCreateAppLockUpdate(row *AppLock) (int64, error) {
 func SQLUpdateTAppLockByK(row *AppLock) (int64, error) {
 	// 执行事务处理
 	tx := Getdb().Begin()
-	// 1.更新角色表
-	if err := tx.Model(&AppLock{K: row.K}).
+
+	if err := tx.Model(&AppLock{}).Where("k = ?",row.K).
 		Updates(map[string]interface{}{
 			"v":           row.V,
 			"create_time": row.CreateTime,
