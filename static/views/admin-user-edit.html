@@ -6,7 +6,7 @@
 <fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
 	<legend>添加组织</legend>
 </fieldset>
-<form class="layui-form layui-form-pane h5form" action="/adminUser">
+<form class="layui-form layui-form-pane h5form" lay-filter="h5form" action="/adminUser">
 
 	<div class="layui-form-item">
 		<label class="layui-form-label">组织名称</label>
@@ -18,20 +18,11 @@
 	<div class="layui-form-item">
 		<label class="layui-form-label">主账号</label>
 		<div class="layui-input-inline">
-			<input type="text" name="user_name" value="" placeholder="用户名" lay-verify="required|username" class="layui-input" />
+			<input type="text" name="user_name" value="" placeholder="用户名" class="layui-input" disabled/>
 		</div>
-		<div class="layui-form-mid layui-word-aux">组织的登录主账号</div>
+		<div class="layui-form-mid layui-word-aux">不可修改</div>
 	</div>
-	<div class="layui-form-item">
-		<label class="layui-form-label">密码</label>
-		<div class="layui-input-inline">
-			<input type="text" name="password" value="" placeholder="密码" lay-verify="required|password" class="layui-input" />
-		</div>
-		<label class="layui-form-label">确认密码</label>
-		<div class="layui-input-inline">
-			<input type="text" name="re_password" value="" placeholder="确认密码" lay-verify="required|password|repassword" class="layui-input" />
-		</div>
-	</div>
+	
 
 
 	<div class="layui-form-item">
@@ -234,21 +225,24 @@
 layui.use(['tableSelect'],function(){
 	
 	form.verify({
-		username:chk_username,
-		password:chk_password,
 		ipv4:chk_ipv4,
-		url:chk_url,
-		repassword:function(v,d){
-			var fo=$('input[name=password]').val();
-			if(v!=fo){
-				return '两次输入的密码不同！';
-			}
-		}
+		url:chk_url
 	});
 	form.on('submit(add)',function(data){
-		h5post(data.form);
+		h5edit(data.form,'/adminUser/'+hashparams['id']);
 		return false;
 	});
-	form.render()
+
+	$.get('/adminUser/'+hashparams['id'],function(res1){
+		if(res.code!=1){
+			alerterr('数据不存在或服务器异常!',function(){close_dlg();});
+			return
+		}
+		var v=res1.data;
+		/*$('input[name=name]').val(v.name);
+		$('input[name=id]').val(v.id);*/
+		form.val("h5form",v);
+		form.render()
+	});
 })
 </script>

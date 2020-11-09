@@ -65,7 +65,7 @@
 layui.use(['laytpl'],function(){
 	var laytpl = layui.laytpl;
 	var tpl=document.getElementById('tpl_list').innerHTML;
-	var hashparams=parseHash();
+	
 	$.get('/auth/tree',function(res){
 		if(res.code!=1){return}
 		laytpl(tpl).render(res,function(html){

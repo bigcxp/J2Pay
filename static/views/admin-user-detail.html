@@ -1,0 +1,121 @@
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+	<legend>查看详情</legend>
+</fieldset>
+
+<form action="" class="layui-form layui-form-pane" onsubmit="return false;">
+	<div id="showres"></div>
+</form>
+
+<script type="text/tmpl" id="tpl_detail">
+<table class="layui-table">
+	<thead>
+		<tr>
+			<th width="160" align="center">属性</th>
+			<th width="*" align="center">详情</th>
+		</tr>
+	</thead>
+	<tbody>
+{{# var v=d.data }}
+	
+
+<tr><th>组织名称</th><td id="real_name">{{ v.real_name }}</td></tr>
+
+
+<tr><th>IP白名单</th><td id="whitelist_ip">{{ v.whitelist_ip }}</td></tr>
+
+
+<tr><th>商户地址</th><td id="address">{{ v.address }}</td></tr>
+
+
+<tr><th>余额</th><td id="balance">{{ v.balance }}</td></tr>
+
+
+<tr><th>回传URL</th><td id="return_url">{{ v.return_url }}</td></tr>
+
+
+<tr><th>代发URL</th><td id="dai_url">{{ v.dai_url }}</td></tr>
+
+
+<tr><th>备注</th><td id="remark">{{ v.remark }}</td></tr>
+
+
+<tr><th>是否开启收款功能</th><td id="is_collection">{{ render_bool(v.is_collection) }}</td></tr>
+
+
+<tr><th>是否开启手动建单</th><td id="is_creation">{{ render_bool(v.is_creation) }}</td></tr>
+
+
+<tr><th>地址多单收款</th><td id="more">{{ render_bool(v.more) }}</td></tr>
+
+
+<tr><th>订单手续费类型</th><td id="order_type">{{ render_bool(v.order_type,'百分比','固定') }}</td></tr>
+
+
+<tr><th>订单手续费</th><td id="order_charge">{{ v.order_charge }}</td></tr>
+
+
+<tr><th>退款手续费类型</th><td id="return_type">{{ render_bool(v.return_type,'百分比','固定') }}</td></tr>
+
+
+<tr><th>退款手续费</th><td id="return_charge">{{ v.return_charge }}</td></tr>
+
+
+<tr><th>是否启用代发功能</th><td id="is_dai">{{ render_bool(v.is_dai) }}</td></tr>
+
+
+<tr><th>代发手续费类型</th><td id="dai_type">{{ render_bool(v.dai_type,'百分比','固定') }}</td></tr>
+
+
+<tr><th>代发手续费</th><td id="dai_charge">{{ v.dai_charge }}</td></tr>
+
+
+<tr><th>提领手续费类型</th><td id="pick_type">{{ render_bool(v.pick_type,'百分比','固定') }}</td></tr>
+
+
+<tr><th>提领手续费</th><td id="pick_charge">{{ v.pick_charge }}</td></tr>
+
+
+<tr><th>是否启用gas预估</th><td id="is_gas">{{ render_bool(v.is_gas) }}</td></tr>
+
+
+<tr><th>代发审核</th><td id="examine">{{ render_bool(v.examine) }}</td></tr>
+
+
+<tr><th>每日交易总量</th><td id="day_total_count">{{ v.day_total_count }}</td></tr>
+
+
+<tr><th>最大交易总量</th><td id="max_order_count">{{ v.max_order_count }}</td></tr>
+
+
+<tr><th>最小交易总量</th><td id="min_order_count">{{ v.min_order_count }}</td></tr>
+
+
+<tr><th>结账限制</th><td id="limit">{{ v.limit }}</td></tr>
+
+
+<tr><th>订单无效时间</th><td id="user_less_time">{{ v.user_less_time }}</td></tr>
+
+
+	</tbody>
+</table>
+</script>
+
+<script type="text/javascript">
+layui.use(['laytpl'],function(){
+	var laytpl = layui.laytpl;
+	var tpl=document.getElementById('tpl_detail').innerHTML;
+	
+	$.get('/adminUser/'+hashparams['id'],function(res){
+		if(res.code!=1){
+			alerterr('数据不存在或服务器异常!',function(){close_dlg();});
+			return
+		}
+		
+		laytpl(tpl).render(res,function(html){
+			$('#showres').html(html);
+			form.render()
+		});
+	});
+})
+</script>

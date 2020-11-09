@@ -1,5 +1,5 @@
 
-<blockquote class="layui-elem-quote">账户管理</blockquote>
+<blockquote class="layui-elem-quote">公告管理</blockquote>
 
 <fieldset class="table-search-fieldset">
 	<legend>搜索信息</legend>
@@ -7,8 +7,8 @@
 		<form action="" class="layui-form layui-form-pane">
 			<div class="layui-form-item">
 				<div class="layui-inline">
-					<label class="layui-form-label">用户名</label>
-					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="username" type="text"/></div>
+					<label class="layui-form-label">标题</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="title" type="text"/></div>
 				</div>
 				<div class="layui-inline">
 					<button class="layui-btn layui-btn-primary" lay-filter="data-search-btn" lay-submit="" type="submit">
@@ -34,15 +34,18 @@ layui.use(['form'],function(){
 		//{type: "checkbox", width: 50},
 		{title: '操作', width: 160, toolbar: '#tablebar', align: "center",fixed:'left'},
 		{field: 'id', width: 80, title: 'ID', sort: true},
-		{field:'user_name',width:120,title:'用户名'},
-		{field:'status',width:120,title:'状态',align:'center',templet:function(d){return render_bool(d['status'],'正常','禁用');}},
-		{field:'roles',width:120,title:'角色',templet:function(d){return d['roles']['name'];}},
-		{field:'last_login_time',width:160,title:'最后登录时间',templet:function(d){return render_timestamp(d['last_login_time'])} }
+
+		{field:'status',width:100,title:'状态',align:'center',templet:function(d){return render_bool(d['status'],'正常','未发送')}},
+		{field:'begin_time',width:160,title:'开始时间',align:'center',templet:function(d){return render_date(d['begin_time'])}},
+		{field:'end_time',width:160,title:'结束时间',align:'center',templet:function(d){return render_date(d['end_time'])}},
+		{field:'users',width:160,title:'目标用户',templet:function(d){return d['users'][0]['user_name']||'' } },
+
+		{field:'title',minWidth:160,title:'公告标题'}
 	]];
 
 	window.dataTable=table.render({
 		elem: '#currentTableId',
-		url:'/accountList',
+		url:'/systemMessage',
 		toolbar:'#toolbar',
 		defaultToolbar: ['filter','exports','print'],
 		cols:cols,
@@ -82,16 +85,19 @@ layui.use(['form'],function(){
 	//表格行toolbar按钮事件
 	table.on('tool(currentTableFilter)',function (obj){
 		var data = obj.data;
-		if(obj.event === 'edit'){
-			open_dlg('编辑: '+data.user_name,'/main#0|account-manage-edit?id='+data.id)
+
+		if(obj.event === 'detail'){
+			open_dlg('公告详情: ','/main#0|admin-system-message-detail?id='+data.id)
+		}else if(obj.event === 'edit'){
+			open_dlg('编辑公告: ','/main#0|admin-system-message-edit?id='+data.id)
 		}else if(obj.event === 'del'){
-			confirmdel('/account/'+data.id,null);
+			confirmdel('/systemMessage/'+data.id,null);
 		}
 	});
 	//工具栏事件
 	table.on('toolbar(currentTableFilter)',function(obj){
 		if (obj.event === 'add'){
-			open_dlg('添加用户: ','/main#0|account-manage-add');
+			open_dlg('添加公告: ','/main#0|admin-system-message-add');
 		}
 	});
 });
