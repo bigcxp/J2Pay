@@ -85,17 +85,20 @@ func UserAdd(user request.UserAdd) error {
 		UpdateTime:    time,
 		WhitelistIP:   user.WhitelistIP,
 	}
-	// 1.判断组织是否存在
+	// 判断组织是否存在
 	if hasName, _ := model.GetUserByWhere("real_name = ?", user.RealName); hasName.ID > 0 {
 		return myerr.NewDbValidateError("组织已存在")
 	}
-	// 2.判断密码是否一致
-	if user.Password != user.RePassword {
-		return myerr.NewNormalValidateError("密码与确认密码不一致")
-	}
-	// 3.判断账户是否存在
-	if hasName, _ := model.GetAccountByWhere("user_name = ?", user.UserName); hasName.ID > 0 {
-		return myerr.NewDbValidateError("账户名已存在")
+	// 如果是新增账户
+	if user.AID ==0 {
+		// 2.判断密码是否一致
+		if user.Password != user.RePassword {
+			return myerr.NewNormalValidateError("密码与确认密码不一致")
+		}
+		// 3.判断账户是否存在
+		if hasName, _ := model.GetAccountByWhere("user_name = ?", user.UserName); hasName.ID > 0 {
+			return myerr.NewDbValidateError("账户名已存在")
+		}
 	}
 	Uid, err := u.Create()
 	if err != nil {
@@ -116,7 +119,7 @@ func UserAdd(user request.UserAdd) error {
 	account.Password = string(bcryptPassword)
 	a := model.Account{
 		UID: account.UID,
-		RID: 0,
+		RID: 2,
 		UserName:      account.UserName,
 		Password:      account.Password,
 		Secret:        validate.NewGoogleAuth().GetSecret(), //生成google唯一密钥
@@ -129,7 +132,7 @@ func UserAdd(user request.UserAdd) error {
 		UpdateTime:    time,
 		LastLoginTime: time,
 	}
-	return a.Create(0)
+	return a.Create(2)
 }
 
 // 编辑组织
