@@ -22,7 +22,7 @@ func AuthTreeCache() []response.Auth {
 }
 
 // 返回有权限分类方式的权限
-func AuthListCache() []response.Auth {
+func  AuthListCache() []response.Auth {
 	if len(authTreeCache) == 0 {
 		authTreeCache = authList(0)
 	}

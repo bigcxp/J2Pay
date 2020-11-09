@@ -128,23 +128,16 @@ func (a *Account) UpdatePassword(id int64, password string) (err error) {
 //是否开启google验证
 func (a *Account) Google(google request.Google) (err error) {
 	tx := Getdb().Begin()
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
-	user,_ := GetUserByWhere("id = ?", google.ID)
-	isOpen := google.IsOpen
-	if isOpen == 2 {
-		err = tx.Model(&Account{ID: user.ID}).
-			Updates(Account{IsOpen: 2}).Error
-	} else {
-		err = tx.Model(&AdminUser{ID: user.ID}).
-			Updates(Account{IsOpen: 1}).Error
+	updateInfo := map[string]interface{}{
+		"is_open" : google.IsOpen,
 	}
-	return
+	if err := tx.Model(Account{}).Where("id = ?",google.ID).
+		Updates(updateInfo).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
 }
 
 // 删除用户
