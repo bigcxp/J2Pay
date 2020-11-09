@@ -25,21 +25,29 @@
 
 <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
 
-
+<script type="text/html" id="tablebar1">
+	<a class="layui-btn layui-btn-sm layui-btn-danger data-count-delete" lay-event="del" operate="del" title="删除"><i class="layui-icon">&#xe640;</i></a>
+</script>
 
 <script type="text/javascript">
+function render_users(d){
+	var arr=[]
+	$.each(d['users'],function(k,v){
+		arr.push(v.user_name)
+	});
+	return arr.join(',')
+}
 layui.use(['form'],function(){
 	
 	var cols=[[
 		//{type: "checkbox", width: 50},
-		{title: '操作', width: 160, toolbar: '#tablebar', align: "center",fixed:'left'},
+		{title: '操作', width: 90, toolbar: '#tablebar1', align: "center",fixed:'left'},
 		{field: 'id', width: 80, title: 'ID', sort: true},
 
 		{field:'status',width:100,title:'状态',align:'center',templet:function(d){return render_bool(d['status'],'正常','未发送')}},
 		{field:'begin_time',width:160,title:'开始时间',align:'center',templet:function(d){return render_date(d['begin_time'])}},
 		{field:'end_time',width:160,title:'结束时间',align:'center',templet:function(d){return render_date(d['end_time'])}},
-		{field:'users',width:160,title:'目标用户',templet:function(d){return d['users'][0]['user_name']||'' } },
-
+		{field:'users',width:220,title:'目标用户',templet:render_users },
 		{field:'title',minWidth:160,title:'公告标题'}
 	]];
 
