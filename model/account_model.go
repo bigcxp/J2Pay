@@ -137,9 +137,9 @@ func (a *Account) Google(google request.Google) (err error) {
 	}()
 	user,_ := GetUserByWhere("id = ?", google.ID)
 	isOpen := google.IsOpen
-	if isOpen == 0 {
+	if isOpen == 2 {
 		err = tx.Model(&Account{ID: user.ID}).
-			Updates(Account{IsOpen: 0}).Error
+			Updates(Account{IsOpen: 2}).Error
 	} else {
 		err = tx.Model(&AdminUser{ID: user.ID}).
 			Updates(Account{IsOpen: 1}).Error

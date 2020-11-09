@@ -16,7 +16,7 @@ type CasRole struct {
 
 //组织
 type User struct {
-	ID       int64    `json:"id"`        // 组织ID
+	ID       int64  `json:"id"`        // 组织ID
 	RealName string `json:"real_name"` // 组织名称
 }
 
@@ -35,6 +35,7 @@ type AccountList struct {
 	LastLoginTime int64   `json:"last_login_time"` //最后登录时间
 	User          User    `json:"user"`            //商户信息
 	Roles         CasRole `json:"roles"`           // 角色信息
+	IsOpen        int     `json:"is_open"`         //是否开启google双重验证 默认1：开启 ，2：关闭 ';"
 }
 
 //返回修改的密码
