@@ -16,8 +16,8 @@ mysql:
   pwd: root
   db: j2pay
   prefix:
-  max_idle: 10
-  max_active: 10
+  max_idle: 1000
+  max_active: 1000
 
 # 日志配置
 log:

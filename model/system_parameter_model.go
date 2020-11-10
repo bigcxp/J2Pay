@@ -19,18 +19,19 @@ type Parameter struct {
 //查询系统参数数据
 func (p *Parameter) GetDetail() response.Parameter {
 	var parameter response.Parameter
-	Getdb().First(&parameter)
+	DB.First(&parameter)
 	return parameter
 }
 
 //更新系统参数
 func (p *Parameter) UpdateParameter(edit request.ParameterEdit) (err error) {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
 		} else {
 			tx.Commit()
+
 		}
 	}()
 	parameter := GetParameterByWhere("id = ?", edit.ID)
@@ -42,12 +43,13 @@ func (p *Parameter) UpdateParameter(edit request.ParameterEdit) (err error) {
 
 //更新gasPrice
 func (p *Parameter) UpdateGasPrice(edit request.ParameterEdit) (err error) {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
 		} else {
 			tx.Commit()
+
 		}
 	}()
 	parameter := GetParameterByWhere("id = ?", edit.ID)
@@ -59,13 +61,13 @@ func (p *Parameter) UpdateGasPrice(edit request.ParameterEdit) (err error) {
 
 // 根据条件获取详情
 func GetParameterByWhere(where ...interface{}) (pa Parameter) {
-	Getdb().First(&pa, where...)
+	DB.First(&pa, where...)
 	return
 }
 
 //查询GasFee
 func GetGasFeeDetail() response.Parameter {
 	var parameter response.Parameter
-	Getdb().First(&parameter)
+	DB.First(&parameter)
 	return parameter
 }

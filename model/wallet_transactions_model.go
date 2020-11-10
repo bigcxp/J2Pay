@@ -41,7 +41,7 @@ func (e *EthTransaction) GetAll(page, pageSize int, where ...interface{}) (respo
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Model(EthTransaction{}).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := DB.Model(EthTransaction{}).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.EthTransactionPage{}, err
 	}
@@ -58,7 +58,7 @@ func (h *HotTransaction) GetAll(page, pageSize int, where ...interface{}) (respo
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Model(EthTransaction{}).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := DB.Model(EthTransaction{}).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.HotTransactionPage{}, err
 	}
@@ -67,36 +67,39 @@ func (h *HotTransaction) GetAll(page, pageSize int, where ...interface{}) (respo
 
 //创建eth交易
 func (e *EthTransaction) AddEthTx() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Create(e).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 //创建hot交易
 func (h *HotTransaction) AddHotTx() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Create(h).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 //修改eth交易 暂时没有此功能
 //修改hot钱包交易 只有在等待着才能修改
 func UpdateAmount(handleStatus int, address []Address) (err error) {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	for _, v := range address {
 		if err = tx.Model(&v).
 			Updates(Address{HandleStatus: handleStatus}).Error; err != nil {
 			tx.Rollback()
 			return err
 			tx.Commit()
+
 		}
 	}
 	return err
@@ -105,19 +108,19 @@ func UpdateAmount(handleStatus int, address []Address) (err error) {
 // 获取所有ETH交易数量
 func (e *EthTransaction) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Getdb().Model(&e).Count(&count)
+		DB.Model(&e).Count(&count)
 		return
 	}
-	Getdb().Model(&e).Where(where[0], where[1:]...).Count(&count)
+	DB.Model(&e).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
 // 获取所有Hot交易数量
 func (h *HotTransaction) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Getdb().Model(&h).Count(&count)
+		DB.Model(&h).Count(&count)
 		return
 	}
-	Getdb().Model(&h).Where(where[0], where[1:]...).Count(&count)
+	DB.Model(&h).Where(where[0], where[1:]...).Count(&count)
 	return
 }

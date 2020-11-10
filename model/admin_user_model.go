@@ -51,7 +51,7 @@ func (u *AdminUser) GetAll(page, pageSize int, where ...interface{}) (response.A
 		Data:        []response.AdminUserList{},
 	}
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Table("admin_user").
+	err := DB.Table("admin_user").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&all.Data, where...).Error
@@ -64,7 +64,7 @@ func (u *AdminUser) GetAll(page, pageSize int, where ...interface{}) (response.A
 // 获取组织所有系统公告
 func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (response.AdminUserMessagePage, error) {
 	user := &response.AdminUserMessageList{}
-	Getdb().Where("id = ?", 1).Preload("system_message").Find(&user)
+	DB.Where("id = ?", 1).Preload("system_message").Find(&user)
 	logger.Logger.Println(user)
 
 	all := response.AdminUserMessagePage{
@@ -74,7 +74,7 @@ func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (res
 		Data:        []response.AdminUserMessageList{},
 	}
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Table("admin_user").
+	err := DB.Table("admin_user").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&all.Data, where...).Error
@@ -90,7 +90,7 @@ func (u *AdminUser) Detail(id ...int64) (res response.AdminUserList, err error) 
 	if len(id) > 0 {
 		searchId = id[0]
 	}
-	err = Getdb().Table("admin_user").
+	err = DB.Table("admin_user").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -99,18 +99,19 @@ func (u *AdminUser) Detail(id ...int64) (res response.AdminUserList, err error) 
 
 // 创建组织
 func (u *AdminUser) Create() (int64, error) {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Create(&u).Error; err != nil {
 		tx.Rollback()
 		return 0, err
 	}
 	tx.Commit()
+
 	return u.ID, nil
 }
 
 // 编辑组织
 func (u *AdminUser) Edit() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	updateInfo := map[string]interface{}{
 		"real_name":       u.RealName,
 		"address":         u.Address,
@@ -144,12 +145,13 @@ func (u *AdminUser) Edit() error {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 删除组织
 func (u *AdminUser) Del() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Delete(u, "id = ?", u.ID).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -159,29 +161,30 @@ func (u *AdminUser) Del() error {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 根据条件获取组织详情
 func GetUserByWhere(where ...interface{}) (au AdminUser, err error) {
-	err = Getdb().First(&au, where...).Error
+	err = DB.First(&au, where...).Error
 	return
 }
 
 // 获取所有后台组织数量
 func (u *AdminUser) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Getdb().Model(&u).Count(&count)
+		DB.Model(&u).Count(&count)
 		return
 	}
-	Getdb().Model(&u).Where(where[0], where[1:]...).Count(&count)
+	DB.Model(&u).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
 func GetAllUser() (mapping map[int]response.UserNames) {
 	var users []response.UserNames
 	mapping = make(map[int]response.UserNames)
-	Getdb().Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
+	DB.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
 	for _, user := range users {
 		mapping[user.Id] = user
 	}
@@ -190,6 +193,6 @@ func GetAllUser() (mapping map[int]response.UserNames) {
 
 // 根据条件获取多个角色
 func GetUsersByWhere(where ...interface{}) (res []AdminUser, err error) {
-	err = Getdb().Find(&res, where...).Error
+	err = DB.Find(&res, where...).Error
 	return
 }

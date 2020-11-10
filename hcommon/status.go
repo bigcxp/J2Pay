@@ -38,10 +38,10 @@ const (
 
 // 发送类型
 const (
-	SendRelationTypeTx         = 1
-	SendRelationTypeWithdraw   = 2
-	SendRelationTypeTxErc20    = 3
-	SendRelationTypeTxErc20Fee = 4
+	SendRelationTypeTx         = 1 //eth充币
+	SendRelationTypeWithdraw   = 2 //eth提币
+	SendRelationTypeTxErc20    = 3 //erc20充币
+	SendRelationTypeTxErc20Fee = 4 //ercx20提币
 )
 
 // 通知状态

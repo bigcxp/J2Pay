@@ -63,8 +63,8 @@ func CreateHotTx(hot request.HotTxAdd) error {
 	heth.CheckGasPrice()
 	//获取gasPrice
 	statusInt := model.TAppStatusInt{}
-	gasPriceValue := statusInt.SQLGetTAppStatusIntValueByK("k = ? ", "to_user_gas_price")
-	gasLimitValue := statusInt.SQLGetTAppStatusIntValueByK("k = ? ", "gas_limit")
+	gasPriceValue,_ := statusInt.SQLGetTAppStatusIntValueByK("to_user_gas_price")
+	gasLimitValue ,_:= statusInt.SQLGetTAppStatusIntValueByK( "gas_limit")
 	feeValue := gasPriceValue.V * gasLimitValue.V
 	//判断是代发还是提领还是结账 结账=》排程结账 手动结账
 	//1:代发,2:排程结账,3:手动结账

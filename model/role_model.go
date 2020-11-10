@@ -21,7 +21,7 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 		Data:        []response.RoleList{},
 	}
 	offset := GetOffset(page, pageSize)
-	scope := Getdb().Table("role").
+	scope := DB.Table("role").
 		Select([]string{"role.id", "role.name"}).Order("role.id desc")
 	err := scope.Offset(offset).Limit(pageSize).Find(&all.Data).Error
 	return all, err
@@ -30,7 +30,7 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 func GetAllRole() (mapping map[int]response.CasRole) {
 	var roles []response.CasRole
 	mapping = make(map[int]response.CasRole)
-	Getdb().Table("role").Select("role.id,role.name").Order("role.id asc").Find(&roles)
+	DB.Table("role").Select("role.id,role.name").Order("role.id asc").Find(&roles)
 	for _, role := range roles {
 		mapping[role.ID] = role
 	}
@@ -43,7 +43,7 @@ func (r *Role) Detail(id ...int) (res response.RoleList, err error) {
 	if len(id) > 0 {
 		searchId = id[0]
 	}
-	err = Getdb().Table("role").
+	err = DB.Table("role").
 		Select([]string{"role.id", "role.name", "role.auth as auths"}).Where("role.id = ?", searchId).First(&res).Error
 	return
 }
@@ -51,7 +51,7 @@ func (r *Role) Detail(id ...int) (res response.RoleList, err error) {
 // 创建角色
 func (r *Role) Create(all []Auth) error {
 	// 执行事务处理
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Create(&r).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -73,13 +73,14 @@ func (r *Role) Create(all []Auth) error {
 		}
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 编辑角色
 func (r *Role) Edit(all []Auth) error {
 	// 执行事务处理
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 
 	// 1.更新角色表
 	if err := tx.Model(&Role{ID: r.ID}).
@@ -115,12 +116,13 @@ func (r *Role) Edit(all []Auth) error {
 	}
 
 	tx.Commit()
+
 	return nil
 }
 
 // 删除角色
 func (r *Role) Del() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 
 	// 1.删除角色表
 	if err := tx.Where("id = ?", r.ID).Delete(r).Error; err != nil {
@@ -134,29 +136,30 @@ func (r *Role) Del() error {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 获取角色条数
 func (r *Role) getCount() (total int) {
-	Getdb().Model(&r).Count(&total)
+	DB.Model(&r).Count(&total)
 	return
 }
 
 // 根据条件获取角色
 func GetRoleByWhere(where ...interface{}) (res Role, err error) {
-	err = Getdb().Where(where).Take(&res).Error
+	err = DB.Where(where).Take(&res).Error
 	return
 }
 
 // 根据条件获取多个角色
 func GetRolesByWhere(where ...interface{}) (res []Role, err error) {
-	err = Getdb().Find(&res, where...).Error
+	err = DB.Find(&res, where...).Error
 	return
 }
 
 // 根据条件获取多个角色
 func GetRoleTreeByWhere(where ...interface{}) (res []response.Roles, err error) {
-	err = Getdb().Table("role").Find(&res, where...).Error
+	err = DB.Table("role").Find(&res, where...).Error
 	return
 }

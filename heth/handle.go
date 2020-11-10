@@ -7,22 +7,20 @@ import (
 	"github.com/parnurzeal/gorequest"
 	"j2pay-server/hcommon"
 	"j2pay-server/model"
-	"j2pay-server/pkg/util"
 	"net/http"
 	"time"
 )
 // CheckDoNotify 检测发送回调
+ var CheckDoNotifyBool = false
 func CheckDoNotify() {
-	lockKey := "CheckDoNotify"
-	util.LockWrap(lockKey, func() {
+	if CheckDoNotifyBool {
+		return
+	}
+	CheckDoNotifyBool = true
+	defer func() { CheckDoNotifyBool = false }()
 		// 初始化的
-		notify := model.TProductNotify{}
+		notify := model.TUserNotify{}
 		initNotifyRows, err := notify.SQLSelectTProductNotifyColByStatusAndTime(
-			[]string{
-				model.DBColTProductNotifyID,
-				model.DBColTProductNotifyURL,
-				model.DBColTProductNotifyMsg,
-			},
 			hcommon.NotifyStatusInit,
 			time.Now().Unix(),
 		)
@@ -32,11 +30,6 @@ func CheckDoNotify() {
 		}
 		// 错误的
 		delayNotifyRows, err := notify.SQLSelectTProductNotifyColByStatusAndTime(
-			[]string{
-				model.DBColTProductNotifyID,
-				model.DBColTProductNotifyURL,
-				model.DBColTProductNotifyMsg,
-			},
 			hcommon.NotifyStatusFail,
 			time.Now().Add(-time.Minute*10).Unix(),
 		)
@@ -45,13 +38,16 @@ func CheckDoNotify() {
 			return
 		}
 		initNotifyRows = append(initNotifyRows, delayNotifyRows...)
-
+		if initNotifyRows == nil || len(initNotifyRows) <= 0{
+			hcommon.Log.Infof("没有通知信息")
+			return
+		}
 		for _, initNotifyRow := range initNotifyRows {
 			gresp, body, errs := gorequest.New().Post(initNotifyRow.URL).Timeout(time.Second * 30).Send(initNotifyRow.Msg).End()
 			if errs != nil {
 				hcommon.Log.Errorf("err: [%T] %s", errs[0], errs[0].Error())
 				err = notify.SQLUpdateTProductNotifyStatusByID(
-					&model.TProductNotify{
+					&model.TUserNotify{
 						ID:           initNotifyRow.ID,
 						HandleStatus: hcommon.NotifyStatusFail,
 						HandleMsg:    errs[0].Error(),
@@ -67,7 +63,7 @@ func CheckDoNotify() {
 				// 状态错误
 				hcommon.Log.Errorf("req status error: %d", gresp.StatusCode)
 				err = notify.SQLUpdateTProductNotifyStatusByID(
-					&model.TProductNotify{
+					&model.TUserNotify{
 						ID:           initNotifyRow.ID,
 						HandleStatus: hcommon.NotifyStatusFail,
 						HandleMsg:    fmt.Sprintf("http status: %d", gresp.StatusCode),
@@ -84,7 +80,7 @@ func CheckDoNotify() {
 			if err != nil {
 				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				err = notify.SQLUpdateTProductNotifyStatusByID(
-					&model.TProductNotify{
+					&model.TUserNotify{
 						ID:           initNotifyRow.ID,
 						HandleStatus: hcommon.NotifyStatusFail,
 						HandleMsg:    body,
@@ -100,7 +96,7 @@ func CheckDoNotify() {
 			if ok {
 				// 处理成功
 				err = notify.SQLUpdateTProductNotifyStatusByID(
-					&model.TProductNotify{
+					&model.TUserNotify{
 						ID:           initNotifyRow.ID,
 						HandleStatus: hcommon.NotifyStatusPass,
 						HandleMsg:    body,
@@ -113,7 +109,7 @@ func CheckDoNotify() {
 			} else {
 				//hcommon.Log.Errorf("no error in resp")
 				err = notify.SQLUpdateTProductNotifyStatusByID(
-					&model.TProductNotify{
+					&model.TUserNotify{
 						ID:           initNotifyRow.ID,
 						HandleStatus: hcommon.NotifyStatusFail,
 						HandleMsg:    body,
@@ -126,5 +122,4 @@ func CheckDoNotify() {
 				continue
 			}
 		}
-	})
 }

@@ -31,7 +31,7 @@ func (d *DetailedRecord) GetAll(page, pageSize int, where ...interface{}) (respo
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Model(&d).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := DB.Model(&d).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.DetailedRecordPage{}, err
 	}
@@ -49,12 +49,13 @@ func (d *DetailedRecord) GetAll(page, pageSize int, where ...interface{}) (respo
 
 //新增实收明细记录
 func (d *DetailedRecord) DetailedAdd() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Create(d).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
@@ -64,7 +65,7 @@ func (d *DetailedRecord) GetDetail(id ...int) (res response.DetailedList, err er
 	if len(id) > 0 {
 		searchId =int64(id[0])
 	}
-	err = Getdb().Table("detail").
+	err = DB.Table("detail").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -80,7 +81,7 @@ func (d *DetailedRecord) GetDetail(id ...int) (res response.DetailedList, err er
 
 //解绑 绑定
 func (d *DetailedRecord) Binding(id int, orderCode string, isBind int) error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	detailedRecord := GetDetailByWhere("id = ?", id)
 	//解绑
 	if isBind == 1 {
@@ -99,21 +100,22 @@ func (d *DetailedRecord) Binding(id int, orderCode string, isBind int) error {
 		}
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 获取所有实收明细记录数量
 func (d *DetailedRecord) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Getdb().Model(&d).Count(&count)
+		DB.Model(&d).Count(&count)
 		return
 	}
-	Getdb().Model(&d).Where(where[0], where[1:]...).Count(&count)
+	DB.Model(&d).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
 // 根据条件获取详情
 func GetDetailByWhere(where ...interface{}) (de DetailedRecord) {
-	Getdb().First(&de, where...)
+	DB.First(&de, where...)
 	return
 }

@@ -29,7 +29,7 @@ type Account struct {
 
 // 根据条件获取账户详情
 func GetAccountByWhere(where ...interface{}) (ac Account,err error) {
-	err = Getdb().First(&ac, where...).Error
+	err = DB.First(&ac, where...).Error
 	return
 }
 
@@ -42,7 +42,7 @@ func (a *Account) GetAll(page, pageSize int, where ...interface{}) (response.Acc
 		Data:        []response.AccountList{},
 	}
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Table("account").
+	err := DB.Table("account").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&all.Data, where...).Error
@@ -58,7 +58,7 @@ func (a *Account) AccountDetail(id ...int64) (res response.AccountList, err erro
 	if len(id) > 0 {
 		searchId = int64(id[0])
 	}
-	err = Getdb().Table("account").
+	err = DB.Table("account").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -67,7 +67,7 @@ func (a *Account) AccountDetail(id ...int64) (res response.AccountList, err erro
 
 // 创建账户
 func (a *Account) Create(role int) error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Create(a).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -81,12 +81,13 @@ func (a *Account) Create(role int) error {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 编辑账户
 func (a *Account) Edit(account request.AccountEdit) error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	account1, _ := GetAccountByWhere("id = ?", a.ID)
 	if err := tx.Model(&account1).
 		Updates(Account{RID:account.RID,Status: account.Status,UpdateTime: a.UpdateTime}).Error; err != nil {
@@ -106,17 +107,19 @@ func (a *Account) Edit(account request.AccountEdit) error {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 //修改密码
 func (a *Account) UpdatePassword(id int64, password string) (err error) {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
 		} else {
 			tx.Commit()
+
 		}
 	}()
 	user,_ := GetUserByWhere("id = ?", id)
@@ -127,7 +130,7 @@ func (a *Account) UpdatePassword(id int64, password string) (err error) {
 
 //是否开启google验证
 func (a *Account) Google(google request.Google) (err error) {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	updateInfo := map[string]interface{}{
 		"is_open" : google.IsOpen,
 	}
@@ -137,12 +140,13 @@ func (a *Account) Google(google request.Google) (err error) {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 删除用户
 func (a *Account) Del() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Delete(a, "id = ?", a.ID).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -152,6 +156,7 @@ func (a *Account) Del() error {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
@@ -172,16 +177,16 @@ func GetAccountAuth(Id int64) (auth []Auth) {
 	role := GetAccountRole(Id)
 	var dbRole Role
 	var whereAuthId []string
-	Getdb().Model(Role{}).Select("auth").First(&dbRole, "id = ?", role.ID)
+	DB.Model(Role{}).Select("auth").First(&dbRole, "id = ?", role.ID)
 	whereAuthId = append(whereAuthId, dbRole.Auth)
-	Getdb().Find(&auth, "id in (?)", strings.Split(strings.Join(whereAuthId, ","), ","))
+	DB.Find(&auth, "id in (?)", strings.Split(strings.Join(whereAuthId, ","), ","))
 	return
 }
 
 func GetAllAccount() (mapping map[int]response.UserNames) {
 	var users []response.UserNames
 	mapping = make(map[int]response.UserNames)
-	Getdb().Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
+	DB.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
 	for _, user := range users {
 		mapping[user.Id] = user
 	}
@@ -190,7 +195,7 @@ func GetAllAccount() (mapping map[int]response.UserNames) {
 
 // 编辑用户
 func (u *Account) EditToken(username, token string) error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	account ,_:= GetAccountByWhere("user_name = ?", username)
 	if err := tx.Model(&account).
 		Updates(Account{LastLoginTime: time.Now().Unix(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, account.Secret), Token: token}).Error; err != nil {
@@ -198,15 +203,16 @@ func (u *Account) EditToken(username, token string) error {
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 获取所有账户数量
 func (a *Account) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Getdb().Model(&a).Count(&count)
+		DB.Model(&a).Count(&count)
 		return
 	}
-	Getdb().Model(&a).Where(where[0], where[1:]...).Count(&count)
+	DB.Model(&a).Where(where[0], where[1:]...).Count(&count)
 	return
 }

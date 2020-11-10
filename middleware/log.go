@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"j2pay-server/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"j2pay-server/pkg/logger"
 	"time"
 )
 

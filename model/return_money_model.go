@@ -28,7 +28,7 @@ func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.Retu
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Model(&r).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := DB.Model(&r).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.ReturnPage{}, err
 	}
@@ -42,10 +42,10 @@ func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.Retu
 // 获取所有退款订单数量
 func (r *Return) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Getdb().Model(&r).Count(&count)
+		DB.Model(&r).Count(&count)
 		return
 	}
-	Getdb().Model(&r).Where(where[0], where[1:]...).Count(&count)
+	DB.Model(&r).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
@@ -55,7 +55,7 @@ func (r *Return) GetDetail(id ...int) (res response.ReturnList, err error) {
 	if len(id) > 0 {
 		searchId = uint(id[0])
 	}
-	err = Getdb().Table("return").
+	err = DB.Table("return").
 		Where("id = ?", searchId).
 		First(&res).
 		Error
@@ -66,18 +66,19 @@ func (r *Return) GetDetail(id ...int) (res response.ReturnList, err error) {
 
 // 创建退款订单
 func (r *Return) Create() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	r.CreatedAt = time.Now()
 	if err := tx.Create(r).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
 // 根据条件获取订单详情
 func GetReturnByWhere(where ...interface{}) (r Return) {
-	Getdb().First(&r, where...)
+	DB.First(&r, where...)
 	return
 }

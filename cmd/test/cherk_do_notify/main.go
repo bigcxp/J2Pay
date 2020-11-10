@@ -1,4 +1,4 @@
-// 检索erc20到账情况
+// 检索回调
 package main
 
 import (
@@ -22,5 +22,6 @@ func main() {
 	model.Setup()
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
-	 heth.CheckErc20BlockSeek()
+	heth.CheckDoNotify()
 }
+

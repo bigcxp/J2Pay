@@ -18,7 +18,7 @@ type CasbinRule struct {
 // [用户ID] => [角色ID]
 func GetAccountRoleMapping() map[int64]int {
 	var all []CasbinRule
-	Getdb().Select([]string{"substring(v0, 6) as v0", "substring(v1, 6) as v1"}).
+	DB.Select([]string{"substring(v0, 6) as v0", "substring(v1, 6) as v1"}).
 		Where("p_type = 'g' and v0 like ?",  "user:%").
 		Find(&all)
 	hash := make(map[int64]int)
@@ -37,6 +37,6 @@ func GetAccountRoleMapping() map[int64]int {
 
 // 根据条件查数据
 func GetCasbinByWhere(where ...interface{}) (res CasbinRule, err error) {
-	err = Getdb().First(&res, where...).Error
+	err = DB.First(&res, where...).Error
 	return
 }

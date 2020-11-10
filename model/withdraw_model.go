@@ -35,7 +35,7 @@ func (p *TWithdraw) GetAllPick(page, pageSize int, where ...interface{}) (respon
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := DB.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.PickUpPage{}, err
 	}
@@ -57,7 +57,7 @@ func (p *TWithdraw) GetAllSend(page, pageSize int, where ...interface{}) (respon
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := DB.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.SendPage{}, err
 	}
@@ -83,7 +83,7 @@ func (p *TWithdraw) GetAll(page, pageSize int, where ...interface{}) (response.M
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
-	err := Getdb().Table("pick").Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
+	err := DB.Table("pick").Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
 		return response.MerchantPickSendPage{}, err
 	}
@@ -99,16 +99,16 @@ func (p *TWithdraw) GetAll(page, pageSize int, where ...interface{}) (response.M
 // 获取所有提领订单数量
 func (p *TWithdraw) GetCount(where ...interface{}) (count int) {
 	if len(where) == 0 {
-		Getdb().Model(&p).Count(&count)
+		DB.Model(&p).Count(&count)
 		return
 	}
-	Getdb().Model(&p).Where(where[0], where[1:]...).Count(&count)
+	DB.Model(&p).Where(where[0], where[1:]...).Count(&count)
 	return
 }
 
 // 管理端根据ID获取提领订单详情
 func (p *TWithdraw) GetPickDetail(id ...int) (res response.PickList, err error) {
-	err = Getdb().Table("pick").
+	err = DB.Table("pick").
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
@@ -119,7 +119,7 @@ func (p *TWithdraw) GetPickDetail(id ...int) (res response.PickList, err error) 
 
 // 管理端根据ID获取提领订单详情
 func (p *TWithdraw) GetSendDetail(id ...int) (res response.SendList, err error) {
-	err = Getdb().Table("pick").
+	err = DB.Table("pick").
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
@@ -132,7 +132,7 @@ func (p *TWithdraw) GetSendDetail(id ...int) (res response.SendList, err error) 
 // 商户端根据ID获取提领代发订单详情
 func (p *TWithdraw) GetPickSendDetail(id ...int) (res response.MerchantPickList, err error) {
 
-	err = Getdb().Table("pick").
+	err = DB.Table("pick").
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
@@ -145,12 +145,13 @@ func (p *TWithdraw) GetPickSendDetail(id ...int) (res response.MerchantPickList,
 
 //取消代发 取消提领
 func (p *TWithdraw) CancelPick(id, status int64) (err error) {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
 		} else {
 			tx.Commit()
+
 		}
 	}()
 	pick := GetPickByWhere("id = ?", id)
@@ -161,12 +162,13 @@ func (p *TWithdraw) CancelPick(id, status int64) (err error) {
 
 // 商户端创建提领或者代发订单
 func (p *TWithdraw) Create() error {
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 	if err := tx.Create(p).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	tx.Commit()
+
 	return nil
 }
 
@@ -176,7 +178,7 @@ func (p *TWithdraw) getAmount() float64 {
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
-	err := Getdb().Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
+	err := DB.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -192,7 +194,7 @@ func (p *TWithdraw) getFee() float64 {
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
-	err := Getdb().Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
+	err := DB.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
 		return 0
 	}
@@ -204,6 +206,6 @@ func (p *TWithdraw) getFee() float64 {
 
 // 根据条件获取详情
 func GetPickByWhere(where ...interface{}) (pi TWithdraw) {
-	Getdb().First(&pi, where...)
+	DB.First(&pi, where...)
 	return
 }

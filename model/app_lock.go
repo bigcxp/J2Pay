@@ -12,18 +12,19 @@ type AppLock struct {
 //根据k查询
 func SQLGetAppLockColByK(k string) (*AppLock, error) {
 	var row AppLock
-	err := Getdb().Where("k = ?",k).First(&row).Error
+	err := DB.Where("k = ?",k).First(&row).Error
 	return &row, err
 }
 
 // 创建锁
 func SQLCreateAppLockUpdate(row *AppLock) (int64, error) {
-	tx := Getdb().Begin()
-	if err := Getdb().Model(&AppLock{}).Create(row).Error; err != nil {
+	tx := DB.Begin()
+	if err := DB.Model(&AppLock{}).Create(row).Error; err != nil {
 		tx.Rollback()
 		return 0, err
 	}
 	tx.Commit()
+
 	return 0, nil
 
 }
@@ -31,7 +32,7 @@ func SQLCreateAppLockUpdate(row *AppLock) (int64, error) {
 //  更新锁
 func SQLUpdateTAppLockByK(row *AppLock) (int64, error) {
 	// 执行事务处理
-	tx := Getdb().Begin()
+	tx := DB.Begin()
 
 	if err := tx.Model(&AppLock{}).Where("k = ?",row.K).
 		Updates(map[string]interface{}{
