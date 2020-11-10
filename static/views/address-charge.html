@@ -1,14 +1,46 @@
 
-<blockquote class="layui-elem-quote">组织管理</blockquote>
+<blockquote class="layui-elem-quote">收款地址管理</blockquote>
 
-<!--<fieldset class="table-search-fieldset">
+<fieldset class="table-search-fieldset">
 	<legend>搜索信息</legend>
 	<div style="margin: 10px 10px 10px 10px">
 		<form action="" class="layui-form layui-form-pane">
 			<div class="layui-form-item">
 				<div class="layui-inline">
-					<label class="layui-form-label">角色名称</label>
-					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="name" type="text"/></div>
+					<label class="layui-form-label">钱包地址</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="address" type="text"/></div>
+				</div>
+				<div class="layui-inline">
+					<label class="layui-form-label">状态</label>
+					<div class="layui-input-inline" style="width:90px">
+						<select name="status">
+							<option value="0" selected>全部</option>
+							<option value="1">已完成</option>
+							<option value="2">执行中</option>
+							<option value="3">结账中</option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-inline">
+					<label class="layui-form-label">指派状态</label>
+					<div class="layui-input-inline" style="width:80px">
+						<select name="handleStatus">
+							<option value="0" selected>全部</option>
+							<option value="1">启用</option>
+							<option value="2">停用</option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-inline">
+					<label class="layui-form-label">占用类型</label>
+					<div class="layui-input-inline" style="width:90px">
+						<select name="useTag">
+							<option value="0" selected>全部</option>
+							<option value="1">充币钱包</option>
+							<option value="-1">hot钱包</option>
+							<option value="-2">eth钱包</option>
+						</select>
+					</div>
 				</div>
 				<div class="layui-inline">
 					<button class="layui-btn layui-btn-primary" lay-filter="data-search-btn" lay-submit="" type="submit">
@@ -21,51 +53,55 @@
 			</div>
 		</form>
 	</div>
-</fieldset>-->
+</fieldset>
 
 <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
 
 
+<script type="text/html" id="toolbar1">
+<div class="layui-btn-container">
+	<a class="layui-btn layui-btn-normal layui-btn-sm" lay-event="add" operate="add"><i class="layui-icon layui-icon-add-circle-fine"></i> 新增地址 </a>
+	<a class="layui-btn layui-btn-primary layui-btn-sm" lay-event="edit" operate="edit"><i class="layui-icon layui-icon-user"></i> 重新分配地址 </a>
+	<a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="restart" operate="restart"><i class="layui-icon layui-icon-fire"></i> 启用/禁用选中 </a>
+	<a class="layui-btn layui-btn-sm" lay-event="updateBalance" operate="updateBalance"><i class="layui-icon layui-icon-senior"></i> 更新余额 </a>
+</div>
+</script>
+
+<form class="layui-hide h5form" id="hide_form" action=""></form>
 
 <script type="text/javascript">
+function render_status(d){
+	var obj={
+		'1':'<font color="green">已完成</font>',
+		'2':'<font color="blue">执行中</font>',
+		'3':'<font color="#990000">结账中</font>',
+	}
+	return obj[d['status']]||'未知'
+}
+
+
 layui.use(['form'],function(){
 	
 	var cols=[[
-		//{type: "checkbox", width: 50},
-		{title: '操作', width: 160, toolbar: '#tablebar1', align: "center",fixed:'left'},
+		
+		{title: '操作', width: 160, toolbar: '#tablebar', align: "center",fixed:'left'},
+		{type: "checkbox", width: 50},
 		{field: 'id', width: 80, title: 'ID', sort: true},
-		{field:'real_name',width:120,title:'组织名称'},
-		{field:'whitelist_ip',width:120,title:'IP白名单'},
-		{field:'address',width:120,title:'商户地址'},
-		{field:'balance',width:120,title:'余额'},
-		{field:'return_url',width:120,title:'回传URL'},
-		{field:'dai_url',width:120,title:'代发URL'},
-		{field:'remark',width:120,title:'备注'},
-		{field:'is_collection',width:120,title:'开启收款',templet:function(d){return render_bool(d['is_collection']);}},
-		{field:'is_creation',width:120,title:'开启手动建单',templet:function(d){return render_bool(d['is_creation']);}},
-		{field:'more',width:120,title:'多地址收款',templet:function(d){return render_bool(d['more']);}},
-		{field:'order_type',width:120,title:'手续费类型',templet:function(d){return render_bool(d['order_type'],'百分比','固定');}},
-		{field:'order_charge',width:120,title:'订单手续费'},
-		{field:'return_type',width:120,title:'退款手续费类型',templet:function(d){return render_bool(d['return_type'],'百分比','固定');}},
-		{field:'return_charge',width:120,title:'退款手续费'},
-		{field:'is_dai',width:120,title:'启用代发',templet:function(d){return render_bool(d['is_dai']);}},
-		{field:'dai_type',width:120,title:'代发手续费类型',templet:function(d){return render_bool(d['dai_type'],'百分比','固定');}},
-		{field:'dai_charge',width:120,title:'代发手续费'},
-		{field:'pick_type',width:120,title:'提领手续费类型',templet:function(d){return render_bool(d['pick_type'],'百分比','固定');}},
-		{field:'pick_charge',width:120,title:'提领手续费'},
-		{field:'is_gas',width:120,title:'启用gas预估',templet:function(d){return render_bool(d['is_collection']);}},
-		{field:'examine',width:120,title:'代发审核'},
-		{field:'day_total_count',width:120,title:'每日交易总量'},
-		{field:'max_order_count',width:120,title:'最大交易总量'},
-		{field:'min_order_count',width:120,title:'最小交易总量'},
-		{field:'limit',width:120,title:'结账限制'},
-		{field:'user_less_time',width:120,title:'订单无效时间'}
+		{field:'real_name',width:160,title:'组织名称'},
+		{field:'status',width:90,align:'center',title:'状态',templet:render_status},
+		{field:'user_tag',width:90,align:'center',title:'占用状态',templet:function(d){return render_bool(d['user_tag'],'启用','停用');}},
+		{field:'user_address',width:320,title:'地址'},
+		{field:'eth_amount',width:120,title:'以太币余额'},
+		{field:'usdt_amount',width:120,title:'泰达币余额'},
+		{field:'create_time',width:160,title:'创建时间',templet:function(d){return render_timestamp(d['create_time'])}},
+		{field:'update_time',width:160,title:'更新时间',templet:function(d){return render_timestamp(d['update_time'])}}
+		
 	]];
 
 	window.dataTable=table.render({
 		elem: '#currentTableId',
-		url:'/adminUser',
-		toolbar:'#toolbar',
+		url:'/addrList',
+		toolbar:'#toolbar1',
 		defaultToolbar: ['filter','exports','print'],
 		cols:cols,
 		request:{
@@ -110,14 +146,45 @@ layui.use(['form'],function(){
 		}else if(obj.event === 'edit'){
 			open_dlg('编辑: '+data.user_name,'/main#0|admin-user-edit?id='+data.id)
 		}else if(obj.event === 'del'){
-			confirmdel('/adminUser/'+data.id,null);
+			confirmdel('/addrDel/'+data.id,null);
 		}
 	});
 	//工具栏事件
 	table.on('toolbar(currentTableFilter)',function(obj){
-		if (obj.event === 'add'){
-			open_dlg('添加用户: ','/main#0|admin-user-add');
+		if(obj.event == 'add'){
+			open_dlg('分配地址: ','/main#0|address-charge-add');
+			return;
+		}
+		var checkStatus = table.checkStatus('currentTableId')
+		var data = checkStatus.data;
+		if(!data.length){msgerr('请选择要处理的数据');return;}
+		if(obj.event=='restart'){
+			var arr=[];
+			$.each(data,function(k,v){
+				arr.push(v.id);
+			})
+			open_dlg('开启/禁用: 已选择('+arr.length+')项 ','/main#0|address-charge-restart?ids='+arr.join(','));
+			return;
+		}else if(obj.event=='edit'){
+			var arr=[];
+			$.each(data,function(k,v){
+				arr.push(v.id);
+			})
+			open_dlg('重新分配地址: 已选择('+arr.length+')项 ','/main#0|address-charge-edit?ids='+arr.join(','));
+			return;
+		}else if(obj.event=='updateBalance'){
+			var dom=$('#hide_form');
+			var arr=[];
+			var str=''
+			$.each(data,function(k,v){
+				str+='<input type="hidden" name="id" value="'+v.id+'" />';
+			});
+			dom.html(str);
+			h5post('#hide_form','/updateBalance');
+			return;
 		}
 	});
+
+	form.render();
 });
 </script>

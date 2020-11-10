@@ -36,7 +36,7 @@ function postjson(fn,form,url,datas){
 }
 
 function msgok(str){layer.msg(str,{icon:1});}
-function msgerr(str){layer.msg(str,{icon:2,shade:0.3,time:2000});}
+function msgerr(str){layer.msg(str,{anim:6,icon:2,shade:0.3,shadeClose:true,time:3000});}
 function tips(el,str){
 	layer.tips(str,el,{tips:[3,'#388E3C']});
 }
@@ -50,11 +50,15 @@ function tipserr(el,str){
 	setTimeout(function(){dom.removeClass('errbg')},3000);
 }
 function alertok(str,fn){
-	layer.alert(str,{icon:1},
-		function(){if(typeof(fn)=='function'){fn()}}
+	var idx=layer.alert(str,{icon:1},
+		function(){if(typeof(fn)=='function'){fn();layer.close(idx);return true;}}
 	);
 }
-function alerterr(str,fn){layer.alert(str,{icon:2,anim:6},function(){if(typeof(fn)=='function'){fn()}});}
+function alerterr(str,fn){
+	var idx=layer.alert(str,{icon:2,anim:6},function(){
+		if(typeof(fn)=='function'){fn();layer.close(idx);return true;}
+	});
+}
 function objlen(obj){
 	var len=0;
 	$.each(obj,function(){len++;});
@@ -157,6 +161,7 @@ function h5post(form,url,method){
 			alertok(res.msg,function(){
 				try{parent['dataTable'].reload();}catch(e){}
 				try{parent.layer.closeAll('iframe')}catch(e){}
+				try{window['dataTable'].reload();}catch(e){}
 			});
 		}else{
 			alerterr(res.msg);

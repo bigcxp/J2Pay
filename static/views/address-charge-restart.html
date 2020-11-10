@@ -1,0 +1,55 @@
+<fieldset class="layui-elem-field layui-field-title">
+	<legend>启用/停用地址</legend>
+</fieldset>
+<form class="layui-form layui-form-pane h5form" action="/addrRestart">
+	
+	<div class="layui-form-item">
+		<label class="layui-form-label">已选地址</label>
+		<div class="layui-input-inline">
+			<div class="layui-form-mid"> &nbsp; &nbsp; <span id="ids_txt"></span></div>
+			<span id="ids_ipt"></span>
+		</div>
+	</div>
+
+	<div class="layui-form-item">
+		<label class="layui-form-label">是否启用</label>
+		<div class="layui-input-inline" style="width:auto">
+			<input type="radio" name="handle_status" value="1" title="启用" />
+			<input type="radio" name="handle_status" value="2" title="禁用" />
+		</div>
+		<div class="layui-form-mid layui-word-aux">选择启用或禁用</div>
+	</div>
+	
+
+	<!--<div class="layui-form-item">
+		<label class="layui-form-label">G2fa</label>
+		<div class="layui-input-inline">
+			<input type="text" name="g2fa" maxlength="6" lay-verify="required" placeholder="Google验证码" class="layui-input">
+		</div>
+		<div class="layui-form-mid layui-word-aux">请输入6位数字Google验证码</div>
+	</div>-->
+
+	<div class="layui-form-item formbtn">
+		<button type="submit" class="layui-btn" lay-submit="" lay-filter="add">提交</button>
+	</div>
+</form>
+
+
+<script type="text/javascript">
+layui.use(['form'],function(){
+	var ids=hashparams['ids'];
+	var arr=ids.split(',');
+	$('#ids_txt').html('已选择 <b style="color:blue">'+arr.length+'</b> 条地址');
+	var str=''
+	$.each(arr,function(k,v){
+		str+='<input type="hidden" name="id" value="'+v+'" />';
+	});
+	$('#ids_ipt').html(str);
+	
+	form.on('submit(add)',function(data){
+		h5post(data.form);
+		return false;
+	});
+	form.render()
+})
+</script>

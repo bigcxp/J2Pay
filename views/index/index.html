@@ -216,7 +216,9 @@ layui.use(['jquery', 'layer', 'miniAdmin'], function () {
 		};
 		miniAdmin.render(opts);
 	});
+	
 	$('.login-out').on("click", function () {
+		sessionStorage.removeItem('token')
 		layer.msg('退出登录成功', function () {
 			window.location = '/login';
 		});
