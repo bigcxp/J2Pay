@@ -59,10 +59,15 @@
 
 
 <script type="text/html" id="toolbar1">
-	<div class="layui-btn-container">
-		<a class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add" operate="add"><i class="layui-icon layui-icon-add-circle-fine"></i> 分配地址 </a>
-	</div>
+<div class="layui-btn-container">
+	<a class="layui-btn layui-btn-normal layui-btn-sm" lay-event="add" operate="add"><i class="layui-icon layui-icon-add-circle-fine"></i> 新增地址 </a>
+	<a class="layui-btn layui-btn-primary layui-btn-sm" lay-event="edit" operate="edit"><i class="layui-icon layui-icon-user"></i> 重新分配地址 </a>
+	<a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="restart" operate="restart"><i class="layui-icon layui-icon-fire"></i> 启用/禁用选中 </a>
+	<a class="layui-btn layui-btn-sm" lay-event="updateBalance" operate="updateBalance"><i class="layui-icon layui-icon-senior"></i> 更新余额 </a>
+</div>
 </script>
+
+<form class="layui-hide h5form" id="hide_form" action=""></form>
 
 <script type="text/javascript">
 function render_status(d){
@@ -78,8 +83,9 @@ function render_status(d){
 layui.use(['form'],function(){
 	
 	var cols=[[
-		//{type: "checkbox", width: 50},
+		
 		{title: '操作', width: 160, toolbar: '#tablebar', align: "center",fixed:'left'},
+		{type: "checkbox", width: 50},
 		{field: 'id', width: 80, title: 'ID', sort: true},
 		{field:'real_name',width:160,title:'组织名称'},
 		{field:'status',width:90,align:'center',title:'状态',templet:render_status},
@@ -145,8 +151,37 @@ layui.use(['form'],function(){
 	});
 	//工具栏事件
 	table.on('toolbar(currentTableFilter)',function(obj){
-		if (obj.event === 'add'){
+		if(obj.event == 'add'){
 			open_dlg('分配地址: ','/main#0|address-charge-add');
+			return;
+		}
+		var checkStatus = table.checkStatus('currentTableId')
+		var data = checkStatus.data;
+		if(!data.length){msgerr('请选择要处理的数据');return;}
+		if(obj.event=='restart'){
+			var arr=[];
+			$.each(data,function(k,v){
+				arr.push(v.id);
+			})
+			open_dlg('开启/禁用: 已选择('+arr.length+')项 ','/main#0|address-charge-restart?ids='+arr.join(','));
+			return;
+		}else if(obj.event=='edit'){
+			var arr=[];
+			$.each(data,function(k,v){
+				arr.push(v.id);
+			})
+			open_dlg('重新分配地址: 已选择('+arr.length+')项 ','/main#0|address-charge-edit?ids='+arr.join(','));
+			return;
+		}else if(obj.event=='updateBalance'){
+			var dom=$('#hide_form');
+			var arr=[];
+			var str=''
+			$.each(data,function(k,v){
+				str+='<input type="hidden" name="id" value="'+v.id+'" />';
+			});
+			dom.html(str);
+			h5post('#hide_form','/updateBalance');
+			return;
 		}
 	});
 

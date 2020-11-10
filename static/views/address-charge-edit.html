@@ -1,32 +1,13 @@
 <fieldset class="layui-elem-field layui-field-title">
-	<legend>新增地址</legend>
+	<legend>分配地址</legend>
 </fieldset>
-<form class="layui-form layui-form-pane h5form" action="/createAddress">
+<form class="layui-form layui-form-pane h5form" action="/addrEdit">
 	
 	<div class="layui-form-item">
-		<label class="layui-form-label">生成数量</label>
-		<div class="layui-input-inline" style="width:90px;">
-			<input type="number" name="num" min="0" value="0" lay-verify="required" placeholder="生成钱包数量" class="layui-input" />
-		</div>
-		<div class="layui-form-mid layui-word-aux">生成N个钱包地址</div>
-	</div>
-
-	<div class="layui-form-item">
-		<label class="layui-form-label">是否启用</label>
-		<div class="layui-input-inline" style="width:auto">
-			<input type="radio" name="handle_status" value="0" title="所有" checked />
-			<input type="radio" name="handle_status" value="1" title="启用" />
-			<input type="radio" name="handle_status" value="2" title="停用" />
-		</div>
-	</div>
-
-	<div class="layui-form-item">
-		<label class="layui-form-label">分配目标</label>
-		<div class="layui-input-inline" style="width:auto">
-			<input type="radio" name="use_tag" value="1" title="指定组织" lay-filter="usetag" checked />
-			<input type="radio" name="use_tag" value="-2" title="ETH" lay-filter="usetag" />
-			<input type="radio" name="use_tag" value="-1" title="热钱包" lay-filter="usetag" />
-			<input type="radio" name="use_tag" value="0" title="未分配" lay-filter="usetag" />
+		<label class="layui-form-label">已选地址</label>
+		<div class="layui-input-inline">
+			<div class="layui-form-mid"> &nbsp; &nbsp; <span id="ids_txt"></span></div>
+			<span id="ids_ipt"></span>
 		</div>
 	</div>
 	
@@ -55,16 +36,16 @@
 
 <script type="text/javascript">
 layui.use(['tableSelect'],function(){
+	var ids=hashparams['ids'];
+	var arr=ids.split(',');
+	$('#ids_txt').html('已选择 <b style="color:blue">'+arr.length+'</b> 条地址');
+	var str=''
+	$.each(arr,function(k,v){
+		str+='<input type="hidden" name="id" value="'+v+'" />';
+	});
+	$('#ids_ipt').html(str);
+
 	var tableSelect = layui.tableSelect;
-	laydate.render({ 
-		elem:'#begin_time',type:'datetime',
-		format:'yyyy-MM-dd HH:mm:ss'
-	});
-	laydate.render({ 
-		elem:'#end_time',type:'datetime',
-		format:'yyyy-MM-dd HH:mm:ss'
-	});
-	
 	tableSelect.render({
 		elem: '#uid_input',	//定义输入框input对象 必填
 		checkedKey: 'id', //表格的唯一建值，非常重要，影响到选中状态 必填
@@ -100,15 +81,6 @@ layui.use(['tableSelect'],function(){
 			elem.attr('ts-selected',v['id']).val(v['real_name']);
 			$('input[name=user_id]').val(v['id'])
 		}
-	});
-
-	form.on('radio(usetag)',function(data){
-		if(data.value=='1'){
-			$('.chkuser').show()
-		}else{
-			$('.chkuser').hide()
-		}
-		return false;
 	});
 	
 	form.on('submit(add)',function(data){
