@@ -6,6 +6,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"j2pay-server/pkg/setting"
 	"log"
+	"time"
 )
 
 var DB *gorm.DB
@@ -13,6 +14,13 @@ var DB *gorm.DB
 type Base struct{}
 type FieldTrans map[string]string
 
+//获取DB
+func GetDb() *gorm.DB {
+	if DB.DB()== nil{
+		Setup()
+	}
+	return DB
+}
 func Setup()  {
 	fmt.Println("init db")
 	var err error
@@ -34,12 +42,12 @@ func Setup()  {
 	DB.SetLogger(&GormLogger{})
 	DB.DB().SetMaxIdleConns(setting.MysqlConf.MaxIdle)
 	DB.DB().SetMaxOpenConns(setting.MysqlConf.MaxActive)
+	DB.DB().SetConnMaxLifetime(1*time.Second)
 	AutoMigrate()
 	// 设置程序启动参数 -init | -init=true
 	if setting.Init {
 		InitSql()
 	}
-
 }
 // 通用分页获取偏移量
 func GetOffset(page, pageSize int) int {
@@ -47,6 +55,12 @@ func GetOffset(page, pageSize int) int {
 		return 0
 	}
 	return (page - 1) * pageSize
+}
+func CloseDB()  {
+	err := DB.Close()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to close the DB:%s", err))
+	}
 }
 
 

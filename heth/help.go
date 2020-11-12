@@ -50,10 +50,7 @@ func GetNonce(address string) (int64, error) {
 	}
 	// 获取db nonce
 	send := model.TSend{}
-	dbNonce, err := send.SQLGetTSendMaxNonce(address)
-	if nil != err {
-		return 0, err
-	}
+	dbNonce:= send.SQLGetTSendMaxNonce(address)
 	if dbNonce > rpcNonce {
 		rpcNonce = dbNonce
 	}

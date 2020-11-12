@@ -5,8 +5,10 @@ import (
 	"j2pay-server/hcommon"
 	"j2pay-server/heth"
 )
+
 // 定时处理检测任务
-func Cron()  {
+func Cron() {
+	go func() {
 		c := cron.New(
 			cron.WithSeconds(),
 			cron.WithChain(
@@ -27,7 +29,7 @@ func Cron()  {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 eth 冲币
-		_, err = c.AddFunc("@every 5s", heth.CheckBlockSeek)
+		_, err = c.AddFunc("@every 30s", heth.CheckBlockSeek)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
@@ -64,7 +66,7 @@ func Cron()  {
 
 		// --- erc20 ---
 		// 检测 erc20 冲币
-		_, err = c.AddFunc("@every 5s", heth.CheckErc20BlockSeek)
+		_, err = c.AddFunc("@every 30s", heth.CheckErc20BlockSeek)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
@@ -84,5 +86,6 @@ func Cron()  {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		c.Start()
-	    select {}
+	}()
+
 }
