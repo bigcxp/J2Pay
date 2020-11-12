@@ -51,12 +51,13 @@ function tipserr(el,str){
 }
 function alertok(str,fn){
 	var idx=layer.alert(str,{icon:1},
-		function(){if(typeof(fn)=='function'){fn();layer.close(idx);return true;}}
+		function(){if(typeof(fn)=='function'){fn();}layer.close(idx);return true;}
 	);
 }
 function alerterr(str,fn){
 	var idx=layer.alert(str,{icon:2,anim:6},function(){
-		if(typeof(fn)=='function'){fn();layer.close(idx);return true;}
+		if(typeof(fn)=='function'){fn();}
+		layer.close(idx);return true;
 	});
 }
 function objlen(obj){
