@@ -36,13 +36,12 @@ func Setup()  {
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 		return setting.MysqlConf.Prefix + defaultTableName
 	}
-
 	DB.SingularTable(true)
 	DB.LogMode(true)
 	DB.SetLogger(&GormLogger{})
 	DB.DB().SetMaxIdleConns(setting.MysqlConf.MaxIdle)
 	DB.DB().SetMaxOpenConns(setting.MysqlConf.MaxActive)
-	DB.DB().SetConnMaxLifetime(1*time.Second)
+	DB.DB().SetConnMaxLifetime(1*time.Hour)
 	AutoMigrate()
 	// 设置程序启动参数 -init | -init=true
 	if setting.Init {

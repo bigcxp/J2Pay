@@ -1,8 +1,8 @@
 package util
 
 import (
-	"j2pay-server/hcommon"
 	"j2pay-server/model"
+	"log"
 	"time"
 )
 
@@ -62,7 +62,7 @@ func LockWrap(name string, f func()) {
 		name,
 	)
 	if err != nil {
-		hcommon.Log.Warnf("GetLock err: [%T] %s", err, err.Error())
+		log.Panicf("GetLock err: [%T] %s", err, err.Error())
 		return
 	}
 	if !ok {
@@ -73,7 +73,7 @@ func LockWrap(name string, f func()) {
 			name,
 		)
 		if err != nil {
-			hcommon.Log.Warnf("ReleaseLock err: [%T] %s", err, err.Error())
+			log.Panicf("ReleaseLock err: [%T] %s", err, err.Error())
 			return
 		}
 	}()

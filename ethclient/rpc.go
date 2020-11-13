@@ -2,7 +2,7 @@ package ethclient
 
 import (
 	"context"
-	"j2pay-server/hcommon"
+	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -23,7 +23,7 @@ func InitClient(uri string) {
 	var err error
 	client, err = Dial(uri)
 	if err != nil {
-		hcommon.Log.Fatalf("eth client dial error: [%T] %s", err, err.Error())
+		log.Panicf("eth client dial error: [%T] %s", err, err.Error())
 	}
 }
 
