@@ -8,7 +8,7 @@ import (
 //提领 代发
 type TWithdraw struct {
 	ID           int64
-	WithdrawType int       `gorm:"default:0;comment:' 类型 1 提币 2 代发'";json:"related_type"`                      // 类型 1 提币 2 代发
+	WithdrawType int       `gorm:"default:0;comment:' 类型 1 提币 2 代发'";json:"related_type"`                      //  类型 1 零钱整理 2 提币 3 代发
 	SystemID     string    `gorm:"default:'';comment:'系统编号'";json:"system_id"`                                 // 系统编号
 	MerchantID   string    `gorm:"default:'';comment:'商户订单编号'";json:"merchant_id"`                             // 商户订单编号
 	ToAddress    string    `gorm:"default:'';comment:'提币地址'";json:"to_address"`                                // 提币地址

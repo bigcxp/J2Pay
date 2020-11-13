@@ -39,7 +39,6 @@ import (
 	"strconv"
 	"strings"
 	_ "strings"
-	"sync"
 	"time"
 )
 
@@ -286,9 +285,6 @@ func CheckBlockSeek() {
 
 // CheckAddressOrg 零钱整理到冷钱包
 func CheckAddressOrg() {
-	var mu sync.Mutex
-	mu.Lock()
-	defer mu.Unlock()
 	// 获取冷钱包地址
 	coldAddressValue := model.SQLGetTAppConfigStrValueByK("cold_wallet_address")
 	coldAddress, err := StrToAddressBytes(*coldAddressValue)
@@ -296,14 +292,26 @@ func CheckAddressOrg() {
 		log.Panicf("eth organize cold address err: [%T] %s", err, err.Error())
 		return
 	}
-	if *coldAddressValue == "" {
-		log.Panicf("eth organize cold address not exists")
+	isComment := false
+	//开启事务
+	dbTx, err := model.GetDb().DB().BeginTx(context.Background(), nil)
+	if err != nil {
 		return
 	}
+	defer func() {
+		if !isComment {
+			_ = dbTx.Rollback()
+		}
+	}()
+
 	// 获取待整理的交易列表
 	txRows, err := model.SQLSelectTTxColByOrgForUpdate(hcommon.TxOrgStatusInit)
 	if err != nil {
 		log.Panicf("ttx transaction err: [%T] %s", err, err.Error())
+		return
+	}
+	if len(txRows) <= 0 {
+		// 没有要处理的信息
 		return
 	}
 	// 获取gap price
@@ -460,6 +468,13 @@ func CheckAddressOrg() {
 			log.Panicf("err: [%T] %s", err, err.Error())
 			return
 		}
+		// 提交事物
+		err = dbTx.Commit()
+		if err != nil {
+			log.Panicf("err: [%T] %s", err, err.Error())
+			return
+		}
+		isComment = true
 	}
 
 }
@@ -933,7 +948,7 @@ func CheckWithdraw() {
 func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateKey *ecdsa.PrivateKey, hotAddressBalance *big.Int, gasLimit, gasPrice, feeValue int64) error {
 	isComment := false
 	//开启事务
-	dbTx, err := model.GetDb().DB().BeginTx(context.Background(),nil)
+	dbTx, err := model.GetDb().DB().BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
 	}
@@ -1025,6 +1040,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	// 处理完成 提交事务
 	err = dbTx.Commit()
 	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
 		return err
 	}
 	isComment = true
@@ -1402,12 +1418,28 @@ func CheckErc20TxOrg() {
 		log.Panicf("err: [%T] %s", err, err.Error())
 		return
 	}
+	//开启事务
+	isComment := false
+	dbTx, err := model.GetDb().DB().BeginTx(context.Background(), nil)
+	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
+		return
+	}
+	defer func() {
+		if !isComment {
+			_ = dbTx.Rollback()
+		}
+	}()
 	// 查询需要处理的交易
 	txRows, err := model.SQLSelectTTxErc20ColByOrgForUpdate(
 		[]int64{hcommon.TxOrgStatusInit, hcommon.TxOrgStatusFeeConfirm},
 	)
 	if err != nil {
 		log.Panicf("err: [%T] %s", err, err.Error())
+		return
+	}
+	if len(txRows) <= 0 {
+		//没有需要整理的交易
 		return
 	}
 	// 整理信息
@@ -1483,10 +1515,6 @@ func CheckErc20TxOrg() {
 	addressPKMap, err := GetPKMapOfAddresses(toAddresses)
 	if err != nil {
 		log.Panicf("err: [%T] %s", err, err.Error())
-		return
-	}
-	if len(addressPKMap) <= 0 || addressPKMap == nil {
-		log.Panicf("info: [%T] %s", "无addressPKMap")
 		return
 	}
 	// 需要手续费的整理信息
@@ -1758,10 +1786,13 @@ func CheckErc20TxOrg() {
 			}
 		}
 	}
+	//提交事务
+	err = dbTx.Commit()
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		mcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
+	isComment = true
 }
 
 //erc20提币
@@ -2010,6 +2041,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	// 处理完成，提交事务
 	err = dbTx.Commit()
 	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
 		return err
 	}
 	isComment = true

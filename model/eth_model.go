@@ -244,9 +244,23 @@ func  SQLSelectTWithdrawColByStatus(handleStatus int) ([]TWithdraw, error) {
 	}
 	return th, err
 }
+//@param symbol代币类型
+func (t *TAppConfigToken) SQLSelectBySymbol(symbol string) (*TAppConfigToken, error) {
+	var row =TAppConfigToken{}
+	symbol=strings.TrimSpace(strings.ToLower(symbol))
+	err :=  DB.Find(&row, "token_symbol=?", symbol).Error
+	if err != nil {
+		return &row,err
+	}
+	return &row,err
+}
+
 
 //获取token配置
-func  SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
+	if err != nil {
+		return &row,err
+	}
+	return &row,err}func  SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
 	var tact []TAppConfigToken
 	rows, err := GetDb().Model(&TAppConfigToken{}).Select("*").Rows()
 	defer rows.Close()
@@ -255,6 +269,13 @@ func  SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
 		rows.Scan(td)
 		tact = append(tact, td)
 	}
+	return tact, err
+}
+
+//获取token配置
+func (t *TAppConfigToken) SQLSelectTAppConfigTokenColAll() ([]*TAppConfigToken, error) {
+	var row []*TAppConfigToken
+	err := DB.Find(&row).Error
 	if err != nil {
 		return nil, err
 	}
