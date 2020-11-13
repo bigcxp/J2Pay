@@ -39,7 +39,6 @@ import (
 	"strconv"
 	"strings"
 	_ "strings"
-	"sync"
 	"time"
 )
 
@@ -286,9 +285,6 @@ func CheckBlockSeek() {
 
 // CheckAddressOrg 零钱整理到冷钱包
 func CheckAddressOrg() {
-	var mu sync.Mutex
-	mu.Lock()
-	defer mu.Unlock()
 	// 获取冷钱包地址
 	coldAddressValue := model.SQLGetTAppConfigStrValueByK("cold_wallet_address")
 	coldAddress, err := StrToAddressBytes(*coldAddressValue)
