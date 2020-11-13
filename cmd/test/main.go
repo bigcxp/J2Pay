@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"j2pay-server/cron"
 	"j2pay-server/ethclient"
 	"j2pay-server/model"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/setting"
+	"log"
 )
 
 func main()  {
@@ -20,6 +20,11 @@ func main()  {
 	logger.Setup()
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
-	cron.Cron()
+	address := model.Address{}
+	ofAddress, err := address.GetPkOfAddress("0xcc3f38ea198a231ba0455aad778cab40b736ab4a")
+	if err != nil{
+		log.Println(err)
+	}
+	fmt.Println(ofAddress)
 
 }

@@ -118,8 +118,7 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 	tokenDecimalsMap := make(map[string]int64)
 	ethSymbols := []string{heth.CoinSymbol}
 	tokenDecimalsMap[heth.CoinSymbol] = 18
-	token := model.TAppConfigToken{}
-	tokenRows, err := token.SQLSelectTAppConfigTokenColAll()
+	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
 	if err != nil {
 		return err, response.PickAddr{}
 	}
@@ -140,7 +139,7 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 	if balanceObj.Exponent() < -int32(tokenDecimals) {
 		return myerr.NewDbValidateError("小数位有误"), response.PickAddr{}
 	}
-	if hcommon.IsStringInSlice(ethSymbols, "eth") {
+	if heth.IsStringInSlice(ethSymbols, "eth") {
 		// 验证地址
 		pick.PickAddress = strings.ToLower(pick.PickAddress)
 		re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
@@ -233,8 +232,7 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 	tokenDecimalsMap := make(map[string]int64)
 	ethSymbols := []string{heth.CoinSymbol}
 	tokenDecimalsMap[heth.CoinSymbol] = 18
-	token := model.TAppConfigToken{}
-	tokenRows, err := token.SQLSelectTAppConfigTokenColAll()
+	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
 	if err != nil {
 		return err, response.PickAddr{}
 	}
@@ -255,7 +253,7 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 	if balanceObj.Exponent() < -int32(tokenDecimals) {
 		return myerr.NewDbValidateError("小数位有误"), response.PickAddr{}
 	}
-	if hcommon.IsStringInSlice(ethSymbols, "eth") {
+	if heth.IsStringInSlice(ethSymbols, "eth") {
 		// 验证地址
 		send.PickAddress = strings.ToLower(send.PickAddress)
 		re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")

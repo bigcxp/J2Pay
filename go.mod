@@ -23,7 +23,6 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5
-	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.8.0 // indirect
@@ -50,7 +49,6 @@ require (
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
-	github.com/timest/env v0.0.0-20180717050204-5fce78d35255 // indirect
 	github.com/xinliangnote/go-util v0.0.0-20191115235314-e7d1576d41db
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a

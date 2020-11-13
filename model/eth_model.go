@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"j2pay-server/hcommon"
 	"j2pay-server/pkg/setting"
+	"log"
 	"strings"
 )
 
@@ -119,7 +120,7 @@ type TTxErc20 struct {
 }
 
 // 根据条件获取配置
-func (c *TAppConfigInt) SQLGetTAppConfigIntValueByK(k string) *int64 {
+func  SQLGetTAppConfigIntValueByK(k string) *int64 {
 	var v *int64
 	v = new(int64)
 	GetDb().Table("t_app_config_int").Where("k = ?", k).Select("v").Row().Scan(&v)
@@ -127,7 +128,7 @@ func (c *TAppConfigInt) SQLGetTAppConfigIntValueByK(k string) *int64 {
 }
 
 // 根据条件获取block配置
-func (s *TAppStatusInt) SQLGetTAppStatusIntValueByK(k string) *int64 {
+func  SQLGetTAppStatusIntValueByK(k string) *int64 {
 	var v *int64
 	v = new(int64)
 	GetDb().Table("t_app_status_int").Where("k = ?", k).Select("v").Row().Scan(&v)
@@ -135,7 +136,7 @@ func (s *TAppStatusInt) SQLGetTAppStatusIntValueByK(k string) *int64 {
 }
 
 // 根据条件获取str配置
-func (s *TAppConfigStr) SQLGetTAppConfigStrValueByK(k string) *string {
+func  SQLGetTAppConfigStrValueByK(k string) *string {
 	var v *string
 	v = new(string)
 	GetDb().Table("t_app_config_str").Where("k = ?", k).Select("v").Row().Scan(&v)
@@ -143,7 +144,7 @@ func (s *TAppConfigStr) SQLGetTAppConfigStrValueByK(k string) *string {
 }
 
 //根据条件获取[]ttx
-func (t *TTx) SQLSelectTTxColByOrgForUpdate(orgStatus int) ([]TTx, error) {
+func  SQLSelectTTxColByOrgForUpdate(orgStatus int) ([]TTx, error) {
 	var tx []TTx
 	 err := GetDb().Model(&TTx{}).Where("org_status =?", orgStatus).Find(&tx).Error
 	if err != nil {
@@ -153,7 +154,7 @@ func (t *TTx) SQLSelectTTxColByOrgForUpdate(orgStatus int) ([]TTx, error) {
 }
 
 //根据handle_status获取[]ttx
-func (t *TTx) SQLSelectTTxColByStatus(handleStatus int) ([]TTx, error) {
+func  SQLSelectTTxColByStatus(handleStatus int) ([]TTx, error) {
 	var tx []TTx
 	err := GetDb().Model(&TTx{}).Where("handle_status =?", handleStatus).Find(&tx).Error
 	if err != nil {
@@ -163,7 +164,7 @@ func (t *TTx) SQLSelectTTxColByStatus(handleStatus int) ([]TTx, error) {
 }
 
 //根据handle_status获取[]TTxErc20
-func (s *TTxErc20) SQLSelectTTxErc20ColByStatus(handleStatus int64) ([]TTxErc20, error) {
+func  SQLSelectTTxErc20ColByStatus(handleStatus int64) ([]TTxErc20, error) {
 	var te []TTxErc20
 	err := GetDb().Model(&TTxErc20{}).Where("handle_status =?", handleStatus).Find(&te).Error
 	if err != nil {
@@ -183,7 +184,7 @@ func SQLSelectTTxErc20ColByOrgForUpdate(orgStatuses []int64) ([]TTxErc20, error)
 }
 
 //根据handle_status获取[]TSend
-func (t *TSend) SQLSelectTSendColByStatus(handleStatus int) ([]TSend, error) {
+func  SQLSelectTSendColByStatus(handleStatus int) ([]TSend, error) {
 	var ts []TSend
 	 err := GetDb().Model(&TSend{}).Where("handle_status =?", handleStatus).Find(&ts).Error
 	if err != nil {
@@ -193,7 +194,7 @@ func (t *TSend) SQLSelectTSendColByStatus(handleStatus int) ([]TSend, error) {
 }
 
 //根据address查询地址
-func (a *Address) SQLSelectTAddressKeyColByAddress(addresses []string) ([]Address, error) {
+func  SQLSelectTAddressKeyColByAddress(addresses []string) ([]Address, error) {
 	var address []Address
 	if len(addresses) == 0 {
 		return address, nil
@@ -213,7 +214,7 @@ func (a *Address) SQLSelectTAddressKeyColByAddress(addresses []string) ([]Addres
 }
 
 //根据address查询地址
-func (a *Address) SQLGetTAddressKeyColByAddress(address string) *Address {
+func  SQLGetTAddressKeyColByAddress(address string) *Address {
 	var row *Address
 	row = new(Address)
 	GetDb().Table("address").Where("user_address = ?", address).Row().Scan(&row)
@@ -222,14 +223,14 @@ func (a *Address) SQLGetTAddressKeyColByAddress(address string) *Address {
 }
 
 //根据handleStatus 、id查询*TWithdraw
-func (t *TWithdraw) SQLGetTWithdrawColForUpdate(id int64, handleStatus int) *TWithdraw {
+func  SQLGetTWithdrawColForUpdate(id int64, handleStatus int) *TWithdraw {
 	var row *TWithdraw
 	row = new(TWithdraw)
 	GetDb().Table("t_withdraw").Where("handle_status = ? and id = ?", handleStatus, id).Row().Scan(&row)
 	return row
 }
 //根据handleStatus 查询[]*TWithdraw
-func (t *TWithdraw) SQLSelectTWithdrawColByStatus(handleStatus int) ([]TWithdraw, error) {
+func  SQLSelectTWithdrawColByStatus(handleStatus int) ([]TWithdraw, error) {
 	var th []TWithdraw
 	rows, err := GetDb().Model(&TWithdraw{}).Where("handle_status =?", handleStatus).Rows()
 	defer rows.Close()
@@ -245,7 +246,7 @@ func (t *TWithdraw) SQLSelectTWithdrawColByStatus(handleStatus int) ([]TWithdraw
 }
 
 //获取token配置
-func (t *TAppConfigToken) SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
+func  SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
 	var tact []TAppConfigToken
 	rows, err := GetDb().Model(&TAppConfigToken{}).Select("*").Rows()
 	defer rows.Close()
@@ -261,10 +262,9 @@ func (t *TAppConfigToken) SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, e
 }
 
 //获取私钥map
-func (t *Address) SQLGetAddressKeyMap(addresses []string) (map[string]*Address, error) {
+func  SQLGetAddressKeyMap(addresses []string) (map[string]*Address, error) {
 	itemMap := make(map[string]*Address)
-	address := Address{}
-	byAddress, err := address.SQLSelectTAddressKeyColByAddress(addresses)
+	byAddress, err := SQLSelectTAddressKeyColByAddress(addresses)
 	if err != nil {
 		return nil, err
 	}
@@ -275,20 +275,25 @@ func (t *Address) SQLGetAddressKeyMap(addresses []string) (map[string]*Address, 
 }
 
 //获取私钥
-func (a *Address) GetPkOfAddress(address string) (*ecdsa.PrivateKey, error) {
+func  GetPkOfAddress(address string) (*ecdsa.PrivateKey, error) {
+	if address == ""{
+		return nil,nil
+	}
 	var addr Address
-	GetDb().Table("address").Where("user_address = ?", address).Select("pwd").Row().Scan(&addr)
-	key := hcommon.AesDecrypt(addr.Pwd, fmt.Sprintf("%s", setting.AesConf))
+	GetDb().Table("address").Where("user_address = ?", address).Select("pwd").Take(&addr)
+	key := hcommon.AesDecrypt(addr.Pwd, fmt.Sprintf("%s", setting.AesConf.Key))
 	if len(key) == 0 {
-		hcommon.Log.Errorf("error key of: %s", address)
+		log.Panicf("error key of: %s", address)
 		return nil, fmt.Errorf("no key of: %s", address)
 	}
 	if strings.HasPrefix(key, "0x") {
 		key = key[2:]
 	}
 	privateKey, err := crypto.HexToECDSA(key)
+
+
 	if err != nil {
-		hcommon.Log.Errorf("HexToECDSA err: [%T] %s", err, err.Error())
+		log.Panicf("HexToECDSA err: [%T] %s", err, err.Error())
 		return nil, err
 	}
 	return privateKey, nil
@@ -296,7 +301,7 @@ func (a *Address) GetPkOfAddress(address string) (*ecdsa.PrivateKey, error) {
 }
 
 //获取提币map
-func (p *TWithdraw) SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
+func  SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
 	itemMap := make(map[int64]*TWithdraw)
 	var pick []TWithdraw
 	if len(ids) == 0 {
@@ -319,7 +324,7 @@ func (p *TWithdraw) SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error)
 }
 
 //获取组织map
-func (a *AdminUser) SQLGetUserMap(ids []int64) (map[int64]*AdminUser, error) {
+func  SQLGetUserMap(ids []int64) (map[int64]*AdminUser, error) {
 	itemMap := make(map[int64]*AdminUser)
 	var user []AdminUser
 	if len(ids) == 0 {
@@ -342,7 +347,7 @@ func (a *AdminUser) SQLGetUserMap(ids []int64) (map[int64]*AdminUser, error) {
 }
 
 //  获取erc代币map
-func (a *TAppConfigToken) SQLGetAppConfigTokenMap(ids []int64) (map[int64]*TAppConfigToken, error) {
+func SQLGetAppConfigTokenMap(ids []int64) (map[int64]*TAppConfigToken, error) {
 	itemMap := make(map[int64]*TAppConfigToken)
 	var token []TAppConfigToken
 	if len(ids) == 0 {
@@ -365,21 +370,21 @@ func (a *TAppConfigToken) SQLGetAppConfigTokenMap(ids []int64) (map[int64]*TAppC
 }
 
 //获取nonce
-func (n *TSend) SQLGetTSendMaxNonce(address string) int64 {
+func SQLGetTSendMaxNonce(address string) int64 {
 	var i int64
 	GetDb().Table("t_send").Where("from_address = ?", address).Select("IFNULL(MAX(nonce), -1)").Row().Scan(&i)
 	return i + 1
 }
 
 // 获取地址的打包数额
-func (a *TSend) SQLGetTSendPendingBalanceReal(address string) string {
+func SQLGetTSendPendingBalanceReal(address string) string {
 	var i string
 	GetDb().Table("t_send").Where("from_address = ? and handle_status <? limit 1", address, 2).Select("IFNULL(SUM(CAST(balance_real as DECIMAL(65,18))), \"0\")").Row().Scan(&i)
 	return i
 }
 
 //创建多个交易
-func (t *TTx) SQLCreateIgnoreManyTTx(rows []*TTx) (int64, error) {
+func  SQLCreateIgnoreManyTTx(rows []*TTx) (int64, error) {
 	if rows == nil {
 		return 0, nil
 	}
@@ -395,7 +400,7 @@ func (t *TTx) SQLCreateIgnoreManyTTx(rows []*TTx) (int64, error) {
 }
 
 //创建发送数据
-func (t *TSend) SQLCreateTSend(rows *TSend) (int64, error) {
+func SQLCreateTSend(rows *TSend) (int64, error) {
 	tx := GetDb().Begin()
 	if err := tx.Model(&TSend{}).Create(rows).Error; err != nil {
 		tx.Rollback()
@@ -408,7 +413,7 @@ func (t *TSend) SQLCreateTSend(rows *TSend) (int64, error) {
 }
 
 //创建多个发送数据
-func (t *TSend) SQLCreateIgnoreManyTSend(rows []*TSend, isIgnore bool) (int64, error) {
+func  SQLCreateIgnoreManyTSend(rows []*TSend, isIgnore bool) (int64, error) {
 	if len(rows) == 0 || rows == nil {
 		return 0, nil
 	}
@@ -505,7 +510,7 @@ func (t *TSend) SQLCreateIgnoreManyTSend(rows []*TSend, isIgnore bool) (int64, e
 }
 
 //创建通知
-func (n *TUserNotify) SQLCreateIgnoreManyTProductNotify(rows []*TUserNotify) (int64, error) {
+func  SQLCreateIgnoreManyTProductNotify(rows []*TUserNotify) (int64, error) {
 	if len(rows) == 0 || rows == nil {
 		return 0, nil
 	}
@@ -521,7 +526,7 @@ func (n *TUserNotify) SQLCreateIgnoreManyTProductNotify(rows []*TUserNotify) (in
 }
 
 //创建多个TTxErc20对象
-func (e *TTxErc20) SQLCreateIgnoreManyTTxErc20(rows []*TTxErc20) (int64, error) {
+func  SQLCreateIgnoreManyTTxErc20(rows []*TTxErc20) (int64, error) {
 	if rows == nil || len(rows) == 0 {
 		return 0, nil
 	}
@@ -537,7 +542,7 @@ func (e *TTxErc20) SQLCreateIgnoreManyTTxErc20(rows []*TTxErc20) (int64, error) 
 }
 
 //更新区块
-func (t *TAppStatusInt) SQLUpdateTAppStatusIntByKGreater(row TAppStatusInt) (err error) {
+func  SQLUpdateTAppStatusIntByKGreater(row TAppStatusInt) (err error) {
 	if row.K == "" {
 		return
 	}
@@ -556,7 +561,7 @@ func (t *TAppStatusInt) SQLUpdateTAppStatusIntByKGreater(row TAppStatusInt) (err
 }
 
 //更新gas费用
-func (g *TAppStatusInt) SQLUpdateTAppStatusIntByK(row *TAppStatusInt) (err error) {
+func  SQLUpdateTAppStatusIntByK(row *TAppStatusInt) (err error) {
 	if row.K == "" {
 		return
 	}
@@ -574,7 +579,7 @@ func (g *TAppStatusInt) SQLUpdateTAppStatusIntByK(row *TAppStatusInt) (err error
 }
 
 //更改ttx的org状态
-func (t *TTx) SQLUpdateTTxOrgStatusByIDs(ids []int64, row *TTx) (err error) {
+func SQLUpdateTTxOrgStatusByIDs(ids []int64, row *TTx) (err error) {
 	if ids == nil {
 		return
 	}
@@ -592,7 +597,7 @@ func (t *TTx) SQLUpdateTTxOrgStatusByIDs(ids []int64, row *TTx) (err error) {
 }
 
 //更改ttx的handle状态
-func (t *TTx) SQLUpdateTTxStatusByIDs(ids []int64, row *TTx) (err error) {
+func SQLUpdateTTxStatusByIDs(ids []int64, row *TTx) (err error) {
 	if ids == nil{
 		return
 	}
@@ -613,7 +618,7 @@ func (t *TTx) SQLUpdateTTxStatusByIDs(ids []int64, row *TTx) (err error) {
 }
 
 //更新提币状态
-func (t *TWithdraw) SQLUpdateTWithdrawStatusByIDs(ids []int64, row *TWithdraw) (err error) {
+func  SQLUpdateTWithdrawStatusByIDs(ids []int64, row *TWithdraw) (err error) {
 	if ids == nil {
 		return
 	}
@@ -632,7 +637,7 @@ func (t *TWithdraw) SQLUpdateTWithdrawStatusByIDs(ids []int64, row *TWithdraw) (
 }
 
 //更新erc20零钱整理状态
-func (e *TTxErc20) SQLUpdateTTxErc20OrgStatusByIDs(ids []int64, row *TTxErc20) (err error) {
+func  SQLUpdateTTxErc20OrgStatusByIDs(ids []int64, row *TTxErc20) (err error) {
 	if ids == nil{
 		return
 	}
@@ -650,7 +655,7 @@ func (e *TTxErc20) SQLUpdateTTxErc20OrgStatusByIDs(ids []int64, row *TTxErc20) (
 }
 
 //根据ids更新erc20处理整理状态
-func (e *TTxErc20) SQLUpdateTTxErc20StatusByIDs(ids []int64, row TTxErc20) (int64, error) {
+func  SQLUpdateTTxErc20StatusByIDs(ids []int64, row TTxErc20) (int64, error) {
 	if ids == nil{
 		return 0, nil
 	}
@@ -669,7 +674,7 @@ func (e *TTxErc20) SQLUpdateTTxErc20StatusByIDs(ids []int64, row TTxErc20) (int6
 }
 
 //更新提领
-func (p *TWithdraw) SQLUpdateTWithdrawGenTx(row *TWithdraw) (err error) {
+func  SQLUpdateTWithdrawGenTx(row *TWithdraw) (err error) {
 	if row.ID == 0 {
 		return
 	}
@@ -686,7 +691,7 @@ func (p *TWithdraw) SQLUpdateTWithdrawGenTx(row *TWithdraw) (err error) {
 }
 
 //更新发送状态
-func (s *TSend) SQLUpdateTSendStatusByIDs(ids []int64, row *TSend) (err error) {
+func  SQLUpdateTSendStatusByIDs(ids []int64, row *TSend) (err error) {
 	if ids == nil{
 		return nil
 	}
@@ -705,7 +710,7 @@ func (s *TSend) SQLUpdateTSendStatusByIDs(ids []int64, row *TSend) (err error) {
 }
 
 //将地址分配给用户
-func (a *Address) ToAddress(userId int, useTag int64, addr []Address) (err error) {
+func  ToAddress(userId int, useTag int64, addr []Address) (err error) {
 	if userId == 0{
 		return
 	}
@@ -725,7 +730,7 @@ func (a *Address) ToAddress(userId int, useTag int64, addr []Address) (err error
 }
 
 // SQLUpdateTProductNotifyStatusByID 更新
-func (n *TUserNotify) SQLUpdateTProductNotifyStatusByID(row *TUserNotify) (err error) {
+func  SQLUpdateTProductNotifyStatusByID(row *TUserNotify) (err error) {
 	if row.ID == 0{
 		return
 	}
@@ -750,7 +755,7 @@ func (n *TUserNotify) SQLUpdateTProductNotifyStatusByID(row *TUserNotify) (err e
 }
 
 // SQLSelectTProductNotifyColByStatusAndTime 根据ids获取通知
-func (n *TUserNotify) SQLSelectTProductNotifyColByStatusAndTime(status int64, time int64) ([]TUserNotify, error) {
+func  SQLSelectTProductNotifyColByStatusAndTime(status int64, time int64) ([]TUserNotify, error) {
 	var rows []TUserNotify
 	err := GetDb().Select("id,url,msg").Where("handle_status = ? and update_time < ?", status, time).Find(&rows).Error
 	if err != nil {

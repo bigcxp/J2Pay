@@ -2,27 +2,103 @@ package heth
 
 import (
 	"context"
-	_ "context"
 	"crypto/ecdsa"
-	_ "crypto/ecdsa"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	_ "github.com/ethereum/go-ethereum/crypto"
+	"github.com/parnurzeal/gorequest"
 	"github.com/shopspring/decimal"
+	"io"
 	"j2pay-server/ethclient"
-	_ "j2pay-server/ethclient"
 	"j2pay-server/hcommon"
-	_ "j2pay-server/hcommon"
 	"j2pay-server/model"
-	_ "j2pay-server/model"
 	"j2pay-server/pkg/setting"
-	_ "j2pay-server/pkg/setting"
+	"log"
 	"math/big"
+	"net/http"
 	"regexp"
+	"sort"
 	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/iancoleman/strcase"
+	uuid "github.com/satori/go.uuid"
+	"gopkg.in/go-playground/validator.v8"
 )
+
+// IsStringInSlice 字符串是否在数组中
+func IsStringInSlice(arr []string, str string) bool {
+	for _, v := range arr {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
+
+// IsIntInSlice 数字是否在数组中
+func IsIntInSlice(arr []int64, str int64) bool {
+	for _, v := range arr {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
+
+// GinFillBindError 检测gin输入绑定错误
+func GinFillBindError(c *gin.Context, err error) {
+	validatorError, ok := err.(validator.ValidationErrors)
+	if ok {
+		errMsgList := make([]string, 0, 16)
+		for _, v := range validatorError {
+			errMsgList = append(errMsgList, fmt.Sprintf("[%s] is %s", strcase.ToSnake(v.Field), v.ActualTag))
+		}
+		c.JSON(http.StatusOK, gin.H{"error": hcommon.ErrorBind, "err_msg": strings.Join(errMsgList, ", ")})
+		return
+	}
+	unmarshalError, ok := err.(*json.UnmarshalTypeError)
+	if ok {
+		c.JSON(http.StatusOK, gin.H{"error": hcommon.ErrorBind, "err_msg": fmt.Sprintf("[%s] type error", unmarshalError.Field)})
+		return
+	}
+	if err == io.EOF {
+		c.JSON(http.StatusOK, gin.H{"error": hcommon.ErrorBind, "err_msg": fmt.Sprintf("empty body")})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"error": hcommon.ErrorInternal})
+}
+
+// GetSign 获取签名
+func GetSign(appSecret string, paramsMap gin.H) string {
+	var args []string
+	var keys []string
+	for k := range paramsMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := fmt.Sprintf("%s=%v", k, paramsMap[k])
+		args = append(args, v)
+	}
+	baseString := strings.Join(args, "&")
+	baseString += fmt.Sprintf("&key=%s", appSecret)
+	data := []byte(baseString)
+	r := md5.Sum(data)
+	signedString := hex.EncodeToString(r[:])
+	return strings.ToUpper(signedString)
+}
+
+// GetUUIDStr 获取唯一字符串
+func GetUUIDStr() string {
+	u1 := uuid.NewV4()
+	return strings.Replace(u1.String(), "-", "", -1)
+}
 
 const (
 	// EthToWei 数据单位
@@ -49,8 +125,7 @@ func GetNonce(address string) (int64, error) {
 		return 0, err
 	}
 	// 获取db nonce
-	send := model.TSend{}
-	dbNonce:= send.SQLGetTSendMaxNonce(address)
+	dbNonce:= model.SQLGetTSendMaxNonce(address)
 	if dbNonce > rpcNonce {
 		rpcNonce = dbNonce
 	}
@@ -136,15 +211,14 @@ func TokenWeiBigIntToEthStr(wei *big.Int, tokenDecimals int64) (string, error) {
 // GetPKMapOfAddresses 获取地址私钥
 func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey, error) {
 	addressPKMap := make(map[string]*ecdsa.PrivateKey)
-	address := model.Address{}
-	addressKeyMap, err := address.SQLGetAddressKeyMap(addresses)
+	addressKeyMap, err := model.SQLGetAddressKeyMap(addresses)
 	if err != nil {
 		return nil, err
 	}
 	for k, v := range addressKeyMap {
 		key := hcommon.AesDecrypt(v.Pwd, fmt.Sprintf("%s", setting.AesConf.Key))
 		if len(key) == 0 {
-			hcommon.Log.Errorf("error key of: %s", k)
+			log.Panicf("error key of: %s", k)
 			continue
 		}
 		if strings.HasPrefix(key, "0x") {
@@ -152,7 +226,7 @@ func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey, erro
 		}
 		privateKey, err := crypto.HexToECDSA(key)
 		if err != nil {
-			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			log.Panicf("err: [%T] %s", err, err.Error())
 			continue
 		}
 		addressPKMap[k] = privateKey
@@ -160,50 +234,38 @@ func GetPKMapOfAddresses(addresses []string) (map[string]*ecdsa.PrivateKey, erro
 	return addressPKMap, nil
 }
 
-//获取eth和usdt汇率
-//func GetEthereumUSDRate() {
-//
-//	cg := gecko.NewClient(&http.Client{
-//		Timeout: time.Second * 10,
-//	})
-//
-//	price, err := cg.SimpleSinglePrice("ethereum", "usd")
-//	if err == nil {
-//		controllers.EthereumUSDRate = float64(price.MarketPrice)
-//	}
-//}
+//resp结构体
+type StRespGasPrice struct {
+	Fast        int64   `json:"fast"`
+	Fastest     int64   `json:"fastest"`
+	SafeLow     int64   `json:"safeLow"`
+	Average     int64   `json:"average"`
+	BlockTime   float64 `json:"block_time"`
+	BlockNum    int64   `json:"blockNum"`
+	Speed       float64 `json:"speed"`
+	SafeLowWait float64 `json:"safeLowWait"`
+	AvgWait     float64 `json:"avgWait"`
+	FastWait    float64 `json:"fastWait"`
+	FastestWait float64 `json:"fastestWait"`
+}
+//获取最新gas
+func GetGas() StRespGasPrice {
+	gresp, body, errs := gorequest.New().
+		Get("https://ethgasstation.info/api/ethgasAPI.json").
+		Timeout(time.Second * 120).
+		End()
+	if errs != nil {
+		log.Panicf("err: %s", errs[0], errs[0].Error())
+	}
+	if gresp.StatusCode != http.StatusOK {
+		// 状态错误
+		log.Panicf("req status error: %d", gresp.StatusCode)
+	}
+	var resp StRespGasPrice
+	err := json.Unmarshal([]byte(body), &resp)
+	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
+	}
+	return resp
+}
 
-//// GetPkOfAddress 获取地址私钥
-//func GetPkOfAddress(ctx context.Context, db hcommon.DbExeAble, address string) (*ecdsa.PrivateKey, error) {
-//	// 获取私钥
-//	keyRow, err := common.SQLGetTAddressKeyColByAddress(
-//		ctx,
-//		db,
-//		[]string{
-//			model2.DBColTAddressKeyPwd,
-//		},
-//		address,
-//	)
-//	if err != nil {
-//		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-//		return nil, err
-//	}
-//	if keyRow == nil {
-//		hcommon.Log.Errorf("no key of: %s", address)
-//		return nil, fmt.Errorf("no key of: %s", address)
-//	}
-//	key := hcommon.AesDecrypt(keyRow.Pwd, fmt.Sprintf("%s",setting.AesConf.Key))
-//	if len(key) == 0 {
-//		hcommon.Log.Errorf("error key of: %s", address)
-//		return nil, fmt.Errorf("no key of: %s", address)
-//	}
-//	if strings.HasPrefix(key, "0x") {
-//		key = key[2:]
-//	}
-//	privateKey, err := crypto.HexToECDSA(key)
-//	if err != nil {
-//		hcommon.Log.Errorf("HexToECDSA err: [%T] %s", err, err.Error())
-//		return nil, err
-//	}
-//	return privateKey, nil
-//}

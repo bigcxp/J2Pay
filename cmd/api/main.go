@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"j2pay-server/cron"
 	"j2pay-server/ethclient"
-	"j2pay-server/model"
 	"j2pay-server/pkg/logger"
 	"j2pay-server/pkg/setting"
 	"j2pay-server/routers"
@@ -20,8 +19,6 @@ func main() {
 	setting.Setup()
 	//日志
 	logger.Setup()
-	//初始化数据库
-	model.Setup()
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
 	//定时器
