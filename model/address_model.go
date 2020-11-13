@@ -56,6 +56,15 @@ func GetAddress(id int) (Address, error) {
 	return row, s
 }
 
+
+//随机获取商户不在收款中的充币地址
+func  (a *Address)  FindById(id int64) (Address, error) {
+	var row Address
+	err:=DB.Model(row).Find(&row,"id = ? ",id).Error
+	return row, err
+}
+
+
 //新增用户收款地址
 func (a *Address) AddAddress() error {
 	tx := DB.Begin()
