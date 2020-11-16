@@ -25,6 +25,15 @@
 
 	func main(){
 		//init()
+
+
+
+
+
+
+
+
+
 		var  ToAddress= "0x99E46a01909078BC8D0A53CA8EFa2a0B7Ec1497c"
 		var ethService= service.ETHService{} 
 		ethService.ERC20Transaction(ToAddress,0.1)

@@ -16,6 +16,7 @@ type Claims struct {
 	Role     []response.CasRole `json:"role"`
 	Auth     []model.Auth       `json:"auth"`
 	ID       int64              `json:"id"`
+	UID      int64              `json:"uid"`
 	jwt.StandardClaims
 }
 
@@ -30,6 +31,7 @@ func MakeToken(account model.Account) (string, error) {
 		Username: account.UserName,
 		ID:       account.ID,
 		Secret:   account.Secret,
+		UID:      account.UID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expTime.Unix(),
 			Subject:   "j2pay-server",

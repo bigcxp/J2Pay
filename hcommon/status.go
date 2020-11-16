@@ -40,8 +40,11 @@ const (
 const (
 	SendRelationTypeTx         = 1 //eth充币
 	SendRelationTypeWithdraw   = 2 //eth提币
-	SendRelationTypeTxErc20    = 3 //erc20充币
-	SendRelationTypeTxErc20Fee = 4 //ercx20手续费
+	SendRelationTypeSend       = 3 //eth代发
+	SendRelationTypeTxErc20    = 4 //erc20充币
+	SendRelationTypeErc20      = 5 //erc20提币
+	SendRelationTypeSendErc20  = 6 //erc20代发
+	SendRelationTypeTxErc20Fee = 7 //ercx20手续费
 )
 
 // 通知状态
@@ -64,13 +67,14 @@ const (
 	WithdrawStatusHex     = 1 //已生成交易
 	WithdrawStatusSend    = 2 //已发送
 	WithdrawStatusConfirm = 3 //交易成功
+	WithdrawStatusCancel  = 4 //已取消
+	WithdrawStatusFail    = 5 //失败
 )
 
-// 提领状态
+//提币类型
 const (
-	PickStatusWait    = 0 //等待中
-	PickStatusDo      = 1 //执行中
-	PickStatusSuccess = 2 //成功
-	PickStatusCancel  = 3 //已取消
-	PickStatusFail    = 4 //失败
+	Deal     = 0 //零钱整理
+	WithDraw = 1 //提领
+	Send     = 2 // 代发
+
 )

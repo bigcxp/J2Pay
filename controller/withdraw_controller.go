@@ -172,12 +172,12 @@ func SendDetail(c *gin.Context) {
 // @Router /merchantPick [post]
 func PickAdd(c *gin.Context)  {
 	response := util.Response{c}
-	var pick request.PickAdd
+	var pick request.WithDrawAdd
 	if err := c.ShouldBind(&pick); err != nil {
 		response.SetValidateError(err)
 		return
 	}
-	err,pickAddr := service.PickAdd(pick)
+	err,pickAddr := service.WithdrawAdd(pick)
 	if err != nil {
 		response.SetValidateError(err)
 	}

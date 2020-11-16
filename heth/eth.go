@@ -36,7 +36,6 @@ import (
 	"math/big"
 	_ "math/big"
 	_ "net/http"
-	"strconv"
 	"strings"
 	_ "strings"
 	"time"
@@ -487,11 +486,16 @@ func CheckRawTxSend() {
 		log.Panicf("err: [%T] %s", err, err.Error())
 		return
 	}
-	// 首先单独处理提币，提取提币通知要使用的数据
+	// 首先单独处理提领和代发，提取提币通知要使用的数据
 	var withdrawIDs []int64
 	for _, sendRow := range sendRows {
 		switch sendRow.RelatedType {
 		case hcommon.SendRelationTypeWithdraw:
+			if !IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
+				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
+			}
+
+		case hcommon.SendRelationTypeSend:
 			if !IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 			}
@@ -529,6 +533,10 @@ func CheckRawTxSend() {
 			if !IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
 				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
 			}
+		case hcommon.SendRelationTypeSend:
+			if !IsIntInSlice(withdrawIDs, sendRow.RelatedID) {
+				withdrawIDs = append(withdrawIDs, sendRow.RelatedID)
+			}
 		case hcommon.SendRelationTypeTxErc20:
 			if !IsIntInSlice(erc20TxIDs, sendRow.RelatedID) {
 				erc20TxIDs = append(erc20TxIDs, sendRow.RelatedID)
@@ -539,7 +547,7 @@ func CheckRawTxSend() {
 			}
 		}
 		// 如果是提币，创建通知信息
-		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw {
+		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw ||sendRow.RelatedType == hcommon.SendRelationTypeSend {
 			withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 			if !ok {
 				log.Panicf("withdrawMap no: %d", sendRow.RelatedID)
@@ -966,7 +974,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	if withdrawRow == nil {
 		return nil
 	}
-	balanceBigInt, err := EthStrToWeiBigInit(strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64))
+	balanceBigInt, err := EthStrToWeiBigInit(withdrawRow.BalanceReal)
 	if err != nil {
 		return err
 	}
@@ -1027,7 +1035,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 			TxID:         txHash,
 			FromAddress:  hotAddress,
 			ToAddress:    withdrawRow.ToAddress,
-			BalanceReal:  strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64),
+			BalanceReal:  withdrawRow.BalanceReal,
 			Gas:          gasLimit,
 			GasPrice:     gasPrice,
 			Nonce:        nonce,
@@ -1957,7 +1965,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		return nil
 	}
 	tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
-	tokenBalance, err := TokenEthStrToWeiBigInit(strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64), tokenRow.TokenDecimals)
+	tokenBalance, err := TokenEthStrToWeiBigInit(withdrawRow.BalanceReal, tokenRow.TokenDecimals)
 	if err != nil {
 		return err
 	}
@@ -2025,7 +2033,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 			TxID:         txHash,
 			FromAddress:  hotAddress,
 			ToAddress:    withdrawRow.ToAddress,
-			BalanceReal:  strconv.FormatFloat(withdrawRow.BalanceReal, 'E', -1, 64),
+			BalanceReal:  withdrawRow.BalanceReal,
 			Gas:          gasLimit,
 			GasPrice:     gasPrice,
 			Nonce:        nonce,

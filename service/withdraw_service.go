@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"j2pay-server/hcommon"
 	"j2pay-server/heth"
@@ -10,6 +11,7 @@ import (
 	"j2pay-server/myerr"
 	"j2pay-server/pkg/casbin"
 	"j2pay-server/pkg/util"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -92,35 +94,35 @@ func SendDetail(id int64) (res response.SendList, err error) {
 	return res, err
 }
 
-// 提领 （提币 热钱包到用户自己账户）
-func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
+// 提领 （提币 热钱包提币到用户自己账户）
+func WithdrawAdd(with request.WithDrawAdd) (error, response.WithDrawRes) {
 	defer casbin.ClearEnforcer()
-	//如果是RMB或TWD 换算成USDT
-	var amount float64
-	switch pick.Currency {
-	case "RMB":
-		detail, err := TypeDetail(pick.Currency)
-		if err != nil {
-			return err, response.PickAddr{}
-		}
-		amount = detail.OriginalRate / pick.Amount
-	case "TWB":
-		detail, err := TypeDetail(pick.Currency)
-		if err != nil {
-			return err, response.PickAddr{}
-		}
-		amount = detail.OriginalRate / pick.Amount
-
-	default:
-		amount = pick.Amount
+	var c *gin.Context
+	// 将币种小写
+	with.Symbol = strings.ToLower(with.Symbol)
+	// 根据登录信息获取组织id
+	account, ok := c.Get("user")
+	if !ok {
+		return myerr.NewNormalValidateError("没有用户信息"), response.WithDrawRes{}
 	}
-	//验证金额和地址是否正确
+	accountinfo := account.(*util.Claims)
+	//获取组织信息
+	user, err2 := model.GetUserByWhere("id = ?", accountinfo.UID)
+	if err2 != nil {
+		return err2, response.WithDrawRes{}
+	}
+	if user.ID == 0 {
+		return myerr.NewNormalValidateError(" 没有该组织信息"), response.WithDrawRes{}
+	}
+	// 获取eth 信息
 	tokenDecimalsMap := make(map[string]int64)
 	ethSymbols := []string{heth.CoinSymbol}
 	tokenDecimalsMap[heth.CoinSymbol] = 18
+	// 获取所有eth代币币种
 	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
 	if err != nil {
-		return err, response.PickAddr{}
+		log.Panicf("err: [%T] %s", err, err.Error())
+		return myerr.NewNormalValidateError(err.Error()), response.WithDrawRes{}
 	}
 	for _, tokenRow := range tokenRows {
 		tokenRow.TokenSymbol = strings.ToLower(tokenRow.TokenSymbol)
@@ -128,113 +130,88 @@ func PickAdd(pick request.PickAdd) (error, response.PickAddr) {
 		tokenDecimalsMap[tokenRow.TokenSymbol] = tokenRow.TokenDecimals
 	}
 	// 验证金额
-	tokenDecimals, ok := tokenDecimalsMap["eth"]
+	tokenDecimals, ok := tokenDecimalsMap[with.Symbol]
 	if !ok {
-		return err, response.PickAddr{}
+		return myerr.NewNormalValidateError("金额错误"), response.WithDrawRes{}
 	}
-	balanceObj := decimal.NewFromFloat(pick.Amount)
+	balanceObj, err := decimal.NewFromString(with.Balance)
+	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
+		return myerr.NewNormalValidateError(err.Error()), response.WithDrawRes{}
+	}
 	if balanceObj.LessThanOrEqual(decimal.NewFromInt(0)) {
-		return myerr.NewDbValidateError("提领金额不能为负数"), response.PickAddr{}
+		return myerr.NewNormalValidateError("金额不能小于等于0"), response.WithDrawRes{}
 	}
 	if balanceObj.Exponent() < -int32(tokenDecimals) {
-		return myerr.NewDbValidateError("小数位有误"), response.PickAddr{}
+		return myerr.NewNormalValidateError("金额格式错误"), response.WithDrawRes{}
 	}
-	if heth.IsStringInSlice(ethSymbols, "eth") {
-		// 验证地址
-		pick.PickAddress = strings.ToLower(pick.PickAddress)
+	if heth.IsStringInSlice(ethSymbols, with.Symbol) {
+		// 验证组织的收款地址
+		user.Address = strings.ToLower(user.Address)
 		re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
-		if !re.MatchString(pick.PickAddress) {
-			return myerr.NewDbValidateError("地址不符合"), response.PickAddr{}
+		if !re.MatchString(user.Address) {
+			return myerr.NewNormalValidateError("组织收款地址格式错误"), response.WithDrawRes{}
 		}
 	} else {
-		return myerr.NewDbValidateError("地址不支持"), response.PickAddr{}
+		return myerr.NewNormalValidateError("暂不支持该币种"), response.WithDrawRes{}
 	}
-	//逻辑处理 待完善 ==》判断金额 如果足够 进行交易，返回交易结果 账户减余额
-	//代发功能是否开启
-	if user,_ := model.GetUserByWhere("id = ?", pick.UserId); user.IsDai == 0 {
-		return myerr.NewDbValidateError("未开启代发功能"), response.PickAddr{}
+	now := time.Now().Unix()
+	err = model.SQLCreateTWithdraw(
+		&model.TWithdraw{
+			UserId:       user.ID,
+			SystemID:     util.RandString(12),
+			ToAddress:    user.Address,
+			Symbol:       with.Symbol,
+			BalanceReal:  with.Balance,
+			TxHash:       "",
+			CreateTime:   now,
+			HandleStatus: 0,
+			HandleMsg:    "",
+			HandleTime:   now,
+			WithdrawType: hcommon.WithDraw,
+			Remark:       with.Remark,
+		},
+	)
+	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
+		return myerr.NewNormalValidateError(err.Error()), response.WithDrawRes{}
 	}
-	// 1.判断转账金额是否足够
-	if user,_ := model.GetUserByWhere("id = ?", pick.UserId); user.Balance < pick.Amount {
-		return myerr.NewDbValidateError("余额不足"), response.PickAddr{}
-	}
-	//提领数量不能为负数
-	if pick.Amount < 0 {
-		return myerr.NewDbValidateError("提领数量不能为负数"), response.PickAddr{}
-	}
-	//根据类型计算手续费
-	user ,_:= model.GetUserByWhere("id = ?", pick.UserId)
-	var fee float64
-	if user.OrderCharge != 0 && user.OrderType == 1 {
-		fee = pick.Amount * user.OrderCharge
-	} else if user.OrderCharge != 0 && user.OrderType == 0 {
-		fee = user.OrderCharge
-	} else {
-		fee = user.OrderCharge
-	}
-	var status int64
-	var handleMsg string
-	//是否需要审核
-	if user.Examine == 1 {
-		status = hcommon.PickStatusWait
-		handleMsg = "等待中"
-	} else {
-		status = hcommon.PickStatusDo
-		handleMsg = "执行中"
-	}
-	p := model.TWithdraw{
-		SystemID:     util.RandString(20),
-		BalanceReal:  pick.Amount,
-		TxHash:       "",
-		Fee:          fee,
-		UserId:       pick.UserId,
-		Remark:       pick.Remark,
-		HandleStatus: status,
-		HandleMsg:    handleMsg,
-		HandleTime:   0,
-		CreateTime:   time.Now().Unix(),
-		ToAddress:    pick.PickAddress,
-		Symbol:       "eth",
-		WithdrawType: pick.Type,
-	}
-	pickAddr := response.PickAddr{
-		Amount:         pick.Amount,
-		Address:        pick.PickAddress,
-		Currency:       pick.Currency,
-		CurrencyAmount: amount,
-	}
-	return p.Create(), pickAddr
+	return nil, response.WithDrawRes{with.Balance, user.Address}
 }
 
-// 代发 （提币 热钱包到外部钱包地址）
-func SendAdd(send request.SendAdd) (error, response.PickAddr) {
+// 代发 （代发 热钱包到外部钱包地址）
+func SendAdd(with request.SendAdd) (error, response.SendRes) {
 	defer casbin.ClearEnforcer()
-	//如果是RMB或TWD 换算成USDT
-	var amount float64
-	switch send.Currency {
-	case "RMB":
-		detail, err := TypeDetail(send.Currency)
-		if err != nil {
-			return err, response.PickAddr{}
-		}
-		amount = detail.OriginalRate * send.Amount
-	case "TWB":
-		detail, err := TypeDetail(send.Currency)
-		if err != nil {
-			return err, response.PickAddr{}
-		}
-		amount = detail.OriginalRate * send.Amount
-
-	default:
-		amount = send.Amount
+	var c *gin.Context
+	// 将币种小写
+	with.Symbol = strings.ToLower(with.Symbol)
+	// 根据登录信息获取组织id
+	account, ok := c.Get("user")
+	if !ok {
+		return myerr.NewNormalValidateError("没有用户信息"), response.SendRes{}
 	}
-	//验证金额和地址是否正确
+	accountinfo := account.(*util.Claims)
+	//获取组织信息
+	user, err2 := model.GetUserByWhere("id = ?", accountinfo.UID)
+	if err2 != nil {
+		return err2, response.SendRes{}
+	}
+	if user.ID == 0 {
+		return myerr.NewNormalValidateError(" 没有该组织i信息"), response.SendRes{}
+	}
+	//查询订单号否重复
+	if hasName, _ := model.GetPickByWhere("user_name = ?", user.UserName); hasName.ID > 0 {
+		return myerr.NewDbValidateError("订单号已存在"), response.SendRes{}
+	}
+	// 获取eth 信息
 	tokenDecimalsMap := make(map[string]int64)
 	ethSymbols := []string{heth.CoinSymbol}
 	tokenDecimalsMap[heth.CoinSymbol] = 18
+	// 获取所有eth代币币种
 	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
 	if err != nil {
-		return err, response.PickAddr{}
+		log.Panicf("err: [%T] %s", err, err.Error())
+		return myerr.NewNormalValidateError(err.Error()), response.SendRes{}
 	}
 	for _, tokenRow := range tokenRows {
 		tokenRow.TokenSymbol = strings.ToLower(tokenRow.TokenSymbol)
@@ -242,80 +219,54 @@ func SendAdd(send request.SendAdd) (error, response.PickAddr) {
 		tokenDecimalsMap[tokenRow.TokenSymbol] = tokenRow.TokenDecimals
 	}
 	// 验证金额
-	tokenDecimals, ok := tokenDecimalsMap["eth"]
+	tokenDecimals, ok := tokenDecimalsMap[with.Symbol]
 	if !ok {
-		return err, response.PickAddr{}
+		return myerr.NewNormalValidateError("金额错误"), response.SendRes{}
 	}
-	balanceObj := decimal.NewFromFloat(send.Amount)
+	balanceObj, err := decimal.NewFromString(with.Balance)
+	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
+		return myerr.NewNormalValidateError(err.Error()), response.SendRes{}
+	}
 	if balanceObj.LessThanOrEqual(decimal.NewFromInt(0)) {
-		return myerr.NewDbValidateError("提领金额不能为负数"), response.PickAddr{}
+		return myerr.NewNormalValidateError("金额不能小于等于0"), response.SendRes{}
 	}
 	if balanceObj.Exponent() < -int32(tokenDecimals) {
-		return myerr.NewDbValidateError("小数位有误"), response.PickAddr{}
+		return myerr.NewNormalValidateError("金额格式错误"), response.SendRes{}
 	}
-	if heth.IsStringInSlice(ethSymbols, "eth") {
-		// 验证地址
-		send.PickAddress = strings.ToLower(send.PickAddress)
+	if heth.IsStringInSlice(ethSymbols, with.Symbol) {
+		// 验证组织的收款地址
+		user.Address = strings.ToLower(user.Address)
 		re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
-		if !re.MatchString(send.PickAddress) {
-			return myerr.NewDbValidateError("地址不符合"), response.PickAddr{}
+		if !re.MatchString(user.Address) {
+			return myerr.NewNormalValidateError("组织收款地址格式错误"), response.SendRes{}
 		}
 	} else {
-		return myerr.NewDbValidateError("地址不支持"), response.PickAddr{}
+		return myerr.NewNormalValidateError("暂不支持该币种"), response.SendRes{}
 	}
-	//订单编号不能重复
-	if hasCode := model.GetPickByWhere("order_code = ?", send.OrderCode); hasCode.ID > 0 {
-		return myerr.NewDbValidateError("商户订单编号重复"), response.PickAddr{}
+	now := time.Now().Unix()
+	err = model.SQLCreateTWithdraw(
+		&model.TWithdraw{
+			UserId:       user.ID,
+			MerchantID:   with.OrderCode,
+			SystemID:     util.RandString(12),
+			ToAddress:    user.Address,
+			Symbol:       with.Symbol,
+			BalanceReal:  with.Balance,
+			TxHash:       "",
+			CreateTime:   now,
+			HandleStatus: 0,
+			HandleMsg:    "",
+			HandleTime:   now,
+			WithdrawType: hcommon.Send,
+			Remark:       with.Remark,
+		},
+	)
+	if err != nil {
+		log.Panicf("err: [%T] %s", err, err.Error())
+		return myerr.NewNormalValidateError(err.Error()), response.SendRes{}
 	}
-	// 判断转账金额是否足够
-	if user,_ := model.GetUserByWhere("id = ?", send.UserId); user.Balance < send.Amount {
-		return myerr.NewDbValidateError("余额不足"), response.PickAddr{}
-	}
-	//根据类型计算手续费
-	user,_ := model.GetUserByWhere("id = ?", send.UserId)
-	var fee float64
-	if user.OrderCharge != 0 && user.OrderType == 1 {
-		fee = send.Amount * user.OrderCharge
-	} else if user.OrderCharge != 0 && user.OrderType == 0 {
-		fee = user.OrderCharge
-	} else {
-		fee = user.OrderCharge
-	}
-	//是否需要审核
-	var status int64
-	var handleMsg string
-	//是否需要审核
-	if user.Examine == 1 {
-		status = hcommon.PickStatusWait
-		handleMsg = "等待中"
-	} else {
-		status = hcommon.PickStatusDo
-		handleMsg = "执行中"
-	}
-	p := model.TWithdraw{
-		SystemID:     util.RandString(20),
-		MerchantID:   send.OrderCode,
-		BalanceReal:  send.Amount,
-		TxHash:       "",
-		Fee:          fee,
-		UserId:       send.UserId,
-		Remark:       send.Remark,
-		HandleStatus: status,
-		HandleMsg:    handleMsg,
-		HandleTime:   0,
-		CreateTime:   time.Now().Unix(),
-		ToAddress:    send.PickAddress,
-		Symbol:       "eth",
-		WithdrawType: send.Type,
-	}
-	sendAddr := response.PickAddr{
-		OrderCode:      send.OrderCode,
-		Amount:         send.Amount,
-		Address:        send.PickAddress,
-		Currency:       send.Currency,
-		CurrencyAmount: amount,
-	}
-	return p.Create(), sendAddr
+	return nil, response.SendRes{with.OrderCode,with.Balance, user.Address}
 
 }
 

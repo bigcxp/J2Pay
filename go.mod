@@ -53,7 +53,7 @@ require (
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/sys v0.0.0-20201022201747-fb209a7c41cd // indirect
-	golang.org/x/tools v0.0.0-20201022215848-ffe8bce740af // indirect
+	golang.org/x/tools v0.0.0-20201022215848-ffe8bce740af
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2

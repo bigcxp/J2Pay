@@ -74,10 +74,10 @@ type MerchantPickList struct {
 	OrderCode   string    `json:"order_code"`   //商户订单编号
 	Status      int       `json:"status"`       //状态 0：等待中，1：执行中，2：成功，3：已取消，4：失败
 	SendAddress string    `json:"send_address"` //代发地址
-	Amount      float64   `json:"amount"`       //金额
-	Fee         float64   `json:"fee"`          //手续费
-	GasFee      float64   `json:"fee"`          //Gas手续费
-	DelMoney    float64   `json:"del_money"`    //扣除商户余额
+	Amount      string    `json:"amount"`       //金额
+	Fee         string    `json:"fee"`          //手续费
+	GasFee      string    `json:"fee"`          //Gas手续费
+	DelMoney    string    `json:"del_money"`    //扣除商户余额
 	TXID        string    `json:"txid"`         //交易hash
 	CreateAt    time.Time `json:"create_at"`    //建立时间
 	FinishTime  time.Time `json:"finish_time"`  //完成时间
@@ -88,8 +88,21 @@ type MerchantPickList struct {
 //返回给用户充币地址
 type PickAddr struct {
 	OrderCode      string  `json:"order_code"`      //商户订单编号
-	Amount         float64 `json:"amount"`          //金额
-	Address        string  `json:"charge_address"`  //分配的收款地址
+	Amount         string  `json:"amount"`          //金额
+	Address        string  `json:"address"`         //分配的收款地址
 	Currency       string  `json:"currency"`        //币别
 	CurrencyAmount float64 `json:"currency_amount"` //币别金额
+}
+
+//返回提币信息
+type WithDrawRes struct {
+	Amount  string `json:"amount"`  //金额
+	Address string `json:"address"` //收款地址
+}
+
+//返回代发信息
+type SendRes struct {
+	OrderCode string `json:"order_code"` //商户订单编号
+	Amount    string `json:"amount"`     //金额
+	Address   string `json:"address"`    //收款地址
 }

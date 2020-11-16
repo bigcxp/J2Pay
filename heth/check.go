@@ -34,6 +34,7 @@ func CheckDoNotify() {
 	}
 	initNotifyRows = append(initNotifyRows, delayNotifyRows...)
 	for _, initNotifyRow := range initNotifyRows {
+		//如果地址不合法，不发送http请求
 		gresp, body, errs := gorequest.New().Post(initNotifyRow.URL).Timeout(time.Second * 30).Send(initNotifyRow.Msg).End()
 		if errs != nil {
 			log.Panicf("err: [%T] %s", errs[0], errs[0].Error())

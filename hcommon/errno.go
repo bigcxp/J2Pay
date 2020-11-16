@@ -16,8 +16,8 @@ const (
 	// ErrorBindMsg 输入绑定错误
 	ErrorBindMsg = "input bind"
 
-	ErrorNoProduct    = -3
-	ErrorNoProductMsg = "no product"
+	ErrorNoUser    = -3
+	ErrorNoUserMsg = "no product"
 
 	ErrorIPLimit    = -4
 	ErrorIPLimitMsg = "ip limit"
