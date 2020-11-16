@@ -248,6 +248,7 @@ func CheckBlockSeek() {
 					dbTxRows = append(dbTxRows, &model.TTx{
 						UserId:       addressSystemMap[toAddress],
 						SystemID:     util.RandString(12),
+						OrderId:      "",
 						TxID:         tx.Hash().String(),
 						FromAddress:  fromAddress,
 						ToAddress:    toAddress,
@@ -547,7 +548,7 @@ func CheckRawTxSend() {
 			}
 		}
 		// 如果是提币，创建通知信息
-		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw ||sendRow.RelatedType == hcommon.SendRelationTypeSend {
+		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw || sendRow.RelatedType == hcommon.SendRelationTypeSend {
 			withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 			if !ok {
 				log.Panicf("withdrawMap no: %d", sendRow.RelatedID)
@@ -1286,6 +1287,7 @@ func CheckErc20BlockSeek() {
 							TokenID:      configTokenRow.ID,
 							UserId:       addressSystemMap[transferEvent.To],
 							SystemID:     util.RandString(12),
+							OrderId:      "",
 							TxID:         log1.TxHash.Hex(),
 							FromAddress:  transferEvent.From,
 							ToAddress:    transferEvent.To,

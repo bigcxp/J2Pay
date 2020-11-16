@@ -2,11 +2,8 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"j2pay-server/model/request"
 	"j2pay-server/pkg/util"
-	"j2pay-server/service"
 	"net/http"
-	"strconv"
 )
 
 
@@ -35,22 +32,22 @@ func DetailedRecordIndex(c *gin.Context) {
 // @Success 200 {object} response.DetailedRecordPage
 // @Router /detail [get]
 func DetailedList(c *gin.Context) {
-	response := util.Response{c}
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	idCode := c.Query("idCode")
-	txid := c.Query("txid")
-	address := c.Query("address")
-	FromDate := c.Query("from_date")
-	ToDate := c.Query("to_date")
-	status, _ := strconv.Atoi(c.Query("status"))
-	userId, _ := strconv.Atoi(c.Query("userId"))
-	res, err := service.DetailedList(userId,status,idCode,address,txid,FromDate,ToDate,page,pageSize)
-	if err != nil {
-		response.SetOtherError(err)
-		return
-	}
-	response.SuccessData(res)
+	//response := util.Response{c}
+	//page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	//pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	//idCode := c.Query("idCode")
+	//txid := c.Query("txid")
+	//address := c.Query("address")
+	//FromDate := c.Query("from_date")
+	//ToDate := c.Query("to_date")
+	//status, _ := strconv.Atoi(c.Query("status"))
+	//userId, _ := strconv.Atoi(c.Query("userId"))
+	//res, err := service.DetailedList(userId,status,idCode,address,txid,FromDate,ToDate,page,pageSize)
+	//if err != nil {
+	//	response.SetOtherError(err)
+	//	return
+	//}
+	//response.SuccessData(res)
 }
 
 // @Tags 实收明细记录
@@ -60,14 +57,14 @@ func DetailedList(c *gin.Context) {
 // @Success 200 {object} response.DetailedList
 // @Router /detail/{id} [get]
 func DetailedDetail(c *gin.Context) {
-	response := util.Response{c}
-	id, _ := strconv.Atoi(c.Param("id"))
-	detail, err := service.DetailsDetail(id)
-	if err != nil {
-		response.SetOtherError(err)
-		return
-	}
-	response.SuccessData(detail)
+	//response := util.Response{c}
+	//id, _ := strconv.Atoi(c.Param("id"))
+	//detail, err := service.DetailsDetail(id)
+	//if err != nil {
+	//	response.SetOtherError(err)
+	//	return
+	//}
+	//response.SuccessData(detail)
 }
 
 // @Tags 实收明细记录
@@ -78,15 +75,15 @@ func DetailedDetail(c *gin.Context) {
 // @Router /detail [post]
 func DetailedAdd(c *gin.Context)  {
 	response := util.Response{c}
-	var detailed request.DetailedAdd
-	if err := c.ShouldBind(&detailed); err != nil {
-		response.SetValidateError(err)
-		return
-	}
-	if err := service.DetailedAdd(detailed); err != nil {
-		response.SetOtherError(err)
-		return
-	}
+	//var detailed request.DetailedAdd
+	//if err := c.ShouldBind(&detailed); err != nil {
+	//	response.SetValidateError(err)
+	//	return
+	//}
+	//if err := service.DetailedAdd(detailed); err != nil {
+	//	response.SetOtherError(err)
+	//	return
+	//}
 	response.SuccessMsg("成功")
 
 }
@@ -99,15 +96,15 @@ func DetailedAdd(c *gin.Context)  {
 // @Router /detail/{id} [put]
 func DetailedEdit(c *gin.Context) {
 	response := util.Response{c}
-	var detail request.DetailedEdit
-	detail.ID, _ = strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBind(&detail); err != nil {
-		response.SetValidateError(err)
-		return
-	}
-	if err := service.IsBind(detail); err != nil {
-		response.SetOtherError(err)
-		return
-	}
+	//var detail request.DetailedEdit
+	//detail.ID, _ = strconv.Atoi(c.Param("id"))
+	//if err := c.ShouldBind(&detail); err != nil {
+	//	response.SetValidateError(err)
+	//	return
+	//}
+	//if err := service.IsBind(detail); err != nil {
+	//	response.SetOtherError(err)
+	//	return
+	//}
 	response.SuccessMsg("成功")
 }

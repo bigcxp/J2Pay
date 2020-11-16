@@ -42,49 +42,49 @@ func Cron() {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 eth 提币
-		_, err = c.AddFunc("@every 25m", heth.CheckWithdraw)
+		_, err = c.AddFunc("@every 40m", heth.CheckWithdraw)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 eth 发送交易
-		_, err = c.AddFunc("@every 15m", heth.CheckRawTxSend)
+		_, err = c.AddFunc("@every 50m", heth.CheckRawTxSend)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 eth 交易上链=》是否完成打包
-		_, err = c.AddFunc("@every 18m", heth.CheckRawTxConfirm)
+		_, err = c.AddFunc("@every 60m", heth.CheckRawTxConfirm)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 eth 通知到账
-		_, err = c.AddFunc("@every 22m", heth.CheckTxNotify)
+		_, err = c.AddFunc("@every 70m", heth.CheckTxNotify)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 eth gas price
-		_, err = c.AddFunc("@every 28m", heth.CheckGasPrice)
+		_, err = c.AddFunc("@every 5m", heth.CheckGasPrice)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 
 		// --- erc20 ---
 		// 检测 erc20 冲币
-		_, err = c.AddFunc("@every 20m", heth.CheckErc20BlockSeek)
+		_, err = c.AddFunc("@every 25m", heth.CheckErc20BlockSeek)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 erc20 通知到账
-		_, err = c.AddFunc("@every 30m", heth.CheckErc20TxNotify)
+		_, err = c.AddFunc("@every 15m", heth.CheckErc20TxNotify)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 erc20 零钱整理
-		_, err = c.AddFunc("@every 40m", heth.CheckErc20TxOrg)
+		_, err = c.AddFunc("@every 30m", heth.CheckErc20TxOrg)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}
 		// 检测 erc20 提币
-		_, err = c.AddFunc("@every 10m", heth.CheckErc20Withdraw)
+		_, err = c.AddFunc("@every 40m", heth.CheckErc20Withdraw)
 		if err != nil {
 			log.Panicf("cron add func error: %#v", err)
 		}

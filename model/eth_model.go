@@ -36,6 +36,7 @@ type TAppStatusInt struct {
 type TTx struct {
 	ID           int64
 	UserId       int64  `gorm:"default:0;comment:'组织ID'";json:"user_id"`            //组织ID
+	OrderId      string `gorm:"default:0;comment:'订单编号'";json:"order_id"`           //订单编号
 	SystemID     string `gorm:"default:'';comment:'系统编号'";json:"system_id"`         // 系统编号
 	TxID         string `gorm:"unique;comment:'交易id'";json:"tx_id"`                 // 交易id
 	FromAddress  string `gorm:"defsult:'';comment:'来源地址'";json:"from_address"`      // 来源地址
@@ -48,6 +49,8 @@ type TTx struct {
 	OrgStatus    int64  `gorm:"default:0;comment:'零钱整理状态'";json:"org_status"`       // 零钱整理状态
 	OrgMsg       string `gorm:"default:'';comment:'零钱整理消息'";json:"org_msg"`         // 零钱整理消息
 	OrgTime      int64  `gorm:"default:0;comment:'零钱整理时间'" json:"org_time"`         // 零钱整理时间
+	Status       int    `gorm:"default:1;comment:'状态 1：未绑定，2：已绑定';";json:"status"`  //是否绑定订单
+
 }
 
 //erc20 代币 合约配置
@@ -84,25 +87,26 @@ type TUserNotify struct {
 type TSend struct {
 	ID           int64
 	RelatedType  int64  `gorm:"default:0;comment:'关联类型 1 零钱整理 2 提币 3 代发'";json:"related_type"` // 关联类型 1 零钱整理 2 提币 3 代发
-	RelatedID    int64  `gorm:"default:0;comment:'管理id'";json:"related_id"`               // 关联id
-	TxID         string `gorm:"default:'';comment:'tx hash'";json:"tx_id"`                // tx hash
-	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`                 //合约id
-	FromAddress  string `gorm:"default:'';comment:'打币地址'";json:"from_address"`            // 打币地址
-	ToAddress    string `gorm:"default:'';comment:'收币地址'";json:"to_address"`              // 收币地址
-	BalanceReal  string `gorm:"default:'';comment:'打币金额 ether'";json:"balance_real"`      // 打币金额 Ether
-	Gas          int64  `gorm:"default:0;comment:'gas消耗'";json:"gas"`                     // gas消耗
-	GasPrice     int64  `gorm:"default:0;comment:'gasPrice'";json:"gas_price"`            // gasPrice
-	Nonce        int64  `gorm:"default:0;comment:'nonce'";json:"nonce"`                   // nonce
-	Hex          string `gorm:"default:'';comment:'tx raw hex'";json:"hex"`               // tx raw hex
-	CreateTime   int64  `gorm:"default:0;comment:'创建时间'";json:"create_time"`              // 创建时间
-	HandleStatus int64  `gorm:"default:0;comment:'处理状态'";json:"handle_status"`            // 处理状态
-	HandleMsg    string `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`              // 处理消息
-	HandleTime   int64  `gorm:"default:0;comment:'处理时间'" json:"handle_time"`              // 处理时间
+	RelatedID    int64  `gorm:"default:0;comment:'管理id'";json:"related_id"`                    // 关联id
+	TxID         string `gorm:"default:'';comment:'tx hash'";json:"tx_id"`                     // tx hash
+	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`                      //合约id
+	FromAddress  string `gorm:"default:'';comment:'打币地址'";json:"from_address"`                 // 打币地址
+	ToAddress    string `gorm:"default:'';comment:'收币地址'";json:"to_address"`                   // 收币地址
+	BalanceReal  string `gorm:"default:'';comment:'打币金额 ether'";json:"balance_real"`           // 打币金额 Ether
+	Gas          int64  `gorm:"default:0;comment:'gas消耗'";json:"gas"`                          // gas消耗
+	GasPrice     int64  `gorm:"default:0;comment:'gasPrice'";json:"gas_price"`                 // gasPrice
+	Nonce        int64  `gorm:"default:0;comment:'nonce'";json:"nonce"`                        // nonce
+	Hex          string `gorm:"default:'';comment:'tx raw hex'";json:"hex"`                    // tx raw hex
+	CreateTime   int64  `gorm:"default:0;comment:'创建时间'";json:"create_time"`                   // 创建时间
+	HandleStatus int64  `gorm:"default:0;comment:'处理状态'";json:"handle_status"`                 // 处理状态
+	HandleMsg    string `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`                   // 处理消息
+	HandleTime   int64  `gorm:"default:0;comment:'处理时间'" json:"handle_time"`                   // 处理时间
 }
 
 // GetDb()TTxErc20 t_tx_erc20 数据表 eth  erc20交易
 type TTxErc20 struct {
 	ID           int64
+	OrderId      string `gorm:"default:0;comment:'订单编号'";json:"order_id"`           //订单编号
 	UserId       int64  `gorm:"default:0;comment:'组织ID'";json:"user_id"`            //组织ID
 	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`           //合约id
 	SystemID     string `gorm:"default:'';comment:'系统编号'";json:"system_id"`         // 系统编号
@@ -117,6 +121,7 @@ type TTxErc20 struct {
 	OrgStatus    int64  `gorm:"default:0;comment:'零钱整理状态'";json:"org_status"`       // 零钱整理状态
 	OrgMsg       string `gorm:"default:'';comment:'零钱整理消息'";json:"org_msg"`         // 零钱整理消息
 	OrgTime      int64  `gorm:"default:0;comment:'零钱整理时间'" json:"org_time"`         // 零钱整理时间
+	Status       int    `gorm:"default:1;comment:'状态 1：未绑定，2：已绑定';";json:"status"`  //是否绑定订单
 }
 
 // 根据条件获取配置
@@ -179,6 +184,26 @@ func SQLSelectTTxErc20ColByOrgForUpdate(orgStatuses []int64) ([]TTxErc20, error)
 	err := GetDb().Model(&TTxErc20{}).Where("org_status in (?)", orgStatuses).Find(&te).Error
 	if err != nil {
 		return nil, err
+	}
+	return te, err
+}
+
+//根据orderId获取ttx
+	func SQLSelectTTxByOrderId(orderId string) (TTx, error) {
+	var tx TTx
+	err := GetDb().Model(&TTx{}).Where("order_id =?", orderId).Take(&tx).Error
+	if err != nil {
+		return TTx{}, err
+	}
+	return tx, err
+}
+
+//根据orderId获取TTxErc20
+func SQLSelectTTxErc20ByOrderId(orderId string) (TTxErc20, error) {
+	var te TTxErc20
+	err := GetDb().Model(&TTxErc20{}).Where("order_id =?", orderId).Take(&te).Error
+	if err != nil {
+		return TTxErc20{}, err
 	}
 	return te, err
 }
@@ -260,7 +285,7 @@ func (t *TAppConfigToken) SQLSelectBySymbol(symbol string) (*TAppConfigToken, er
 //获取token配置
 func SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
 	var tact []TAppConfigToken
-	 err := GetDb().Model(&TAppConfigToken{}).Select("*").Find(&tact).Error
+	err := GetDb().Model(&TAppConfigToken{}).Select("*").Find(&tact).Error
 	return tact, err
 }
 

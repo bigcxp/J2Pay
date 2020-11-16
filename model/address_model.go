@@ -8,17 +8,17 @@ import (
 
 type Address struct {
 	ID           int64
-	UserAddress  string  `gorm:"unique;comment:'钱包地址';"json:"user_address"`                                              //地址
-	EthAmount    float64 `gorm:"default:0;comment:'以太币余额';";json:"eth_amount"`                                           //以太币余额
-	UsdtAmount   float64 `gorm:"default:0;comment:'泰达币余额';";json:"usdt_amount"`                                          //泰达币余额
-	UserId       int     `gorm:"default:0;comment:'用户id';";json:"user_id"`                                               //组织id
-	Symbol       string  `gorm:"default:'eth';comment:'币种';"json:"symbol"`                                               // 币种
-	Pwd          string  `gorm:"default:'';comment:'加密私钥'";json:"pwd"`                                                   // 加密私钥
-	Status       int     `gorm:"default:1;comment:'状态 0：所有，1：已完成，2：执行中，3：结账中';";json:"status"`                           //状态 状态 0：所有，1：已完成，2：执行中，3：结账中
-	HandleStatus int     `gorm:"default:1;comment:'指派状态 0：所有，1：启用，2：停用';";json:"status"`                                 //指派状态 0：所有，1：启用，2：停用
-	UseTag       int64   `gorm:"default:0;comment:'占用标志 -2：作为eth钱包占用， -1：作为热钱包占用 ，0：未占用->其他 作为用户冲币地址占用'";json:"use_tag"` // HandleStatus
-	CreateTime   int64   `gorm:"default:0;comment:'创建时间戳'";json:"create_time"`                                           //创建时间戳
-	UpdateTime   int64                                             //更新时间戳
+	UserAddress  string  `gorm:"unique;comment:'钱包地址';"json:"user_address"`                           //地址
+	EthAmount    float64 `gorm:"default:0;comment:'以太币余额';";json:"eth_amount"`                        //以太币余额
+	UsdtAmount   float64 `gorm:"default:0;comment:'泰达币余额';";json:"usdt_amount"`                       //泰达币余额
+	UserId       int     `gorm:"default:0;comment:'用户id';";json:"user_id"`                            //组织id
+	Symbol       string  `gorm:"default:'eth';comment:'币种';"json:"symbol"`                            // 币种
+	Pwd          string  `gorm:"default:'';comment:'加密私钥'";json:"pwd"`                                // 加密私钥
+	Status       int     `gorm:"default:1;comment:'状态 0：所有，1：已完成，2：执行中，3：结账中';";json:"status"`        //状态 状态 0：所有，1：已完成，2：执行中，3：结账中
+	HandleStatus int     `gorm:"default:1;comment:'指派状态 0：所有，1：启用，2：停用';";json:"status"`              //指派状态 0：所有，1：启用，2：停用
+	UseTag       int64   `gorm:"default:0;comment:'-1：作为热钱包占用 ，0：未占用->其他 作为用户冲币地址占用'";json:"use_tag"` // HandleStatus
+	CreateTime   int64   `gorm:"default:0;comment:'创建时间戳'";json:"create_time"`                        //创建时间戳
+	UpdateTime   int64   //更新时间戳
 }
 
 //查询所有收款地址
@@ -56,14 +56,12 @@ func GetAddress(id int) (Address, error) {
 	return row, s
 }
 
-
 //随机获取商户不在收款中的充币地址
-func  (a *Address)  FindById(id int64) (Address, error) {
+func (a *Address) FindById(id int64) (Address, error) {
 	var row Address
-	err:=DB.Model(row).Find(&row,"id = ? ",id).Error
+	err := DB.Model(row).Find(&row, "id = ? ", id).Error
 	return row, err
 }
-
 
 //新增用户收款地址
 func (a *Address) AddAddress() error {
@@ -110,11 +108,11 @@ func OpenOrStopAddress(handleStatus int, address []Address) (err error) {
 }
 
 //编辑用户收款地址 地址在停用状态下
-func EditAddress(address []Address,userId int) error {
+func EditAddress(address []Address, userId int) error {
 	tx := DB.Begin()
 	for _, v := range address {
 		if err := tx.Model(&v).
-			Updates(Address{UserId:userId}).Error; err != nil {
+			Updates(Address{UserId: userId}).Error; err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -124,11 +122,10 @@ func EditAddress(address []Address,userId int) error {
 	return nil
 }
 
-
 //删除收款地址
-func  AddressDel(addr []Address) error {
+func AddressDel(addr []Address) error {
 	tx := DB.Begin()
-	for _,v := range addr {
+	for _, v := range addr {
 		if err := tx.Delete(&v).Error; err != nil {
 			tx.Rollback()
 			return err

@@ -43,7 +43,7 @@ func OrderDetail(id uint) (res response.RealOrderList, err error) {
 	return res, err
 }
 
-// 新增订单
+// 新增订单 (为商户分配充币地址)
 func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 	defer casbin.ClearEnforcer()
 	//判断订单编号是否重复
@@ -107,10 +107,9 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 		o := model.Order{
 			OrderCode:   order.OrderCode,
 			IdCode:      util.RandString(20),
-			Amount:      amount,
 			Address:     address.UserAddress,
 			Fee:         fee,
-			UserId:      int(userInfo.ID),
+			UserId:      userInfo.ID,
 			CreateTime:  order.Uts,
 			ExprireTime: order.Uts + user1.UserLessTime,
 			Remark:      order.Remark,
@@ -145,14 +144,13 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			fee = user1.OrderCharge
 		}
 		//检测当前用户的收钱地址是否满足 随机查询一个状态为已完成的地址
-		address, err := model.GetAddress(order.UserId)
+		address, err := model.GetAddress(int(order.UserId))
 		if err != nil {
 			return myerr.NewNormalValidateError("用户收款地址不足"), response.UserAddr{}
 		}
 		o := model.Order{
 			OrderCode:   order.OrderCode,
 			IdCode:      util.RandString(20),
-			Amount:      amount,
 			Address:     address.UserAddress,
 			Fee:         fee,
 			UserId:      order.UserId,

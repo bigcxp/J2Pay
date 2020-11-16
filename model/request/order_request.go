@@ -7,7 +7,7 @@ type OrderAdd struct {
 	Amount    float64 `json:"amount" binding:"required" example:"1" form:"amount"`                              //数量
 	Remark    string  `example:"备注" json:"remark" form:"remark"`                                                //备注
 	Currency  string  `json:"currency";binding:"oneof=RMB TWD 1" example:"RMB" form:"currency"`                 //换算汇率
-	UserId    int     `json:"user_id" example:"1" form:"user_id"`                                               //用户id
+	UserId    int64   `json:"user_id" binding:"" example:"1" form:"user_id"`                                    //组织id,不传则为商户端创建订单
 }
 
 //编辑订单
