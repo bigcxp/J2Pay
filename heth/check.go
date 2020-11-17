@@ -38,7 +38,7 @@ func CheckDoNotify() {
 
 		gresp, body, errs := gorequest.New().Post(initNotifyRow.URL).Timeout(time.Second * 30).Send(initNotifyRow.Msg).End()
 		if errs != nil {
-			log.Panicf("err: [%T] %s", errs[0], errs[0].Error())
+			log.Print("err: [%T] %s", errs[0], errs[0].Error())
 			err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TUserNotify{
 					ID:           initNotifyRow.ID,
@@ -48,13 +48,13 @@ func CheckDoNotify() {
 				},
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 			}
 			continue
 		}
 		if gresp.StatusCode != http.StatusOK {
 			// 状态错误
-			log.Panicf("req status error: %d", gresp.StatusCode)
+			log.Print("req status error: %d", gresp.StatusCode)
 			err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TUserNotify{
 					ID:           initNotifyRow.ID,
@@ -64,14 +64,14 @@ func CheckDoNotify() {
 				},
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 			}
 			continue
 		}
 		resp := gin.H{}
 		err = json.Unmarshal([]byte(body), &resp)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			err = model.SQLUpdateTProductNotifyStatusByID(
 				&model.TUserNotify{
 					ID:           initNotifyRow.ID,
@@ -81,7 +81,7 @@ func CheckDoNotify() {
 				},
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 			}
 			continue
 		}
@@ -97,7 +97,7 @@ func CheckDoNotify() {
 				},
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 			}
 		} else {
 			err = model.SQLUpdateTProductNotifyStatusByID(
@@ -109,7 +109,7 @@ func CheckDoNotify() {
 				},
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 			}
 			continue
 		}

@@ -249,23 +249,26 @@ type StRespGasPrice struct {
 	FastestWait float64 `json:"fastestWait"`
 }
 //获取最新gas
-func GetGas() StRespGasPrice {
+func GetGas() (StRespGasPrice,error){
 	gresp, body, errs := gorequest.New().
 		Get("https://ethgasstation.info/api/ethgasAPI.json").
 		Timeout(time.Second * 120).
 		End()
 	if errs != nil {
-		log.Panicf("err: %s", errs[0], errs[0].Error())
+		log.Print("err: %s", errs[0], errs[0].Error())
+		return StRespGasPrice{},errs[0]
 	}
 	if gresp.StatusCode != http.StatusOK {
 		// 状态错误
-		log.Panicf("req status error: %d", gresp.StatusCode)
+		log.Print("req status error: %d", gresp.StatusCode)
+		return StRespGasPrice{},errs[0]
 	}
 	var resp StRespGasPrice
 	err := json.Unmarshal([]byte(body), &resp)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		log.Print("err: [%T] %s", err, err.Error())
+		return StRespGasPrice{},errs[0]
 	}
-	return resp
+	return resp,nil
 }
 

@@ -23,7 +23,8 @@ func InitClient(uri string) {
 	var err error
 	client, err = Dial(uri)
 	if err != nil {
-		log.Panicf("eth client dial error: [%T] %s", err, err.Error())
+		log.Print("eth client dial error: [%T] %s", err, err.Error())
+		return
 	}
 }
 

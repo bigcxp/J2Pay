@@ -367,7 +367,7 @@ func CheckAddressOrg() {
 		// 获取私钥
 		privateKey, ok := addressPKMap[address]
 		if !ok {
-			log.Panicf("no key of: %s", address)
+			log.Print("no key of: %s", address)
 			continue
 		}
 		// 获取nonce值
@@ -598,13 +598,13 @@ func CheckRawTxSend() {
 		if sendRow.Hex != "" {
 			rawTxBytes, err := hex.DecodeString(sendRow.Hex)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 				continue
 			}
 			tx := new(types.Transaction)
 			err = rlp.DecodeBytes(rawTxBytes, &tx)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 				continue
 			}
 			err = ethclient.RpcSendTransaction(
@@ -613,7 +613,7 @@ func CheckRawTxSend() {
 			)
 			if err != nil {
 				if !strings.Contains(err.Error(), "known transaction") {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					log.Print("err: [%T] %s", err, err.Error())
 					continue
 				}
 			}
@@ -747,7 +747,7 @@ func CheckRawTxConfirm() {
 				sendRow.TxID,
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 				continue
 			}
 			if rpcTx == nil {
@@ -946,7 +946,7 @@ func CheckWithdraw() {
 	for _, withdrawRow := range withdrawRows {
 		err = handleWithdraw(withdrawRow.ID, chainID, *hotAddressValue, privateKey, hotAddressBalance, gasLimit, *gasPrice, feeValue)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			continue
 		}
 	}
@@ -1096,7 +1096,7 @@ func CheckTxNotify() {
 		reqObj["sign"] = GetSign(userRow.UserName, reqObj)
 		req, err := json.Marshal(reqObj)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			continue
 		}
 		notifyRows = append(notifyRows, &model.TUserNotify{
@@ -1356,7 +1356,7 @@ func CheckErc20TxNotify() {
 	for _, txRow := range txRows {
 		tokenRow, ok := tokenMap[txRow.TokenID]
 		if !ok {
-			log.Panicf("tokenMap no: %d", txRow.TokenID)
+			log.Print("tokenMap no: %d", txRow.TokenID)
 			continue
 		}
 		userRow, ok := userMap[txRow.UserId]
@@ -1543,28 +1543,28 @@ func CheckErc20TxOrg() {
 		}
 		tokenRow, ok := tokenMap[orgInfo.TokenID]
 		if !ok {
-			log.Panicf("no tokenMap: %d", orgInfo.TokenID)
+			log.Print("no tokenMap: %d", orgInfo.TokenID)
 			continue
 		}
 		orgMinBalance, err := TokenEthStrToWeiBigInit(tokenRow.OrgMinBalance, tokenRow.TokenDecimals)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			continue
 		}
 		if orgInfo.TokenBalance.Cmp(orgMinBalance) < 0 {
-			log.Panicf("token balance < org min balance")
+			log.Print("token balance < org min balance")
 			continue
 		}
 		// 处理token转账
 		privateKey, ok := addressPKMap[toAddress]
 		if !ok {
-			log.Panicf("addressMap no: %s", toAddress)
+			log.Print("addressMap no: %s", toAddress)
 			continue
 		}
 		// 获取nonce值
 		nonce, err := GetNonce(toAddress)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			continue
 		}
 		// 生成交易
@@ -1592,7 +1592,7 @@ func CheckErc20TxOrg() {
 		)
 		signedTx, err := types.SignTx(rpcTx, types.NewEIP155Signer(big.NewInt(chainID)), privateKey)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			continue
 		}
 		ts := types.Transactions{signedTx}
@@ -1602,7 +1602,7 @@ func CheckErc20TxOrg() {
 		// 创建存入数据
 		balanceReal, err := TokenWeiBigIntToEthStr(orgInfo.TokenBalance, tokenRow.TokenDecimals)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			continue
 		}
 		// 待插入数据
@@ -2063,7 +2063,10 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 func CheckGasPrice() {
 	// 获取最高单价
 	maxValue := model.SQLGetTAppStatusIntValueByK("max_gas_price_eth")
-	resp := GetGas()
+	resp,err := GetGas()
+	if err != nil{
+		return
+	}
 	toUserGasPrice := resp.Fast * int64(math.Pow10(8))
 	toColdGasPrice := resp.Average * int64(math.Pow10(8))
 	if toUserGasPrice > *maxValue {
@@ -2072,13 +2075,13 @@ func CheckGasPrice() {
 	if toColdGasPrice > *maxValue {
 		toColdGasPrice = *maxValue
 	}
-	err := model.SQLUpdateTAppStatusIntByK(
+	err1 := model.SQLUpdateTAppStatusIntByK(
 		&model.TAppStatusInt{
 			K: "to_user_gas_price",
 			V: toUserGasPrice,
 		},
 	)
-	if err != nil {
+	if err1 != nil {
 		log.Panicf("err: [%T] %s", err, err.Error())
 		return
 	}
