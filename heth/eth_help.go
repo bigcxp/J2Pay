@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -26,6 +27,7 @@ import (
 	"strings"
 	"time"
 )
+
 //eth 交易中用到的属性
 type ETHHelp struct {
 	//数据库获取的交易数据
@@ -35,7 +37,7 @@ type ETHHelp struct {
 	//发送链上的GasPrice
 	SendGasPrice int64
 	//交易发送金额
-	SendBalance  float64
+	SendBalance float64
 	//密钥
 	PrivateKey string
 	//同地址交易索引
@@ -72,13 +74,15 @@ type GasData struct {
 	//系统规定的最大gaslimit值
 	MaxGasPrice int64
 }
+
 //gaslimit默认值21000gwei
-const DefaultGasLimit int64=21000
+const DefaultGasLimit int64 = 21000
+
 //全零地址
-const  HAX_0="0x0000000000000000000000000000000000000000"
+const HAX_0 = "0x0000000000000000000000000000000000000000"
 
 //获取chainID 区块确认数，作用还未明白
-func (*ETHHelp) GetchainID()(chainID int64, err error){
+func (*ETHHelp) GetchainID() (chainID int64, err error) {
 	chainID, err = ethclient.RpcNetworkID(context.Background())
 	return
 }
@@ -92,40 +96,36 @@ func (*ETHHelp) GetchainID()(chainID int64, err error){
 //szabo		1000000000000			wei
 //finey		1000000000000000		wei
 //ether		1000000000000000000		wei   1eth=1亿亿wei
-func ( *ETHHelp) GetGas() *GasData{
-	var gasData=GasData{}
+func (*ETHHelp) GetGas() *GasData {
+	var gasData = GasData{}
 	// 获取gap price
-	gasPriceModes,err:= model.SQLGetTAppConfigInt()
-	if err!=nil{
-		log.Panicf("未获取到eth的gas数据,[%T] %s", err, err.Error())
+	gasPriceModes, err := model.SQLGetTAppConfigInt()
+	if err != nil {
+		log.Print("未获取到eth的gas数据,[%T] %s", err, err.Error())
 	}
-	for _,v:=range gasPriceModes{
-		if v.K=="seek_num" {
-			gasData.EthSeekNum=v.V
-		}else
-		if v.K=="to_cold_gas_price" {
-			gasData.AvgGasPrice=v.V
-		}else
-		if v.K=="erc20_seek_num" {
-			gasData.Erc20SeekNum=v.V
-		}else
-		if v.K=="to_user_gas_price" {
-			gasData.FastGasPrice=v.V
-		}else
-		if v.K=="default_gas_limit" {
-			gasData.DefaultGasLimit=v.V
-		}else
-		if v.K=="max_gas_limit" {
-			gasData.MaxGasPrice=v.V
+	for _, v := range gasPriceModes {
+		if v.K == "seek_num" {
+			gasData.EthSeekNum = v.V
+		} else if v.K == "to_cold_gas_price" {
+			gasData.AvgGasPrice = v.V
+		} else if v.K == "erc20_seek_num" {
+			gasData.Erc20SeekNum = v.V
+		} else if v.K == "to_user_gas_price" {
+			gasData.FastGasPrice = v.V
+		} else if v.K == "default_gas_limit" {
+			gasData.DefaultGasLimit = v.V
+		} else if v.K == "max_gas_limit" {
+			gasData.MaxGasPrice = v.V
 		}
 
 	}
 
 	return &gasData
 }
+
 //通过交易发起地址获取nonce,
 //@return nonce交易编号每次加一
-func ( *ETHHelp) GetNONCE(fromAddress string)(nonce int64, err error){
+func (*ETHHelp) GetNONCE(fromAddress string) (nonce int64, err error) {
 
 	// 通过rpc获取
 	rpcNonce, err := ethclient.RpcNonceAt(
@@ -135,44 +135,47 @@ func ( *ETHHelp) GetNONCE(fromAddress string)(nonce int64, err error){
 	if nil != err {
 		return 0, err
 	}
-	// 获取db nonce
-	nonce=model.SQLGetTSendMaxNonce(fromAddress)
-	if(err!=nil){
-		log.Panicf("GetNonce err: [%T] %s", err, err.Error())
+	if rpcNonce == 0 {
 		return 0, err
 	}
-	if nonce==0{
-		nonce=-2
-	}else{
-		nonce=nonce+1
+	// 获取db nonce
+	nonce = model.SQLGetTSendMaxNonce(fromAddress)
+	if err != nil {
+		log.Print("GetNonce err: [%T] %s", err, err.Error())
+		return 0, err
+	}
+	if nonce == 0 {
+		nonce = -2
+	} else {
+		nonce = nonce + 1
 	}
 	if nonce > rpcNonce {
-		rpcNonce = nonce+1
+		rpcNonce = nonce + 1
 	}
-	return rpcNonce+1, nil
+	return rpcNonce + 1, nil
 }
 
 //获取密钥，获取发起交易地址的密钥
 //@param 发起交易的地址
 //@return 地址对应的密钥
-func ( *ETHHelp) GetPrivateKey(fromAddress string) (privateKey string,err error){
-	if  strings.TrimSpace(fromAddress)=="" {
-		err=errors.New("fromAddress 不可以为空！")
+func (*ETHHelp) GetPrivateKey(fromAddress string) (privateKey string, err error) {
+	if strings.TrimSpace(fromAddress) == "" {
+		err = errors.New("fromAddress 不可以为空！")
 		return
 	}
 	//通过热钱包地址查询pwd
 	keyRow := model.SQLGetTAddressKeyColByAddress(fromAddress)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		log.Print("err: [%T] %s", err, err.Error())
 		return
 	}
-	if keyRow == nil || keyRow.Pwd=="" {
-		log.Panicf("未查询到地址对应的密码!")
+	if keyRow == nil || keyRow.Pwd == "" {
+		log.Print("未查询到地址对应的密码!")
 		return
 	}
 	privateKey = hcommon.AesDecrypt(keyRow.Pwd, fmt.Sprintf("%s", setting.AesConf.Key))
 	if len(privateKey) == 0 {
-		log.Panicf("error key of: %s", fromAddress)
+		log.Print("error key of: %s", fromAddress)
 		return
 	}
 	if strings.HasPrefix(privateKey, "0x") {
@@ -181,47 +184,45 @@ func ( *ETHHelp) GetPrivateKey(fromAddress string) (privateKey string,err error)
 
 	return
 }
+
 //获取eth上交易的各种数据
-func  ( *ETHHelp) GetETHData(){
+func (*ETHHelp) GetETHData() {
 	// 获取gas price
 	GetETHGasPrice()
 }
 
-
 // 获取gas price
-func GetETHGasPrice()(err error) {
+func GetETHGasPrice() (err error) {
 	gresp, body, errs := gorequest.New().
 		Get("https://ethgasstation.info/api/ethgasAPI.json").
 		Timeout(time.Second * 120).
 		End()
 	if errs != nil {
-		log.Panicf("err: %s", errs[0], errs[0].Error())
+		log.Print("err: %s", errs[0], errs[0].Error())
 	}
 	if gresp.StatusCode != http.StatusOK {
 		// 状态错误
-		log.Panicf("req status error: %d", gresp.StatusCode)
+		log.Print("req status error: %d", gresp.StatusCode)
 	}
 	var resp StRespGasPrice
 	err = json.Unmarshal([]byte(body), &resp)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		log.Print("err: [%T] %s", err, err.Error())
 	}
 	//最快值gasPricew
 	fastGasPrice := resp.Fast * int64(math.Pow10(8))
 	//平均值gasPrice
 	avgGasPrice := resp.Average * int64(math.Pow10(8))
-	var appStatusModes=[]*model.TAppStatusInt{
-		&model.TAppStatusInt{	K: "to_user_gas_price",	V: fastGasPrice},
-		&model.TAppStatusInt{	K: "to_cold_gas_price", V: avgGasPrice},
+	var appStatusModes = []*model.TAppStatusInt{
+		&model.TAppStatusInt{K: "to_user_gas_price", V: fastGasPrice},
+		&model.TAppStatusInt{K: "to_cold_gas_price", V: avgGasPrice},
 	}
-	err = model.SQLUpdateTAppStatusInt(appStatusModes	)
+	err = model.SQLUpdateTAppStatusInt(appStatusModes)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		log.Print("err: [%T] %s", err, err.Error())
 	}
 	return
 }
-
-
 
 //创建地址和私钥
 //@return 地址
@@ -283,11 +284,9 @@ func (e *ETHHelp) Createddress(addr request.AddressAdd) ([]string, error) {
 	return userAddresses, nil
 }
 
-
-
 //检查erc20交易
 //@param 需要检查的地址
-func (e *ETHHelp) CheckTransaction22( addresss []string){
+func (e *ETHHelp) CheckTransaction22(addresss []string) {
 	// 获取配置 延迟确认数
 	confirmValue := model.SQLGetTAppConfigIntValueByK("block_confirm_num")
 	// 获取状态 erc20最后一次获取链上的块数量
@@ -308,7 +307,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 		}
 		contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 获取所有token
@@ -333,7 +332,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 				contractAbi.Events["Transfer"],
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 				return
 			}
 			// 接收地址列表
@@ -353,7 +352,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 			// 从db中查询这些地址是否是冲币地址中的地址
 			dbAddressRows, err := model.SQLSelectTAddressKeyColByAddress(toAddresses)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 				return
 			}
 			// 时间
@@ -373,14 +372,14 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 				// 获取地址对应的交易列表
 				logs, ok := toAddressLogMap[dbAddressRow.UserAddress]
 				if !ok {
-					log.Panicf("toAddressLogMap no: %s", dbAddressRow.UserAddress)
+					log.Print("toAddressLogMap no: %s", dbAddressRow.UserAddress)
 					return
 				}
 				for _, log1 := range logs {
 					var transferEvent LogTransfer
 					err := contractAbi.Unpack(&transferEvent, "Transfer", log1.Data)
 					if err != nil {
-						log.Panicf("err: [%T] %s", err, err.Error())
+						log.Print("err: [%T] %s", err, err.Error())
 						return
 					}
 					transferEvent.From = strings.ToLower(common.HexToAddress(log1.Topics[1].Hex()).Hex())
@@ -388,7 +387,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 					contractAddress := strings.ToLower(log1.Address.Hex())
 					configTokenRow, ok := configTokenRowMap[contractAddress]
 					if !ok {
-						log.Panicf("no configTokenRowMap of: %s", contractAddress)
+						log.Print("no configTokenRowMap of: %s", contractAddress)
 						return
 					}
 					rpcTxReceipt, err := ethclient.RpcTransactionReceipt(
@@ -396,7 +395,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 						log1.TxHash.Hex(),
 					)
 					if err != nil {
-						log.Panicf("err: [%T] %s", err, err.Error())
+						log.Print("err: [%T] %s", err, err.Error())
 						return
 					}
 					if rpcTxReceipt.Status <= 0 {
@@ -407,7 +406,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 						log1.TxHash.Hex(),
 					)
 					if err != nil {
-						log.Panicf("err: [%T] %s", err, err.Error())
+						log.Print("err: [%T] %s", err, err.Error())
 						return
 					}
 					if strings.ToLower(rpcTx.To().Hex()) != contractAddress {
@@ -421,7 +420,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 						transferEvent.Tokens,
 					)
 					if err != nil {
-						log.Panicf("err: [%T] %s", err, err.Error())
+						log.Print("err: [%T] %s", err, err.Error())
 						return
 					}
 					if hexutil.Encode(input) != hexutil.Encode(rpcTx.Data()) {
@@ -430,7 +429,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 					}
 					balanceReal, err := TokenWeiBigIntToEthStr(transferEvent.Tokens, configTokenRow.TokenDecimals)
 					if err != nil {
-						log.Panicf("err: [%T] %s", err, err.Error())
+						log.Print("err: [%T] %s", err, err.Error())
 						return
 					}
 					// 放入待插入数组
@@ -454,7 +453,7 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 			}
 			_, err = model.SQLCreateIgnoreManyTTxErc20(txErc20Rows)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 				return
 			}
 		}
@@ -466,16 +465,15 @@ func (e *ETHHelp) CheckTransaction22( addresss []string){
 			},
 		)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			return
 		}
 	}
 }
 
-
 //检查erc20交易
 //@param 需要检查的地址
-func (e *ETHHelp) CheckTransaction( addresss []string){
+func (e *ETHHelp) CheckTransaction(addresss []string) {
 	// 获取配置 延迟确认数
 	confirmValue := model.SQLGetTAppConfigIntValueByK("block_confirm_num")
 	// 获取状态 erc20最后一次获取链上的块数量
@@ -496,15 +494,15 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 		}
 		contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			log.Print("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 获取所有token
 		var configTokenRowAddresses []string
 		configTokenRowMap := make(map[string]*model.TAppConfigToken)
-		var aa=model.TAppConfigToken{}
+		var aa = model.TAppConfigToken{}
 		configTokenRows, err := aa.SQLSelectTAppConfigTokenColAll()
-		if err != nil || configTokenRows[0].ID==0 {
+		if err != nil || configTokenRows[0].ID == 0 {
 			return
 		}
 		for _, contractRow := range configTokenRows {
@@ -524,7 +522,7 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 				contractAbi.Events["Transfer"],
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				log.Print("err: [%T] %s", err, err.Error())
 				return
 			}
 			// 接收地址列表
@@ -538,15 +536,15 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 				var transferEvent LogTransfer
 				err := contractAbi.Unpack(&transferEvent, "Transfer", logMode.Data)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					log.Print("err: [%T] %s", err, err.Error())
 					return
 				}
 				transferEvent.From = strings.ToLower(common.HexToAddress(logMode.Topics[1].Hex()).Hex())
 				transferEvent.To = strings.ToLower(common.HexToAddress(logMode.Topics[2].Hex()).Hex())
-				hax:= strings.ToLower(common.HexToAddress(logMode.TxHash.Hex()).Hex())
+				hax := strings.ToLower(common.HexToAddress(logMode.TxHash.Hex()).Hex())
 				println(hax)
-				var BlockHash=strings.ToLower(common.HexToAddress(logMode.BlockHash.Hex()).Hex())
-				if BlockHash==HAX_0 && logMode.BlockNumber==0 {
+				var BlockHash = strings.ToLower(common.HexToAddress(logMode.BlockHash.Hex()).Hex())
+				if BlockHash == HAX_0 && logMode.BlockNumber == 0 {
 					//判断为未打包状态
 					continue
 				}
@@ -567,11 +565,11 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 					logMode.TxHash.Hex(),
 				)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					log.Print("err: [%T] %s", err, err.Error())
 					return
 				}
-				println("CumulativeGasUsed======",rpcTxReceipt.CumulativeGasUsed)
-				println("GasUsed======",rpcTxReceipt.GasUsed)
+				println("CumulativeGasUsed======", rpcTxReceipt.CumulativeGasUsed)
+				println("GasUsed======", rpcTxReceipt.GasUsed)
 				//TODO 1=成功，0=失败，是否还有其他状态
 				if rpcTxReceipt.Status != 1 {
 					continue
@@ -581,7 +579,7 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 					logMode.TxHash.Hex(),
 				)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					log.Print("err: [%T] %s", err, err.Error())
 					return
 				}
 				if strings.ToLower(rpcTx.To().Hex()) != contractAddress {
@@ -595,7 +593,7 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 					transferEvent.Tokens,
 				)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					log.Print("err: [%T] %s", err, err.Error())
 					return
 				}
 				if hexutil.Encode(input) != hexutil.Encode(rpcTx.Data()) {
@@ -604,15 +602,15 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 				}
 				balanceReal, err := TokenWeiBigIntToEthStr(transferEvent.Tokens, 18)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					log.Print("err: [%T] %s", err, err.Error())
 					return
 				}
-				println("实际支付金额",balanceReal)
+				println("实际支付金额", balanceReal)
 			}
 			//// 从db中查询这些地址是否是冲币地址中的地址
 			//dbAddressRows, err := model.SQLSelectTAddressKeyColByAddress(toAddresses)
 			//if err != nil {
-			//	log.Panicf("err: [%T] %s", err, err.Error())
+			//	log.Print("err: [%T] %s", err, err.Error())
 			//	return
 			//}
 			//// 时间
@@ -635,7 +633,7 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 		//	},
 		//)
 		//if err != nil {
-		//	log.Panicf("err: [%T] %s", err, err.Error())
+		//	log.Print("err: [%T] %s", err, err.Error())
 		//	return
 		//}
 	}
@@ -643,80 +641,80 @@ func (e *ETHHelp) CheckTransaction( addresss []string){
 }
 
 //检查余额
-func ( *ETHHelp) CheckBalance(){
+func (*ETHHelp) CheckBalance() {
 
 }
 
 //eth交易转账
 //@param ethTransactionMode 包含交易得所有参数
-func (e *ETHHelp) ETHTransaction(ethTransactionMode ETHHelp)(ethHelp ETHHelp,err error){
-	return e.transaction(ethTransactionMode,1)
+func (e *ETHHelp) ETHTransaction(ethTransactionMode ETHHelp) (ethHelp ETHHelp, err error) {
+	return e.transaction(ethTransactionMode, 1)
 }
 
 //@desc erc20交易转账
 //@param ethTransactionMode 包含交易得所有参数
-func (e *ETHHelp) ERC20Transaction(ethTransactionMode ETHHelp)(ethHelp ETHHelp,err error){
-	return e.transaction(ethTransactionMode,2)
+func (e *ETHHelp) ERC20Transaction(ethTransactionMode ETHHelp) (ethHelp ETHHelp, err error) {
+	return e.transaction(ethTransactionMode, 2)
 }
 
 //发起交易
 //eth交易可以不适用合约，目前没有研究，逻辑上也不需要eth交易，不做处理
 //@param transactionType 1=eth,2=代币交易
-func (e *ETHHelp) transaction(ethTransactionMode ETHHelp,transactionType int)(ethHelp ETHHelp,err error){
-	if strings.TrimSpace( ethTransactionMode.ContractAddress)=="" && transactionType==2 {
-		log.Panicf("请求发送链上交易参数中没有合约地址！",)
+func (e *ETHHelp) transaction(ethTransactionMode ETHHelp, transactionType int) (ethHelp ETHHelp, err error) {
+	if strings.TrimSpace(ethTransactionMode.ContractAddress) == "" && transactionType == 2 {
+		log.Print("请求发送链上交易参数中没有合约地址！")
 		return
 	}
-	if strings.TrimSpace( ethTransactionMode.FromAddress)=="" && transactionType==1 {
-		log.Panicf("请求发送链上交易参数中没有发起交易地址！",)
+	if strings.TrimSpace(ethTransactionMode.FromAddress) == "" && transactionType == 1 {
+		log.Print("请求发送链上交易参数中没有发起交易地址！")
 		return
 	}
-	if strings.TrimSpace( ethTransactionMode.ToAddress)=="" {
-		log.Panicf("请求发送链上交易参数中没有目标地址！",)
+	if strings.TrimSpace(ethTransactionMode.ToAddress) == "" {
+		log.Print("请求发送链上交易参数中没有目标地址！")
 		return
 	}
-	if ethTransactionMode.SendBalance<=0 {
-		log.Panicf("请求发送链上交易金额小于等于0！",)
+	if ethTransactionMode.SendBalance <= 0 {
+		log.Print("请求发送链上交易金额小于等于0！")
 		return
 	}
-	if  ethTransactionMode.Places<=8 {
-		log.Panicf("请求发送链上交易的代币位数不合理！",)
+	if ethTransactionMode.Places <= 8 {
+		log.Print("请求发送链上交易的代币位数不合理！")
 		return
 	}
 	// 加载合约信息
 	contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		log.Print("err: [%T] %s", err, err.Error())
 		return
 	}
 	//本次eth的交易数量
-	var ethTransactionNum =big.NewInt(0)
+	var ethTransactionNum = big.NewInt(0)
 	//本次代币的交易数量
-	var erc20TransactionNum =big.NewInt(0)
+	var erc20TransactionNum = big.NewInt(0)
 	var fromAddress string
 	var typeStr string
-	if transactionType==1{
+	if transactionType == 1 {
 		//eth交易
-		ethTransactionNum= e.BalanceToVirtualCurrencyWei(ethTransactionMode.SendBalance,18)
-		fromAddress=ethTransactionMode.FromAddress
-		typeStr="eth"
+		ethTransactionNum = e.BalanceToVirtualCurrencyWei(ethTransactionMode.SendBalance, 18)
+		fromAddress = ethTransactionMode.FromAddress
+		typeStr = "eth"
 		//eth交易我认为就是，冷热钱包的转账交易，不需要太快
-		ethTransactionMode.SendGasPrice=ethTransactionMode.GasData.AvgGasPrice
+		ethTransactionMode.SendGasPrice = ethTransactionMode.GasData.AvgGasPrice
 		//一般eth交易默认limit就够了
-		ethTransactionMode.SendGasLimit=DefaultGasLimit
-	}else if transactionType==2{
+		ethTransactionMode.SendGasLimit = DefaultGasLimit
+	} else if transactionType == 2 {
 		//erc20 代币交易
-		erc20TransactionNum=e.BalanceToVirtualCurrencyWei(ethTransactionMode.SendBalance,18)
-		fromAddress=ethTransactionMode.ContractAddress
-		typeStr="usdt"
+		erc20TransactionNum = e.BalanceToVirtualCurrencyWei(ethTransactionMode.SendBalance, 18)
+		fromAddress = ethTransactionMode.ContractAddress
+		typeStr = "usdt"
 		//TODO erc20交易暂时写死
-		ethTransactionMode.SendGasPrice=21000*100 //ethTransactionMode.GasData.FastGasPrice
-		if  ethTransactionMode.GasData.DefaultGasLimit<21000{
-			log.Panicf("请求发送链上交易的GasLimit不可以小于21000！",)
+		ethTransactionMode.SendGasPrice = 21000 * 100 //ethTransactionMode.GasData.FastGasPrice
+		if ethTransactionMode.GasData.DefaultGasLimit < 21000 {
+			log.Print("请求发送链上交易的GasLimit不可以小于21000！")
 			return
 		}
 		//TODO erc20支付需要计算，暂时不知道怎么计算
-		ethTransactionMode.SendGasLimit=DefaultGasLimit*110
+		ethTransactionMode.SendGasLimit = DefaultGasLimit * 110
 	}
 
 	input, err := contractAbi.Pack(
@@ -726,10 +724,10 @@ func (e *ETHHelp) transaction(ethTransactionMode ETHHelp,transactionType int)(et
 		erc20TransactionNum,
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		log.Print("err: [%T] %s", err, err.Error())
 		return
 	}
-	//委托合约发起交易
+	//组装交易信息
 	rpcTx := types.NewTransaction(
 		//big.NewInt(int64(ethTransactionMode.Nonce)),
 		uint64(ethTransactionMode.Nonce),
@@ -737,34 +735,34 @@ func (e *ETHHelp) transaction(ethTransactionMode ETHHelp,transactionType int)(et
 		common.HexToAddress(fromAddress),
 		//ecr20转账不需要设置eth
 		ethTransactionNum,
+		uint64(ethTransactionMode.SendGasLimit),
 		// gasPrice为最低费用，gasLimit为限额费用，理解为首次给予gasPrice最低费用，如果失败，会在这个基础上增加费用，费用会一直增加，超过gaslimit就会结束
-		uint64(ethTransactionMode.SendGasPrice),
-		big.NewInt(ethTransactionMode.SendGasLimit),
+		big.NewInt(ethTransactionMode.SendGasPrice),
 		input,
 	)
 	key, err := crypto.HexToECDSA(ethTransactionMode.PrivateKey)
 	if err != nil {
-		log.Panicf("签名验证失败err: [%T] %s", err, err.Error())
+		log.Print("签名验证失败err: [%T] %s", err, err.Error())
 		return
 	}
 	//验证签名 ，获取链id
 	signedTx, err := types.SignTx(rpcTx, types.NewEIP155Signer(big.NewInt(ethTransactionMode.ChainID)), key)
 	if err != nil {
-		log.Panicf("获取链上id失败，err: [%T] %s", err, err.Error())
+		log.Print("获取链上id失败，err: [%T] %s", err, err.Error())
 		return
 	}
 
 	// 交易发送
-	var err2 = ethclient.RpcSendTransaction(context.Background(),signedTx)
+	var err2 = ethclient.RpcSendTransaction(context.Background(), signedTx)
 	if err2 != nil {
 		defer func() {
 			//这里 err2.Error() 会出现异常，后续处理
 			e := recover()
 			if e != nil {
-				log.Panicf("发送交易链上失败")
+				println("发送交易链上失败")
 			}
 		}()
-		log.Panicf("发送交易链上失败，err: [%T] %s",err2, err2.Error())
+		println("发送交易链上失败，err: [%T] %s", err2, err2.Error())
 		return
 	}
 	ts := types.Transactions{signedTx}
@@ -774,19 +772,28 @@ func (e *ETHHelp) transaction(ethTransactionMode ETHHelp,transactionType int)(et
 	//补充交易信息，供后面流程使用，用来标记交易记录
 	ethTransactionMode.TxHash = strings.ToLower(signedTx.Hash().Hex())
 
-	//var dbi =DeployBackendImpl{}
-	//TODO 等待挖矿完成,测试后发现这里没有相应
-	//bind.WaitMined(context.Background(), &dbi,signedTx)
-	log.Print("一笔%s支付交易发送，费用%s",typeStr,ethTransactionMode.SendBalance)
-	ethHelp=ethTransactionMode
-	return ethTransactionMode,err
+	//TODO 等待挖矿完成,测试后发现这里没有响应
+	ret, err := bind.WaitMined(context.Background(), &ethTransactionMode, signedTx)
+	if err != nil {
+		log.Print("一笔%s支付交易发送，费用%s", typeStr, ethTransactionMode.SendBalance)
+	}
+	log.Print("请求回调结果=====", ret)
+	log.Print("一笔%s支付交易发送，费用%s", typeStr, ethTransactionMode.SendBalance)
+	ethHelp = ethTransactionMode
+	return ethTransactionMode, err
+}
+func (e *ETHHelp) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	println("TransactionReceipt")
+	return nil, nil
+}
+func (e *ETHHelp) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
+	println("CodeAt")
+	return nil, nil
 }
 
-
-
 // 将交易的数字转换为该虚拟币对应的位数
-func ( *ETHHelp) BalanceToVirtualCurrencyWei(balanceReal float64,wei float64) ( *big.Int) {
-	val:= int64(float64(balanceReal)*math.Pow(10,float64(wei)))
+func (*ETHHelp) BalanceToVirtualCurrencyWei(balanceReal float64, wei float64) *big.Int {
+	val := int64(float64(balanceReal) * math.Pow(10, float64(wei)))
 	b := new(big.Int)
 	return b.SetInt64(val)
 }
