@@ -53,9 +53,9 @@ type ETHHelp struct {
 	//代币位数
 	Places int64
 	// 提交交易后，返回的hash
-	TxHash string
+	  TxHash string
 	//作用未明，后面补上
-	RawTxHex string
+	    RawTxHex string
 }
 
 //eth 获取的gas相关数据
