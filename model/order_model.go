@@ -23,7 +23,7 @@ type Order struct {
 	Address       string  `gorm:"default:'';comment:'收款地址';";json:"charge_address"`
 	UserId        int64   `gorm:"default:0;comment:'组织ID'";json:"user_id"`
 	TransactionId string  `gorm:"default:0;comment:'交易明细系统编号';"json:"transaction_id"`
-	Status        int     `gorm:"default:1;comment:'状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：：已过期';";json:"status"`
+	Status        int     `gorm:"default:-1;comment:'状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：：已过期';";json:"status"`
 }
 
 //获取所有订单列表
@@ -53,7 +53,7 @@ func (o *Order) GetAllMerchantOrder(page, pageSize int, where ...interface{}) (r
 			return response.OrderPage{}, err
 		}
 		if txErc20.ID != 0 {
-			all.Data[index].OrderDetail.ReceiptAmount =txErc20.BalanceReal
+			all.Data[index].OrderDetail.ReceiptAmount = txErc20.BalanceReal
 			all.Data[index].OrderDetail.TXID = txErc20.TxID
 			all.Data[index].OrderDetail.DetailedRecordId = txErc20.SystemID
 		}
@@ -89,7 +89,7 @@ func (o *Order) GetDetail(id ...int) (res response.RealOrderList, err error) {
 	if err != nil {
 		return response.RealOrderList{}, err
 	}
-	res.OrderDetail.ReceiptAmount =txErc20.BalanceReal
+	res.OrderDetail.ReceiptAmount = txErc20.BalanceReal
 	res.OrderDetail.TXID = txErc20.TxID
 	res.OrderDetail.DetailedRecordId = txErc20.SystemID
 	return
@@ -119,6 +119,20 @@ func (o *Order) UpdateOrder(order request.OrderEdit) error {
 	tx.Commit()
 
 	return nil
+}
+
+//根据交易明细系统编号绑定交易明细记录
+func BindErc20(Erc20Code string, orderCode string) (err error) {
+	tx := GetDb().Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	err = tx.Model(&Order{}).Where("order_code = ?", orderCode).Update("transaction_id", Erc20Code).Error
+	return
 }
 
 // 根据条件获取订单详情
@@ -170,7 +184,7 @@ func (o *Order) getReceiptAmount() float64 {
 		return 0
 	}
 	for _, v := range all.Data {
-		remount,_ := strconv.ParseFloat(v.OrderDetail.ReceiptAmount,64)
+		remount, _ := strconv.ParseFloat(v.OrderDetail.ReceiptAmount, 64)
 		receiptAmount += remount
 	}
 	return validate.Decimal(receiptAmount)

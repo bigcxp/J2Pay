@@ -44,8 +44,13 @@ func OrderDetail(id uint) (res response.RealOrderList, err error) {
 }
 
 // 新增订单 (为商户分配充币地址)
-func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
+func OrderAdd(c *gin.Context,order request.OrderAdd) (error, response.UserAddr) {
 	defer casbin.ClearEnforcer()
+	//获取当前登录用户
+	account, ok := c.Get("user")
+	if !ok {
+		return  myerr.NewNormalValidateError("没有用户信息"),response.UserAddr{}
+	}
 	//判断订单编号是否重复
 	if hasCode := model.GetOrderByWhere("order_code = ?", order.OrderCode); hasCode.ID > 0 {
 		return myerr.NewDbValidateError("商户订单编号重复！"), response.UserAddr{}
@@ -54,35 +59,12 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 	if order.Amount < 0 {
 		return myerr.NewNormalValidateError("值必须大于等于0"), response.UserAddr{}
 	}
-	//如果是RMB或TWD 换算成USDT
-	var amount float64
-	switch order.Currency {
-	case "RMB":
-		detail, err := TypeDetail(order.Currency)
-		if err != nil {
-			return err, response.UserAddr{}
-		}
-		amount = detail.OriginalRate / order.Amount
-	case "TWB":
-		detail, err := TypeDetail(order.Currency)
-		if err != nil {
-			return err, response.UserAddr{}
-		}
-		amount = detail.OriginalRate / order.Amount
-
-	default:
-		amount = order.Amount
-	}
-	var c *gin.Context
-	//如果用户id为0 商户端操作 获取当前登录用户
-	if order.UserId == 0 {
-		user, hasUser := c.Get("user")
-		if !hasUser {
-			return myerr.NewNormalValidateError("用户未登录"), response.UserAddr{}
-		}
-		userInfo := user.(*util.Claims)
-		//获取用户
-		user1 ,_:= model.GetUserByWhere("id = ?", userInfo.Id)
+	accountinfo := account.(*util.Claims)
+	a := model.Account{}
+	count, _ := a.AccountDetail(accountinfo.ID)
+	if count.RID != 1 {
+		//获取组织
+		user1 ,_:= model.GetUserByWhere("id = ?", count.UID)
 		//用户是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}
@@ -100,7 +82,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			fee = user1.OrderCharge
 		}
 		//检测当前用户的收钱地址是否满足 随机查询一个状态为已完成的地址
-		address, err := model.GetAddress(int(userInfo.ID))
+		address, err := model.GetAddress(int(user1.ID))
 		if err != nil {
 			return myerr.NewNormalValidateError("用户收款地址不足"), response.UserAddr{}
 		}
@@ -109,7 +91,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			IdCode:      util.RandString(20),
 			Address:     address.UserAddress,
 			Fee:         fee,
-			UserId:      userInfo.ID,
+			UserId:      user1.ID,
 			CreateTime:  order.Uts,
 			ExprireTime: order.Uts + user1.UserLessTime,
 			Remark:      order.Remark,
@@ -119,14 +101,12 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			Amount:         order.Amount,
 			Address:        address.UserAddress,
 			ExprireTime:    order.Uts + user1.UserLessTime,
-			Currency:       order.Currency,
-			CurrencyAmount: amount,
 		}
 		return o.Create(), userAddr
 		//管理员添加订单
 	} else {
 		//获取用户
-		user1 ,_:= model.GetUserByWhere("id = ?", order.UserId)
+		user1 ,_:= model.GetUserByWhere("id = ?", order.UID)
 		//用户是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}
@@ -144,7 +124,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			fee = user1.OrderCharge
 		}
 		//检测当前用户的收钱地址是否满足 随机查询一个状态为已完成的地址
-		address, err := model.GetAddress(int(order.UserId))
+		address, err := model.GetAddress(int(user1.ID))
 		if err != nil {
 			return myerr.NewNormalValidateError("用户收款地址不足"), response.UserAddr{}
 		}
@@ -153,7 +133,7 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			IdCode:      util.RandString(20),
 			Address:     address.UserAddress,
 			Fee:         fee,
-			UserId:      order.UserId,
+			UserId:      user1.ID,
 			CreateTime:  order.Uts,
 			ExprireTime: order.Uts + user1.UserLessTime,
 			Remark:      order.Remark,
@@ -163,8 +143,6 @@ func OrderAdd(order request.OrderAdd) (error, response.UserAddr) {
 			Amount:         order.Amount,
 			Address:        address.UserAddress,
 			ExprireTime:    order.Uts + user1.UserLessTime,
-			Currency:       order.Currency,
-			CurrencyAmount: amount,
 		}
 		return o.Create(), userAddr
 	}

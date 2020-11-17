@@ -1,15 +1,14 @@
 package routers
 
 import (
+	"github.com/gin-gonic/gin"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"j2pay-server/controller"
 	_ "j2pay-server/docs"
 	"j2pay-server/middleware"
 	"j2pay-server/pkg/setting"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 func InitRouter() *gin.Engine {
@@ -51,14 +50,15 @@ func InitRouter() *gin.Engine {
 	r.GET("/main", controller.MainIndex)
 	//加入签名中间件
 	//r.Use(middleware.SetUp())
+	//加入jwt中间件
+	r.Use(middleware.JWT())
+	//登录后能做的操作
 	//创建新订单（充币）
 	r.POST("/order", controller.OrderAdd)
 	//提领,代发
 	r.POST("/merchantPick", controller.PickAdd)
 	r.POST("/merchantSend", controller.SendAdd)
-	//加入jwt中间件
-	r.Use(middleware.JWT())
-	//登录后能做的操作
+
 	//代发 提领 eth转账 erc20代币转账 生成用户钱包地址
 	//1.生成钱包地址 =》热钱包地址 eth钱包地址 分配商户充币地址
 	r.POST("/createAddress", controller.CreateAddress)
@@ -75,6 +75,8 @@ func InitRouter() *gin.Engine {
 	//7.交易记录
 	r.GET("ethTransfer", controller.EthTransfer)
 	r.GET("hotTransfer", controller.HotTransfer)
+
+
 	r.GET("/userInfo", controller.UserInfo)
 	// 加入鉴权中间件
 	r.Use(middleware.Authentication())

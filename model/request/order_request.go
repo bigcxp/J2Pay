@@ -3,11 +3,10 @@ package request
 //新增订单
 type OrderAdd struct {
 	Uts       int64   `json:"uts" binding:"required" example:"1231244520" form:"uts"`                           //时间戳
+	UID       int64   `json:"uid" binding:"" form:"uid"`                                                        //组织ID
 	OrderCode string  `json:"order_code" binding:"required,max=255" example:"asfasgdsasfgas" form:"order_code"` //商户订单编号
 	Amount    float64 `json:"amount" binding:"required" example:"1" form:"amount"`                              //数量
 	Remark    string  `example:"备注" json:"remark" form:"remark"`                                                //备注
-	Currency  string  `json:"currency";binding:"oneof=RMB TWD 1" example:"RMB" form:"currency"`                 //换算汇率
-	UserId    int64   `json:"user_id" binding:"" example:"1" form:"user_id"`                                    //组织id,不传则为商户端创建订单
 }
 
 //编辑订单

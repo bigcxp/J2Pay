@@ -31,13 +31,13 @@ definitions:
       id:
         type: integer
       is_open:
-        description: 是否开启双重验证 0：关闭 1：开启
+        description: 是否开启双重验证 1：开启 2：关闭
         type: integer
       rid:
         example: 1
         type: integer
       status:
-        description: 是否启用 0：关闭 1：开启
+        description: 是否启用 1：开启 2：关闭
         type: integer
       token:
         description: token
@@ -99,47 +99,53 @@ definitions:
     - id
     - user_id
     type: object
-  request.DetailedAdd:
+  request.Erc20Add:
     properties:
-      amount:
-        description: 金额
-        example: 1
-        type: number
-      charge_address:
-        description: 收款地址
-        example: test
+      balance:
+        description: 金额                                            //备注
+        example: "1234"
         type: string
-      from_address:
-        description: 发款地址
-        example: test
+      create_time:
+        description: 创建时间
+        example: "2016-01-01"
         type: string
-      id_code:
-        description: 系统编号
-        example: test
+      from:
+        description: 打币地址
+        example: oxvfswedfvgs
         type: string
-      txid:
-        description: 交易hash
+      remark:
+        description: 备注
+        type: string
+      to:
+        description: 收币地址                             //数量
+        example: oxvfswedfvgs
+        type: string
+      tx_id:
+        description: 交易Id
+        example: 0xasfasf
         type: string
     required:
-    - amount
-    - charge_address
-    - from_address
-    - id_code
+    - balance
+    - create_time
+    - from
+    - to
+    - tx_id
     type: object
-  request.DetailedEdit:
+  request.Erc20Edit:
     properties:
       id:
-        description: id
+        description: ID
         type: integer
-      is_bind:
-        description: 1：解绑 2：绑定
-        type: integer
-      order_code:
-        description: 商户订单编号
-        example: test
+      order_id:
+        description: 订单编号
+        example: 0xasfasf
         type: string
+      status:
+        description: 是否绑定订单 1 未绑定 2已绑定
+        example: 1
+        type: integer
     required:
-    - order_code
+    - order_id
     type: object
   request.FeeEdit:
     properties:
@@ -162,7 +168,7 @@ definitions:
       id:
         type: integer
       is_open:
-        description: 是否开启google双重验证 默认0：不开启 1：开启
+        description: 是否开启双重验证 1：开启 2：关闭
         example: 1
         type: integer
     required:
@@ -190,12 +196,12 @@ definitions:
     properties:
       begin_time:
         description: 开始时间
-        example: 12431421234
-        type: integer
+        example: "12431421234"
+        type: string
       end_time:
         description: 结束时间
-        example: 124124124
-        type: integer
+        example: "124124124"
+        type: string
       title:
         description: 系统公告
         example: 这是一个系统公告
@@ -223,12 +229,12 @@ definitions:
     properties:
       begin_time:
         description: 开始时间
-        example: 12431421234
-        type: integer
+        example: "12431421234"
+        type: string
       end_time:
         description: 结束时间
-        example: 124124124
-        type: integer
+        example: "124124124"
+        type: string
       id:
         type: integer
       title:
@@ -280,10 +286,6 @@ definitions:
         description: 数量
         example: 1
         type: number
-      currency:
-        description: 换算汇率
-        example: RMB
-        type: string
       order_code:
         description: 商户订单编号
         example: asfasgdsasfgas
@@ -292,9 +294,7 @@ definitions:
         description: 备注
         example: 备注
         type: string
-      user_id:
-        description: 用户id
-        example: 1
+      uid:
         type: integer
       uts:
         description: 时间戳
@@ -344,39 +344,6 @@ definitions:
         type: number
       id:
         type: integer
-    type: object
-  request.PickAdd:
-    properties:
-      amount:
-        description: 数量
-        example: 1
-        type: number
-      currency:
-        description: 换算汇率
-        example: RMB
-        type: string
-      pick_address:
-        description: 收款地址
-        example: 0x1243cfsadfcsd
-        type: string
-      remark:
-        description: 备注
-        example: 备注
-        type: string
-      type:
-        description: 类型 1：代发 0：提领
-        example: 1
-        type: integer
-      user_id:
-        description: 用户id
-        example: 1
-        type: integer
-    required:
-    - amount
-    - pick_address
-    - remark
-    - type
-    - user_id
     type: object
   request.RateEdit:
     properties:
@@ -501,41 +468,30 @@ definitions:
     type: object
   request.SendAdd:
     properties:
-      amount:
-        description: 数量
-        example: 1
-        type: number
-      currency:
-        description: 换算汇率
-        example: RMB
+      address:
+        description: 收款地址
+        type: string
+      balance:
+        description: 金额
         type: string
       order_code:
         description: 商户订单编号
         example: asfasgdsasfgas
         type: string
-      pick_address:
-        description: 收款地址
-        example: 0x1243cfsadfcsd
+      real_name:
+        description: 商户名称
         type: string
       remark:
         description: 备注
-        example: 备注
         type: string
-      type:
-        description: 类型 1：代发 0：提领
-        example: 1
-        type: integer
-      user_id:
-        description: 用户id
-        example: 1
-        type: integer
+      symbol:
+        description: 币种
+        type: string
     required:
-    - amount
+    - address
+    - balance
     - order_code
-    - pick_address
-    - remark
-    - type
-    - user_id
+    - symbol
     type: object
   request.SendEdit:
     properties:
@@ -685,23 +641,12 @@ definitions:
     required:
     - address
     - balance
-    - dai_charge
     - dai_url
-    - day_total_count
-    - examine
-    - limit
-    - max_order_count
-    - min_order_count
-    - more
-    - order_charge
     - password
-    - pick_charge
     - re_password
     - real_name
     - remark
-    - return_charge
     - return_url
-    - user_less_time
     - user_name
     type: object
   request.UserEdit:
@@ -815,21 +760,28 @@ definitions:
     required:
     - address
     - balance
-    - dai_charge
     - dai_url
-    - day_total_count
-    - examine
-    - limit
-    - max_order_count
-    - min_order_count
-    - more
-    - order_charge
-    - pick_charge
     - real_name
     - remark
-    - return_charge
     - return_url
-    - user_less_time
+    type: object
+  request.WithDrawAdd:
+    properties:
+      balance:
+        description: 金额
+        type: string
+      real_name:
+        description: 商户
+        type: string
+      remark:
+        description: 备注
+        type: string
+      symbol:
+        description: 币种
+        type: string
+    required:
+    - balance
+    - symbol
     type: object
   response.Account:
     properties:
@@ -843,6 +795,9 @@ definitions:
         description: 创建时间
         type: integer
       id:
+        type: integer
+      is_open:
+        description: 是否开启google双重验证 默认1：开启 ，2：关闭 ';"
         type: integer
       last_login_time:
         description: 最后登录时间
@@ -986,6 +941,9 @@ definitions:
       examine:
         description: 代发审核
         type: number
+      id:
+        description: ID
+        type: integer
       is_collection:
         description: 是否开启收款功能 1：是 0：否
         type: integer
@@ -1101,29 +1059,23 @@ definitions:
         description: 角色名
         type: string
     type: object
-  response.DetailedList:
+  response.Erc20List:
     properties:
-      amount:
+      balance_real:
         description: 金额
-        type: number
-      charge_address:
-        description: 收款地址
         type: string
-      create_at:
-        description: 时间
+      create:
+        description: 创建时间
         type: string
+      create_time:
+        description: 创建时间戳
+        type: integer
       id:
         description: ID
         type: integer
-      id_code:
-        description: 系统编号
-        type: string
-      order_code:
-        description: 订单编号
-        type: string
       order_id:
-        description: 商户订单id
-        type: integer
+        description: 商户订单编号
+        type: string
       real_name:
         description: 组织名称
         type: string
@@ -1131,24 +1083,23 @@ definitions:
         description: 备注
         type: string
       status:
-        description: 状态 1：未绑定 2：已绑定
+        description: 状态 1：未绑定，2：已绑定
         type: integer
-      txid:
-        description: 交易hash
+      to_address:
+        description: 收款地址
         type: string
-      user_id:
-        description: 商户id
-        type: integer
+      tx_id:
+        description: 交易id
+        type: string
     type: object
-  response.DetailedRecordPage:
+  response.Erc20Page:
     properties:
       current_page:
         description: 每页显示多少条
         type: integer
       data:
-        description: 数据
         items:
-          $ref: '#/definitions/response.DetailedList'
+          $ref: '#/definitions/response.Erc20List'
         type: array
       per_page:
         description: 当前页码
@@ -1198,16 +1149,16 @@ definitions:
     properties:
       amount:
         description: 金额
-        type: number
+        type: string
       create_at:
         description: 建立时间
         type: string
       del_money:
         description: 扣除商户余额
-        type: number
+        type: string
       fee:
         description: Gas手续费
-        type: number
+        type: string
       finish_time:
         description: 完成时间
         type: string
@@ -1267,6 +1218,18 @@ definitions:
         description: 总减少金额
         type: number
     type: object
+  response.OrderDetail:
+    properties:
+      detailed_record_id:
+        description: 实收明细系统编号
+        type: string
+      receipt_amount:
+        description: 实收金额
+        type: string
+      txid:
+        description: 交易hash
+        type: string
+    type: object
   response.OrderPage:
     properties:
       current_page:
@@ -1302,13 +1265,13 @@ definitions:
         type: integer
       eth_fee:
         description: ETH 最小矿工费
-        type: number
+        type: string
       gas_limit:
         description: gas Limit
         type: integer
       gas_price:
         description: GasPrice
-        type: number
+        type: string
       id:
         description: ID
         type: integer
@@ -1431,9 +1394,6 @@ definitions:
       create_at:
         description: 创建时间
         type: string
-      detailed_record_id:
-        description: 实收明细订单编号
-        type: number
       fee:
         description: 手续费
         type: number
@@ -1449,12 +1409,13 @@ definitions:
       order_code:
         description: 商户订单编号
         type: string
+      order_detail:
+        $ref: '#/definitions/response.OrderDetail'
+        description: 订单明细
+        type: object
       real_name:
         description: 组织名称
         type: string
-      receipt_amount:
-        description: 实收金额
-        type: number
       remark:
         description: 备注
         type: string
@@ -1467,9 +1428,9 @@ definitions:
       status:
         description: 状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：：已过期
         type: integer
-      txid:
-        description: 交易hash
-        type: string
+      transaction_id:
+        description: 交易明细ID
+        type: integer
       user_id:
         description: 商户id
         type: integer
@@ -1935,7 +1896,7 @@ paths:
       - 组织管理
     put:
       parameters:
-      - description: 用户ID
+      - description: 组织ID
         in: path
         name: id
         required: true
@@ -2021,10 +1982,6 @@ paths:
         in: query
         name: idCode
         type: string
-      - description: 商户id
-        in: query
-        name: userId
-        type: integer
       - description: 交易hash
         in: query
         name: txid
@@ -2055,7 +2012,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.DetailedRecordPage'
+            $ref: '#/definitions/response.Erc20Page'
       summary: 实收明细记录列表
       tags:
       - 实收明细记录
@@ -2066,7 +2023,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/request.DetailedAdd'
+          $ref: '#/definitions/request.Erc20Add'
       produces:
       - application/json
       responses:
@@ -2088,7 +2045,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.DetailedList'
+            $ref: '#/definitions/response.Erc20List'
       summary: 实收记录详情
       tags:
       - 实收明细记录
@@ -2104,7 +2061,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/request.DetailedEdit'
+          $ref: '#/definitions/request.Erc20Edit'
       produces:
       - application/json
       summary: 绑定 | 解绑 订单
@@ -2367,7 +2324,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/request.PickAdd'
+          $ref: '#/definitions/request.WithDrawAdd'
       produces:
       - application/json
       responses:
@@ -3075,9 +3032,9 @@ paths:
   /systemMessageByUser:
     get:
       parameters:
-      - description: 用户名
+      - description: 组织id
         in: query
-        name: username
+        name: uid
         required: true
         type: string
       - description: 页码
@@ -3095,7 +3052,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.AdminUserMessagePage'
-      summary: 获取用户公告列表
+      summary: 账户获取公告列表
       tags:
       - 系统公告
   /systemMessageIndex:
@@ -3119,4 +3076,11 @@ paths:
       summary: 更新余额
       tags:
       - 地址管理
+  /userInfo:
+    get:
+      produces:
+      - application/json
+      summary: 获取账户信息
+      tags:
+      - 账户管理
 swagger: "2.0"

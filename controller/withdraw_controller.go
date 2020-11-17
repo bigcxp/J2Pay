@@ -167,7 +167,7 @@ func SendDetail(c *gin.Context) {
 // @Tags 商户提领代发管理
 // @Summary 提领
 // @Produce json
-// @Param body body request.PickAdd true "商户提领"
+// @Param body body request.WithDrawAdd true "商户提领"
 // @Success 200
 // @Router /merchantPick [post]
 func PickAdd(c *gin.Context)  {

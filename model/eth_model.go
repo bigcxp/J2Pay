@@ -50,6 +50,7 @@ type TTx struct {
 	OrgMsg       string `gorm:"default:'';comment:'零钱整理消息'";json:"org_msg"`         // 零钱整理消息
 	OrgTime      int64  `gorm:"default:0;comment:'零钱整理时间'" json:"org_time"`         // 零钱整理时间
 	Status       int    `gorm:"default:1;comment:'状态 1：未绑定，2：已绑定';";json:"status"`  //是否绑定订单
+	Remark       string `gorm:"default:'';comment:'备注';";json:"remark"`             // 备注
 
 }
 
@@ -101,27 +102,6 @@ type TSend struct {
 	HandleStatus int64  `gorm:"default:0;comment:'处理状态'";json:"handle_status"`                 // 处理状态
 	HandleMsg    string `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`                   // 处理消息
 	HandleTime   int64  `gorm:"default:0;comment:'处理时间'" json:"handle_time"`                   // 处理时间
-}
-
-// GetDb()TTxErc20 t_tx_erc20 数据表 eth  erc20交易
-type TTxErc20 struct {
-	ID           int64
-	OrderId      string `gorm:"default:0;comment:'订单编号'";json:"order_id"`           //订单编号
-	UserId       int64  `gorm:"default:0;comment:'组织ID'";json:"user_id"`            //组织ID
-	TokenID      int64  `gorm:"default:0;comment:'合约id'";json:"token_id"`           //合约id
-	SystemID     string `gorm:"default:'';comment:'系统编号'";json:"system_id"`         // 系统编号
-	TxID         string `gorm:"default:'';comment:'交易id'";json:"tx_id"`             // 交易id
-	FromAddress  string `gorm:"defsult:'';comment:'来源地址'";json:"from_address"`      // 来源地址
-	ToAddress    string `gorm:"default:'';comment:'目标地址'";json:"to_address"`        // 目标地址
-	BalanceReal  string `gorm:"default:'';comment:'到账金额Ether'";json:"balance_real"` // 到账金额Ether
-	CreateTime   int64  `gorm:"default:0;comment:'创建时间戳'";json:"create_time"`       // 创建时间戳
-	HandleStatus int64  `gorm:"default:0;comment:'处理状态'";json:"handle_status"`      // 处理状态
-	HandleMsg    string `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`        // 处理消息
-	HandleTime   int64  `gorm:"default:0;comment:'处理时间'";json:"handle_time"`        // 处理时间戳
-	OrgStatus    int64  `gorm:"default:0;comment:'零钱整理状态'";json:"org_status"`       // 零钱整理状态
-	OrgMsg       string `gorm:"default:'';comment:'零钱整理消息'";json:"org_msg"`         // 零钱整理消息
-	OrgTime      int64  `gorm:"default:0;comment:'零钱整理时间'" json:"org_time"`         // 零钱整理时间
-	Status       int    `gorm:"default:1;comment:'状态 1：未绑定，2：已绑定';";json:"status"`  //是否绑定订单
 }
 
 // 根据条件获取配置
@@ -196,7 +176,7 @@ func SQLSelectTTxErc20ColByOrgForUpdate(orgStatuses []int64) ([]TTxErc20, error)
 }
 
 //根据orderId获取ttx
-	func SQLSelectTTxByOrderId(orderId string) (TTx, error) {
+func SQLSelectTTxByOrderId(orderId string) (TTx, error) {
 	var tx TTx
 	err := GetDb().Model(&TTx{}).Where("order_id =?", orderId).Take(&tx).Error
 	if err != nil {
@@ -278,7 +258,7 @@ func SQLSelectTWithdrawColByStatus(handleStatus int) ([]TWithdraw, error) {
 	return th, err
 }
 
-//@param symbol代币类型
+// symbol代币类型
 func (t *TAppConfigToken) SQLSelectBySymbol(symbol string) (*TAppConfigToken, error) {
 	var row = TAppConfigToken{}
 	symbol = strings.TrimSpace(strings.ToLower(symbol))

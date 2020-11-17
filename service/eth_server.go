@@ -55,8 +55,8 @@ func (e * ETHService) saveTransaction(ethHelp *heth.ETHHelp,withdrawID int64,tra
 }
 
 //发起代币（erc20）交易
-//@param toAddress 发送目标地址
-//@param 发送数量
+//param toAddress 发送目标地址
+//param 发送数量
 func (e * ETHService) ERC20Transaction(toAddress string,quantitySent float64)(success bool,err error){
 	success=false
 	tokenConfigSql:=model.TAppConfigToken{}
