@@ -403,7 +403,7 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户ID",
+                        "description": "组织ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -554,12 +554,6 @@ var doc = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "商户id",
-                        "name": "userId",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
                         "description": "交易hash",
                         "name": "txid",
@@ -600,7 +594,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.DetailedRecordPage"
+                            "$ref": "#/definitions/response.Erc20Page"
                         }
                     }
                 }
@@ -620,7 +614,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.DetailedAdd"
+                            "$ref": "#/definitions/request.Erc20Add"
                         }
                     }
                 ],
@@ -651,7 +645,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.DetailedList"
+                            "$ref": "#/definitions/response.Erc20List"
                         }
                     }
                 }
@@ -678,7 +672,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.DetailedEdit"
+                            "$ref": "#/definitions/request.Erc20Edit"
                         }
                     }
                 ]
@@ -1083,7 +1077,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.PickAdd"
+                            "$ref": "#/definitions/request.WithDrawAdd"
                         }
                     }
                 ],
@@ -2173,12 +2167,12 @@ var doc = `{
                 "tags": [
                     "系统公告"
                 ],
-                "summary": "获取用户公告列表",
+                "summary": "账户获取公告列表",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "description": "组织id",
+                        "name": "uid",
                         "in": "query",
                         "required": true
                     },
@@ -2237,6 +2231,17 @@ var doc = `{
                     }
                 ]
             }
+        },
+        "/userInfo": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账户管理"
+                ],
+                "summary": "获取账户信息"
+            }
         }
     },
     "definitions": {
@@ -2285,7 +2290,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "is_open": {
-                    "description": "是否开启双重验证 0：关闭 1：开启",
+                    "description": "是否开启双重验证 1：开启 2：关闭",
                     "type": "integer"
                 },
                 "rid": {
@@ -2293,7 +2298,7 @@ var doc = `{
                     "example": 1
                 },
                 "status": {
-                    "description": "是否启用 0：关闭 1：开启",
+                    "description": "是否启用 1：开启 2：关闭",
                     "type": "integer"
                 },
                 "token": {
@@ -2375,59 +2380,66 @@ var doc = `{
                 }
             }
         },
-        "request.DetailedAdd": {
+        "request.Erc20Add": {
             "type": "object",
             "required": [
-                "amount",
-                "charge_address",
-                "from_address",
-                "id_code"
+                "balance",
+                "create_time",
+                "from",
+                "to",
+                "tx_id"
             ],
             "properties": {
-                "amount": {
-                    "description": "金额",
-                    "type": "number",
-                    "example": 1
-                },
-                "charge_address": {
-                    "description": "收款地址",
+                "balance": {
+                    "description": "金额                                            //备注",
                     "type": "string",
-                    "example": "test"
+                    "example": "1234"
                 },
-                "from_address": {
-                    "description": "发款地址",
+                "create_time": {
+                    "description": "创建时间",
                     "type": "string",
-                    "example": "test"
+                    "example": "2016-01-01"
                 },
-                "id_code": {
-                    "description": "系统编号",
+                "from": {
+                    "description": "打币地址",
                     "type": "string",
-                    "example": "test"
+                    "example": "oxvfswedfvgs"
                 },
-                "txid": {
-                    "description": "交易hash",
+                "remark": {
+                    "description": "备注",
                     "type": "string"
+                },
+                "to": {
+                    "description": "收币地址                             //数量",
+                    "type": "string",
+                    "example": "oxvfswedfvgs"
+                },
+                "tx_id": {
+                    "description": "交易Id",
+                    "type": "string",
+                    "example": "0xasfasf"
                 }
             }
         },
-        "request.DetailedEdit": {
+        "request.Erc20Edit": {
             "type": "object",
             "required": [
-                "order_code"
+                "order_id"
             ],
             "properties": {
                 "id": {
-                    "description": "id",
+                    "description": "ID",
                     "type": "integer"
                 },
-                "is_bind": {
-                    "description": "1：解绑 2：绑定",
-                    "type": "integer"
-                },
-                "order_code": {
-                    "description": "商户订单编号",
+                "order_id": {
+                    "description": "订单编号",
                     "type": "string",
-                    "example": "test"
+                    "example": "0xasfasf"
+                },
+                "status": {
+                    "description": "是否绑定订单 1 未绑定 2已绑定",
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -2463,7 +2475,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "is_open": {
-                    "description": "是否开启google双重验证 默认0：不开启 1：开启",
+                    "description": "是否开启双重验证 1：开启 2：关闭",
                     "type": "integer",
                     "example": 1
                 }
@@ -2504,13 +2516,13 @@ var doc = `{
             "properties": {
                 "begin_time": {
                     "description": "开始时间",
-                    "type": "integer",
-                    "example": 12431421234
+                    "type": "string",
+                    "example": "12431421234"
                 },
                 "end_time": {
                     "description": "结束时间",
-                    "type": "integer",
-                    "example": 124124124
+                    "type": "string",
+                    "example": "124124124"
                 },
                 "title": {
                     "description": "系统公告",
@@ -2546,13 +2558,13 @@ var doc = `{
             "properties": {
                 "begin_time": {
                     "description": "开始时间",
-                    "type": "integer",
-                    "example": 12431421234
+                    "type": "string",
+                    "example": "12431421234"
                 },
                 "end_time": {
                     "description": "结束时间",
-                    "type": "integer",
-                    "example": 124124124
+                    "type": "string",
+                    "example": "124124124"
                 },
                 "id": {
                     "type": "integer"
@@ -2620,11 +2632,6 @@ var doc = `{
                     "type": "number",
                     "example": 1
                 },
-                "currency": {
-                    "description": "换算汇率",
-                    "type": "string",
-                    "example": "RMB"
-                },
                 "order_code": {
                     "description": "商户订单编号",
                     "type": "string",
@@ -2635,10 +2642,8 @@ var doc = `{
                     "type": "string",
                     "example": "备注"
                 },
-                "user_id": {
-                    "description": "用户id",
-                    "type": "integer",
-                    "example": 1
+                "uid": {
+                    "type": "integer"
                 },
                 "uts": {
                     "description": "时间戳",
@@ -2698,48 +2703,6 @@ var doc = `{
                 },
                 "id": {
                     "type": "integer"
-                }
-            }
-        },
-        "request.PickAdd": {
-            "type": "object",
-            "required": [
-                "amount",
-                "pick_address",
-                "remark",
-                "type",
-                "user_id"
-            ],
-            "properties": {
-                "amount": {
-                    "description": "数量",
-                    "type": "number",
-                    "example": 1
-                },
-                "currency": {
-                    "description": "换算汇率",
-                    "type": "string",
-                    "example": "RMB"
-                },
-                "pick_address": {
-                    "description": "收款地址",
-                    "type": "string",
-                    "example": "0x1243cfsadfcsd"
-                },
-                "remark": {
-                    "description": "备注",
-                    "type": "string",
-                    "example": "备注"
-                },
-                "type": {
-                    "description": "类型 1：代发 0：提领",
-                    "type": "integer",
-                    "example": 1
-                },
-                "user_id": {
-                    "description": "用户id",
-                    "type": "integer",
-                    "example": 1
                 }
             }
         },
@@ -2898,48 +2861,36 @@ var doc = `{
         "request.SendAdd": {
             "type": "object",
             "required": [
-                "amount",
+                "address",
+                "balance",
                 "order_code",
-                "pick_address",
-                "remark",
-                "type",
-                "user_id"
+                "symbol"
             ],
             "properties": {
-                "amount": {
-                    "description": "数量",
-                    "type": "number",
-                    "example": 1
+                "address": {
+                    "description": "收款地址",
+                    "type": "string"
                 },
-                "currency": {
-                    "description": "换算汇率",
-                    "type": "string",
-                    "example": "RMB"
+                "balance": {
+                    "description": "金额",
+                    "type": "string"
                 },
                 "order_code": {
                     "description": "商户订单编号",
                     "type": "string",
                     "example": "asfasgdsasfgas"
                 },
-                "pick_address": {
-                    "description": "收款地址",
-                    "type": "string",
-                    "example": "0x1243cfsadfcsd"
+                "real_name": {
+                    "description": "商户名称",
+                    "type": "string"
                 },
                 "remark": {
                     "description": "备注",
-                    "type": "string",
-                    "example": "备注"
+                    "type": "string"
                 },
-                "type": {
-                    "description": "类型 1：代发 0：提领",
-                    "type": "integer",
-                    "example": 1
-                },
-                "user_id": {
-                    "description": "用户id",
-                    "type": "integer",
-                    "example": 1
+                "symbol": {
+                    "description": "币种",
+                    "type": "string"
                 }
             }
         },
@@ -2986,23 +2937,12 @@ var doc = `{
             "required": [
                 "address",
                 "balance",
-                "dai_charge",
                 "dai_url",
-                "day_total_count",
-                "examine",
-                "limit",
-                "max_order_count",
-                "min_order_count",
-                "more",
-                "order_charge",
                 "password",
-                "pick_charge",
                 "re_password",
                 "real_name",
                 "remark",
-                "return_charge",
                 "return_url",
-                "user_less_time",
                 "user_name"
             ],
             "properties": {
@@ -3158,21 +3098,10 @@ var doc = `{
             "required": [
                 "address",
                 "balance",
-                "dai_charge",
                 "dai_url",
-                "day_total_count",
-                "examine",
-                "limit",
-                "max_order_count",
-                "min_order_count",
-                "more",
-                "order_charge",
-                "pick_charge",
                 "real_name",
                 "remark",
-                "return_charge",
-                "return_url",
-                "user_less_time"
+                "return_url"
             ],
             "properties": {
                 "address": {
@@ -3310,6 +3239,31 @@ var doc = `{
                 }
             }
         },
+        "request.WithDrawAdd": {
+            "type": "object",
+            "required": [
+                "balance",
+                "symbol"
+            ],
+            "properties": {
+                "balance": {
+                    "description": "金额",
+                    "type": "string"
+                },
+                "real_name": {
+                    "description": "商户",
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "symbol": {
+                    "description": "币种",
+                    "type": "string"
+                }
+            }
+        },
         "response.Account": {
             "type": "object",
             "properties": {
@@ -3327,6 +3281,10 @@ var doc = `{
                     "type": "integer"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "is_open": {
+                    "description": "是否开启google双重验证 默认1：开启 ，2：关闭 ';\"",
                     "type": "integer"
                 },
                 "last_login_time": {
@@ -3524,6 +3482,10 @@ var doc = `{
                     "description": "代发审核",
                     "type": "number"
                 },
+                "id": {
+                    "description": "ID",
+                    "type": "integer"
+                },
                 "is_collection": {
                     "description": "是否开启收款功能 1：是 0：否",
                     "type": "integer"
@@ -3684,36 +3646,28 @@ var doc = `{
                 }
             }
         },
-        "response.DetailedList": {
+        "response.Erc20List": {
             "type": "object",
             "properties": {
-                "amount": {
+                "balance_real": {
                     "description": "金额",
-                    "type": "number"
-                },
-                "charge_address": {
-                    "description": "收款地址",
                     "type": "string"
                 },
-                "create_at": {
-                    "description": "时间",
+                "create": {
+                    "description": "创建时间",
                     "type": "string"
+                },
+                "create_time": {
+                    "description": "创建时间戳",
+                    "type": "integer"
                 },
                 "id": {
                     "description": "ID",
                     "type": "integer"
                 },
-                "id_code": {
-                    "description": "系统编号",
-                    "type": "string"
-                },
-                "order_code": {
-                    "description": "订单编号",
-                    "type": "string"
-                },
                 "order_id": {
-                    "description": "商户订单id",
-                    "type": "integer"
+                    "description": "商户订单编号",
+                    "type": "string"
                 },
                 "real_name": {
                     "description": "组织名称",
@@ -3724,20 +3678,20 @@ var doc = `{
                     "type": "string"
                 },
                 "status": {
-                    "description": "状态 1：未绑定 2：已绑定",
+                    "description": "状态 1：未绑定，2：已绑定",
                     "type": "integer"
                 },
-                "txid": {
-                    "description": "交易hash",
+                "to_address": {
+                    "description": "收款地址",
                     "type": "string"
                 },
-                "user_id": {
-                    "description": "商户id",
-                    "type": "integer"
+                "tx_id": {
+                    "description": "交易id",
+                    "type": "string"
                 }
             }
         },
-        "response.DetailedRecordPage": {
+        "response.Erc20Page": {
             "type": "object",
             "properties": {
                 "current_page": {
@@ -3745,10 +3699,9 @@ var doc = `{
                     "type": "integer"
                 },
                 "data": {
-                    "description": "数据",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.DetailedList"
+                        "$ref": "#/definitions/response.Erc20List"
                     }
                 },
                 "per_page": {
@@ -3818,7 +3771,7 @@ var doc = `{
             "properties": {
                 "amount": {
                     "description": "金额",
-                    "type": "number"
+                    "type": "string"
                 },
                 "create_at": {
                     "description": "建立时间",
@@ -3826,11 +3779,11 @@ var doc = `{
                 },
                 "del_money": {
                     "description": "扣除商户余额",
-                    "type": "number"
+                    "type": "string"
                 },
                 "fee": {
                     "description": "Gas手续费",
-                    "type": "number"
+                    "type": "string"
                 },
                 "finish_time": {
                     "description": "完成时间",
@@ -3913,6 +3866,23 @@ var doc = `{
                 }
             }
         },
+        "response.OrderDetail": {
+            "type": "object",
+            "properties": {
+                "detailed_record_id": {
+                    "description": "实收明细系统编号",
+                    "type": "string"
+                },
+                "receipt_amount": {
+                    "description": "实收金额",
+                    "type": "string"
+                },
+                "txid": {
+                    "description": "交易hash",
+                    "type": "string"
+                }
+            }
+        },
         "response.OrderPage": {
             "type": "object",
             "properties": {
@@ -3961,7 +3931,7 @@ var doc = `{
                 },
                 "eth_fee": {
                     "description": "ETH 最小矿工费",
-                    "type": "number"
+                    "type": "string"
                 },
                 "gas_limit": {
                     "description": "gas Limit",
@@ -3969,7 +3939,7 @@ var doc = `{
                 },
                 "gas_price": {
                     "description": "GasPrice",
-                    "type": "number"
+                    "type": "string"
                 },
                 "id": {
                     "description": "ID",
@@ -4141,10 +4111,6 @@ var doc = `{
                     "description": "创建时间",
                     "type": "string"
                 },
-                "detailed_record_id": {
-                    "description": "实收明细订单编号",
-                    "type": "number"
-                },
                 "fee": {
                     "description": "手续费",
                     "type": "number"
@@ -4165,13 +4131,14 @@ var doc = `{
                     "description": "商户订单编号",
                     "type": "string"
                 },
+                "order_detail": {
+                    "description": "订单明细",
+                    "type": "object",
+                    "$ref": "#/definitions/response.OrderDetail"
+                },
                 "real_name": {
                     "description": "组织名称",
                     "type": "string"
-                },
-                "receipt_amount": {
-                    "description": "实收金额",
-                    "type": "number"
                 },
                 "remark": {
                     "description": "备注",
@@ -4189,9 +4156,9 @@ var doc = `{
                     "description": "状态 -1：收款中，1：已完成，2：异常，3：退款等待中，4：退款中，5：退款失败，6：已退款，7：：已过期",
                     "type": "integer"
                 },
-                "txid": {
-                    "description": "交易hash",
-                    "type": "string"
+                "transaction_id": {
+                    "description": "交易明细ID",
+                    "type": "integer"
                 },
                 "user_id": {
                     "description": "商户id",

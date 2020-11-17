@@ -1299,6 +1299,7 @@ func CheckErc20BlockSeek() {
 							OrgStatus:    hcommon.TxOrgStatusInit,
 							OrgMsg:       "",
 							OrgTime:      now,
+							Remark: "",
 						})
 					}
 				}

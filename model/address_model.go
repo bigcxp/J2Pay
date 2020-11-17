@@ -52,8 +52,8 @@ func GetFreAddress(num int64) ([]Address, error) {
 //随机获取商户不在收款中的充币地址
 func GetAddress(id int) (Address, error) {
 	var row Address
-	s := DB.Raw("SELECT * FROM address WHERE use_tag = ? ORDER BY RAND() LIMIT 1", id).Scan(&row).Error
-	return row, s
+	err := GetDb().Model(&Address{}).Where("use_tag = ?", id).Order("RAND()").Limit(1).Take(&row).Error
+	return row, err
 }
 
 //随机获取商户不在收款中的充币地址
