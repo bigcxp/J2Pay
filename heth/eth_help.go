@@ -68,7 +68,7 @@ func ( *ETHHelp) GetGas()( *int64, *int64){
 	return gasPriceValue,&gasLimit
 }
 //通过交易发起地址获取nonce,
-//return nonce交易编号每次加一
+//@return nonce交易编号每次加一
 func ( *ETHHelp) GetNONCE(fromAddress string)(nonce int64, err error){
 
 	// 通过rpc获取
@@ -97,8 +97,8 @@ func ( *ETHHelp) GetNONCE(fromAddress string)(nonce int64, err error){
 }
 
 //获取密钥，获取发起交易地址的密钥
-//param 发起交易的地址
-//return 地址对应的密钥
+//@param 发起交易的地址
+//@return 地址对应的密钥
 func ( *ETHHelp) GetPrivateKey(fromAddress string) (privateKey string,err error){
 	//通过热钱包地址查询pwd
 	keyRow := model.SQLGetTAddressKeyColByAddress(fromAddress)
@@ -124,8 +124,8 @@ func ( *ETHHelp) GetPrivateKey(fromAddress string) (privateKey string,err error)
 
 
 //创建地址和私钥
-//return 地址
-//return 加密密钥
+//@return 地址
+//@return 加密密钥
 func (e *ETHHelp) CreateAddressAndAesKey() (string, string, error) {
 	// 生成私钥
 	privateKey, err := crypto.GenerateKey()
@@ -190,13 +190,13 @@ func ( *ETHHelp) CheckBalance(){
 }
 
 //eth交易转账
-//param ethTransactionMode 包含交易得所有参数
+//@param ethTransactionMode 包含交易得所有参数
 func (e *ETHHelp) ETHTransaction(ethTransactionMode ETHHelp)(success bool,err error){
 	return e.transaction(ethTransactionMode,1)
 }
 
-//desc erc20交易转账
-//param ethTransactionMode 包含交易得所有参数
+//@desc erc20交易转账
+//@param ethTransactionMode 包含交易得所有参数
 
 func (e *ETHHelp) ERC20Transaction(ethTransactionMode ETHHelp)(success bool,err error){
 
@@ -205,7 +205,7 @@ func (e *ETHHelp) ERC20Transaction(ethTransactionMode ETHHelp)(success bool,err 
 
 //发起交易
 //eth交易可以不适用合约，目前没有研究，逻辑上也不需要eth交易，不做处理
-//param transactionType 1=eth,2=代币交易
+//@param transactionType 1=eth,2=代币交易
 func (e *ETHHelp) transaction(ethTransactionMode ETHHelp,transactionType int)(success bool,err error){
 	success=false
 	if strings.TrimSpace( ethTransactionMode.ContractAddress)=="" && transactionType==2 {
