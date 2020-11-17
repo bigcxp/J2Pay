@@ -131,6 +131,13 @@ func SQLGetTAppConfigIntValueByK(k string) *int64 {
 	GetDb().Table("t_app_config_int").Where("k = ?", k).Select("v").Row().Scan(&v)
 	return v
 }
+// 获取eth上，各种情况gas值
+func  SQLGetTAppConfigInt()( []*TAppStatusInt,error) {
+	var v  =[]*TAppStatusInt{}
+	err:=GetDb().Table("t_app_status_int").Find(&v).Error
+	return v,err
+}
+
 
 // 根据条件获取block配置
 func SQLGetTAppStatusIntValueByK(k string) *int64 {
@@ -242,7 +249,7 @@ func SQLSelectTAddressKeyColByAddress(addresses []string) ([]Address, error) {
 func SQLGetTAddressKeyColByAddress(address string) *Address {
 	var row *Address
 	row = new(Address)
-	GetDb().Table("address").Where("user_address = ?", address).Row().Scan(&row)
+	GetDb().Table("address").Where("user_address = ?", address).Find(&row)
 	return row
 
 }
@@ -614,6 +621,29 @@ func SQLUpdateTAppStatusIntByK(row *TAppStatusInt) (err error) {
 		Update("v", row.V).Error
 	return
 }
+
+//更新gas费用
+func  SQLUpdateTAppStatusInt(rows []*TAppStatusInt) (err error) {
+	if len(rows) == 0 {
+		log.Panicf("未获取到eth的gasPrices数据")
+		return
+	}
+	tx := GetDb().Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	for  _,v:= range rows {
+		err = tx.Model(&TAppStatusInt{}).Where("k =?",v.K).
+			Update("v",v.V).Error
+	}
+	return
+}
+
+
 
 //更改ttx的org状态
 func SQLUpdateTTxOrgStatusByIDs(ids []int64, row *TTx) (err error) {
