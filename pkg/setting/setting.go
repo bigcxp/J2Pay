@@ -15,6 +15,7 @@ var (
 	EthConf         = Eth{}
 	AesConf         = Aes{}
 	SignConf        = Sign{}
+	RsaSignConf     = RsaSign{}
 )
 
 func Setup() {
@@ -55,6 +56,9 @@ func Setup() {
 	}
 	if err := viper.UnmarshalKey("sign", &SignConf); err != nil {
 		log.Panic("sign配置文件格式错误", err)
+	}
+	if err := viper.UnmarshalKey("rsasign", &RsaSignConf); err != nil {
+		log.Panic("rsasign配置文件格式错误", err)
 	}
 
 }

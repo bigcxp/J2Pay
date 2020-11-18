@@ -2,12 +2,14 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/common/log"
 	"j2pay-server/model"
 	"j2pay-server/model/request"
 	"j2pay-server/model/response"
 	"j2pay-server/myerr"
 	"j2pay-server/pkg/casbin"
 	"j2pay-server/pkg/util"
+	"strings"
 )
 
 // 订单列表
@@ -65,6 +67,13 @@ func OrderAdd(c *gin.Context,order request.OrderAdd) (error, response.UserAddr) 
 	if count.RID != 1 {
 		//获取组织
 		user1 ,_:= model.GetUserByWhere("id = ?", count.UID)
+		// 对比ip白名单
+		if len(user1.WhitelistIP) > 0 {
+			if !strings.Contains(user1.WhitelistIP, c.ClientIP()) {
+				log.Warnf("no in ip list of: %s %s", user1.RealName, c.ClientIP())
+				return myerr.NewNormalValidateError("IP Limit"), response.UserAddr{}
+			}
+		}
 		//用户是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}
@@ -105,13 +114,20 @@ func OrderAdd(c *gin.Context,order request.OrderAdd) (error, response.UserAddr) 
 		return o.Create(), userAddr
 		//管理员添加订单
 	} else {
-		//获取用户
+		//获取组织
 		user1 ,_:= model.GetUserByWhere("id = ?", order.UID)
-		//用户是否开启收款功能
+		// 对比ip白名单
+		if len(user1.WhitelistIP) > 0 {
+			if !strings.Contains(user1.WhitelistIP, c.ClientIP()) {
+				log.Warnf("no in ip list of: %s %s", user1.RealName, c.ClientIP())
+				return myerr.NewNormalValidateError("IP Limit"), response.UserAddr{}
+			}
+		}
+		//组织是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}
 		}
-		//是否开启手动建单
+		//组织是否开启手动建单
 		if user1.IsCreation != 1 {
 			return myerr.NewNormalValidateError("未开启手动建单功能"), response.UserAddr{}
 		}

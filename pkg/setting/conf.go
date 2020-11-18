@@ -59,7 +59,13 @@ type Aes struct {
 	Key string
 }
 
-// Sign 配置
+// Sign 时间配置
 type Sign struct {
-	AppSignExpiry int `mapstructure:"app_sign_expiry"`
+	AppSignExpiry string
+}
+
+// Rsa 签名配置
+type RsaSign struct {
+	AppRsaPrivateFile string
+	AppRsaPublicFile  string
 }

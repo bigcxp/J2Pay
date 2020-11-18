@@ -1870,6 +1870,7 @@ func CheckErc20Withdraw() {
 		}
 		_, ok = addressEthBalanceMap[hotAddress]
 		if !ok {
+			//获取热钱包地址余额
 			hotAddressBalance, err := ethclient.RpcBalanceAt(
 				context.Background(),
 				hotAddress,
@@ -1890,6 +1891,7 @@ func CheckErc20Withdraw() {
 		tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
 		_, ok = addressTokenBalanceMap[tokenBalanceKey]
 		if !ok {
+			//获取代币热钱包余额
 			tokenBalance, err := ethclient.RpcTokenBalance(
 				context.Background(),
 				tokenRow.TokenAddress,
@@ -1912,6 +1914,7 @@ func CheckErc20Withdraw() {
 		gasLimit := erc20GasUseValue
 		// eth fee
 		feeValue := big.NewInt(*gasLimit * *gasPrice)
+		//获取当前区块信息
 		chainID, err := ethclient.RpcNetworkID(context.Background())
 		if err != nil {
 			log.Panicf("err: [%T] %s", err, err.Error())

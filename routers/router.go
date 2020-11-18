@@ -53,12 +53,6 @@ func InitRouter() *gin.Engine {
 	//加入jwt中间件
 	r.Use(middleware.JWT())
 	//登录后能做的操作
-	//创建新订单（充币）
-	r.POST("/order", controller.OrderAdd)
-	//提领,代发
-	r.POST("/merchantPick", controller.PickAdd)
-	r.POST("/merchantSend", controller.SendAdd)
-
 	//代发 提领 eth转账 erc20代币转账 生成用户钱包地址
 	//1.生成钱包地址 =》热钱包地址 eth钱包地址 分配商户充币地址
 	r.POST("/createAddress", controller.CreateAddress)
@@ -75,8 +69,6 @@ func InitRouter() *gin.Engine {
 	//7.交易记录
 	r.GET("ethTransfer", controller.EthTransfer)
 	r.GET("hotTransfer", controller.HotTransfer)
-
-
 	r.GET("/userInfo", controller.UserInfo)
 	// 加入鉴权中间件
 	r.Use(middleware.Authentication())
@@ -124,6 +116,8 @@ func InitRouter() *gin.Engine {
 	}
 	//商户提领 代发
 	{
+		r.POST("/merchantPick",middleware.RsaSetUp(), controller.PickAdd)
+		r.POST("/merchantSend",middleware.RsaSetUp(), controller.SendAdd)
 		r.GET("/merchantPick", controller.MerchantPickIndex)
 		r.GET("/merchantPick/:id", controller.MerchantPickDetail)
 
@@ -139,6 +133,7 @@ func InitRouter() *gin.Engine {
 	}
 	//订单
 	{
+		r.POST("/order",middleware.RsaSetUp(), controller.OrderAdd)
 		r.GET("/order", controller.OrderList)
 		r.GET("/order/:id", controller.OrderDetail)
 		r.PUT("/order/:id", controller.OrderEdit)

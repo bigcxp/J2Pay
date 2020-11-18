@@ -20,8 +20,7 @@ func main()  {
 	logger.Setup()
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
-	address := model.Address{}
-	ofAddress, err := address.GetPkOfAddress("0xcc3f38ea198a231ba0455aad778cab40b736ab4a")
+	ofAddress, err := model.GetPkOfAddress("0xcc3f38ea198a231ba0455aad778cab40b736ab4a")
 	if err != nil{
 		log.Println(err)
 	}

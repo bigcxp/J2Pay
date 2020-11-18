@@ -1,11 +1,12 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/xinliangnote/go-util/rsa"
 	timeUtil "github.com/xinliangnote/go-util/time"
 	"j2pay-server/model"
-	"j2pay-server/myerr"
 	"j2pay-server/pkg/setting"
 	"j2pay-server/pkg/util"
 	"net/url"
@@ -16,8 +17,9 @@ import (
 )
 
 var AppSecret string
-// MD5 组合加密
-func SetUp() gin.HandlerFunc {
+
+// RSA 非对称加密
+func RsaSetUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		response := util.Response{c}
 		sign, err := verifySign(c)
@@ -34,44 +36,69 @@ func SetUp() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
 // 验证签名
 func verifySign(c *gin.Context) (map[string]string, error) {
 	_ = c.Request.ParseForm()
 	req   := c.Request.Form
 	debug := strings.Join(c.Request.Form["debug"], "")
-	ak    := strings.Join(c.Request.Form["ak"], "")
-	sn    := strings.Join(c.Request.Form["sn"], "")
-	ts    := strings.Join(c.Request.Form["ts"], "")
-	// 验证来源
-	user,_:= model.GetUserByWhere("real_name = ? and password = ?", ak, ts)
-	AppSecret =user.UserName
+	ak    := strings.Join(c.Request.Form["ak"], "")  //appKey 識別調用方身份
+	sn    := strings.Join(c.Request.Form["sn"], "")  //签名 驗證數據的完整性
+	ts    := strings.Join(c.Request.Form["ts"], "")  //时间戳 驗證接口的時效性
+
+	// 验证来源 获取AppKEY
+	userByWhere, err := model.GetUserByWhere("real_name = ?", ak)
+	if err !=nil{
+		return nil, err
+	}
+	if userByWhere.ID != 0 {
+		AppSecret = fmt.Sprintf("%s",setting.RsaSignConf.AppRsaPublicFile)
+	} else {
+		return nil, errors.New("ak Error")
+	}
 	if debug == "1" {
 		currentUnix := timeUtil.GetCurrentUnix()
 		req.Set("ts", strconv.FormatInt(currentUnix, 10))
+
+		sn, err := createSign(req)
+		if err != nil {
+			return nil, errors.New("sn Exception")
+		}
+
 		res := map[string]string{
 			"ts": strconv.FormatInt(currentUnix, 10),
-			"sn": createSign(req),
+			"sn": sn,
 		}
 		return res, nil
 	}
+
 	// 验证过期时间
 	timestamp := time.Now().Unix()
-	exp ,_:= strconv.ParseInt(string(setting.SignConf.AppSignExpiry),10,64)
+	exp, _    := strconv.ParseInt(fmt.Sprintf("%s",setting.SignConf.AppSignExpiry), 10, 64)
 	tsInt, _  := strconv.ParseInt(ts, 10, 64)
 	if tsInt > timestamp || timestamp - tsInt >= exp {
-		return nil,myerr.NewDbValidateError("ts Error")
+		return nil, errors.New("ts Error")
 	}
+
 	// 验证签名
-	if sn == "" || sn != createSign(req) {
-		return nil, myerr.NewDbValidateError("sn Error")
+	if sn == "" {
+		return nil, errors.New("sn Error")
+	}
+	decryptStr, decryptErr := rsa.PrivateDecrypt(sn, fmt.Sprintf("%s",setting.RsaSignConf.AppRsaPrivateFile))
+	if decryptErr != nil {
+		return nil, errors.New(decryptErr.Error())
+	}
+	if decryptStr != createEncryptStr(req) {
+		return nil, errors.New("sn Error")
 	}
 	return nil, nil
 }
+
 // 创建签名
-func createSign(params url.Values) string {
-	// 自定义 MD5 组合
-	return util.MD5(AppSecret + createEncryptStr(params) + AppSecret)
+func createSign(params url.Values) (string, error) {
+	return rsa.PublicEncrypt(createEncryptStr(params), AppSecret)
 }
+
 func createEncryptStr(params url.Values) string {
 	var key []string
 	var str = ""
