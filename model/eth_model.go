@@ -211,13 +211,7 @@ func SQLSelectTAddressKeyColByAddress(addresses []string) ([]Address, error) {
 	if len(addresses) == 0 {
 		return address, nil
 	}
-	rows, err := GetDb().Model(&Address{}).Where("user_address in (?)", addresses).Rows()
-	defer rows.Close()
-	for rows.Next() {
-		var add Address
-		rows.Scan(add)
-		address = append(address, add)
-	}
+	err := GetDb().Model(&Address{}).Where("user_address in (?)", addresses).Find(&address).Error
 	if err != nil {
 		return nil, err
 	}
@@ -245,13 +239,7 @@ func SQLGetTWithdrawColForUpdate(id int64, handleStatus int) *TWithdraw {
 //根据handleStatus 查询[]*TWithdraw
 func SQLSelectTWithdrawColByStatus(handleStatus int) ([]TWithdraw, error) {
 	var th []TWithdraw
-	rows, err := GetDb().Model(&TWithdraw{}).Where("handle_status =?", handleStatus).Rows()
-	defer rows.Close()
-	for rows.Next() {
-		var td TWithdraw
-		rows.Scan(td)
-		th = append(th, td)
-	}
+	 err := GetDb().Model(&TWithdraw{}).Where("handle_status =?", handleStatus).Find(&th).Error
 	if err != nil {
 		return nil, err
 	}
@@ -331,13 +319,7 @@ func SQLGetWithdrawMap(ids []int64) (map[int64]*TWithdraw, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	rows, err := GetDb().Model(&TWithdraw{}).Where("id in (?)", ids).Rows()
-	defer rows.Close()
-	for rows.Next() {
-		var add TWithdraw
-		rows.Scan(add)
-		pick = append(pick, add)
-	}
+	 err := GetDb().Model(&TWithdraw{}).Where("id in (?)", ids).Find(&pick).Error
 	if err != nil {
 		return nil, err
 	}
@@ -354,13 +336,7 @@ func SQLGetUserMap(ids []int64) (map[int64]*AdminUser, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	rows, err := GetDb().Model(&AdminUser{}).Where("id in (?)", ids).Rows()
-	defer rows.Close()
-	for rows.Next() {
-		var add AdminUser
-		rows.Scan(add)
-		user = append(user, add)
-	}
+	err := GetDb().Model(&AdminUser{}).Where("id in (?)", ids).Find(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -377,13 +353,7 @@ func SQLGetAppConfigTokenMap(ids []int64) (map[int64]*TAppConfigToken, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	rows, err := GetDb().Model(&TAppConfigToken{}).Where("id in (?)", ids).Rows()
-	defer rows.Close()
-	for rows.Next() {
-		var add TAppConfigToken
-		rows.Scan(add)
-		token = append(token, add)
-	}
+	err := GetDb().Model(&TAppConfigToken{}).Where("id in (?)", ids).Find(&token).Error
 	if err != nil {
 		return nil, err
 	}

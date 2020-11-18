@@ -108,6 +108,13 @@ func WithdrawAdd(with request.WithDrawAdd) (error, response.WithDrawRes) {
 	accountinfo := account.(*util.Claims)
 	//获取组织信息
 	user, err2 := model.GetUserByWhere("id = ?", accountinfo.UID)
+	// 对比ip白名单
+	if len(user.WhitelistIP) > 0 {
+		if !strings.Contains(user.WhitelistIP, c.ClientIP()) {
+			log.Println("no in ip list of: %s %s", user.RealName, c.ClientIP())
+			return myerr.NewNormalValidateError("IP Limit"), response.WithDrawRes{}
+		}
+	}
 	if err2 != nil {
 		return err2, response.WithDrawRes{}
 	}
@@ -195,6 +202,13 @@ func SendAdd(with request.SendAdd) (error, response.SendRes) {
 	user, err2 := model.GetUserByWhere("id = ?", accountinfo.UID)
 	if err2 != nil {
 		return err2, response.SendRes{}
+	}
+	// 对比ip白名单
+	if len(user.WhitelistIP) > 0 {
+		if !strings.Contains(user.WhitelistIP, c.ClientIP()) {
+			log.Println("no in ip list of: %s %s", user.RealName, c.ClientIP())
+			return myerr.NewNormalValidateError("IP Limit"), response.SendRes{}
+		}
 	}
 	if user.ID == 0 {
 		return myerr.NewNormalValidateError(" 没有该组织i信息"), response.SendRes{}

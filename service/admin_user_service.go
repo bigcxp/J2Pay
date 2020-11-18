@@ -8,7 +8,9 @@ import (
 	"j2pay-server/model/response"
 	"j2pay-server/myerr"
 	"j2pay-server/pkg/casbin"
+	"j2pay-server/pkg/util"
 	"j2pay-server/validate"
+	"strings"
 	"time"
 )
 
@@ -52,6 +54,24 @@ func UserDetail(id int64) (res response.AdminUserList, err error) {
 // 创建组织
 func UserAdd(user request.UserAdd) error {
 	defer casbin.ClearEnforcer()
+	//验证输入的回调地址是否合法
+	if user.WhitelistIP != ""{
+		white_slice := strings.Split(user.WhitelistIP, ",")
+		for _,v :=range white_slice{
+			if ip := util.IsIp(v);!ip {
+				return myerr.NewNormalValidateError("请输入正确的IP地址")
+			}
+		}
+	}
+	//验证充币回调地址是否合法
+	if user.ReturnUrl != "" && !util.IsHttp(user.ReturnUrl){
+		return myerr.NewNormalValidateError("充币回传URL格式不正确")
+	}
+	//验证代发回传地址是否合法
+	if user.DaiUrl != "" && !util.IsHttp(user.DaiUrl){
+		return myerr.NewNormalValidateError("代发回传URL格式不正确")
+	}
+
 	time := time.Now().Unix()
 	//组织
 	u := model.AdminUser{

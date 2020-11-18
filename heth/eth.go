@@ -162,7 +162,7 @@ func CheckBlockSeek() {
 	// rpc 获取当前最新区块数
 	rpcBlockNum, err := ethclient.RpcBlockNumber(context.Background())
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	startI := *seek + 1
@@ -183,7 +183,7 @@ func CheckBlockSeek() {
 			// rpc获取block信息
 			rpcBlock, err := ethclient.RpcBlockByNum(context.Background(), i)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			// 接收地址列表
@@ -196,7 +196,7 @@ func CheckBlockSeek() {
 				if rpcTx.Value().Int64() > 0 && rpcTx.To() != nil {
 					msg, err := rpcTx.AsMessage(types.NewEIP155Signer(rpcTx.ChainId()))
 					if err != nil {
-						log.Panicf("AsMessage err: [%T] %s", err, err.Error())
+						hcommon.Log.Errorf("AsMessage err: [%T] %s", err, err.Error())
 						return
 					}
 					if IsStringInSlice(feeAddresses, AddressBytesToStr(msg.From())) {
@@ -213,7 +213,7 @@ func CheckBlockSeek() {
 			//从db中查询这些地址是否是冲币地址中的地址
 			dbAddressRows, err := model.SQLSelectTAddressKeyColByAddress(toAddresses)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			// 待插入数据
@@ -235,14 +235,14 @@ func CheckBlockSeek() {
 				for _, tx := range txes {
 					msg, err := tx.AsMessage(types.NewEIP155Signer(tx.ChainId()))
 					if err != nil {
-						log.Panicf("AsMessage err: [%T] %s", err, err.Error())
+						hcommon.Log.Errorf("AsMessage err: [%T] %s", err, err.Error())
 						return
 					}
 					fromAddress := AddressBytesToStr(msg.From())
 					toAddress := AddressBytesToStr(*(tx.To()))
 					balanceReal, err := WeiBigIntToEthStr(tx.Value())
 					if err != nil {
-						log.Panicf("err: [%T] %s", err, err.Error())
+						hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 						return
 					}
 					dbTxRows = append(dbTxRows, &model.TTx{
@@ -289,7 +289,7 @@ func CheckAddressOrg() {
 	coldAddressValue := model.SQLGetTAppConfigStrValueByK("cold_wallet_address")
 	coldAddress, err := StrToAddressBytes(*coldAddressValue)
 	if err != nil {
-		log.Panicf("eth organize cold address err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("eth organize cold address err: [%T] %s", err, err.Error())
 		return
 	}
 	isComment := false
@@ -307,7 +307,7 @@ func CheckAddressOrg() {
 	// 获取待整理的交易列表
 	txRows, err := model.SQLSelectTTxColByOrgForUpdate(hcommon.TxOrgStatusInit)
 	if err != nil {
-		log.Panicf("ttx transaction err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("ttx transaction err: [%T] %s", err, err.Error())
 		return
 	}
 	if len(txRows) <= 0 {
@@ -322,7 +322,7 @@ func CheckAddressOrg() {
 	// chain id
 	chainID, err := ethclient.RpcNetworkID(context.Background())
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 当前时间
@@ -348,7 +348,7 @@ func CheckAddressOrg() {
 		info.RowIDs = append(info.RowIDs, txRow.ID)
 		txWei, err := EthStrToWeiBigInit(txRow.BalanceReal)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		info.Balance.Add(info.Balance, txWei)
@@ -360,20 +360,20 @@ func CheckAddressOrg() {
 	// 获取地址私钥
 	addressPKMap, err := GetPKMapOfAddresses(addresses)
 	if err != nil {
-		log.Panicf("GetNonce err: [%T] %s", err, err.Error())
+		log.Panic("GetNonce err: [%T] %s", err, err.Error())
 		return
 	}
 	for address, info := range addressMap {
 		// 获取私钥
 		privateKey, ok := addressPKMap[address]
 		if !ok {
-			log.Print("no key of: %s", address)
+			hcommon.Log.Errorf("no key of: %s", address)
 			continue
 		}
 		// 获取nonce值
 		nonce, err := GetNonce(address)
 		if err != nil {
-			log.Panicf("GetNonce err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("GetNonce err: [%T] %s", err, err.Error())
 			return
 		}
 		// 发送数量
@@ -385,7 +385,7 @@ func CheckAddressOrg() {
 		}
 		sendBalanceReal, err := WeiBigIntToEthStr(sendBalance)
 		if err != nil {
-			log.Panicf("GetNonce err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("GetNonce err: [%T] %s", err, err.Error())
 			return
 		}
 		// 生成tx
@@ -401,7 +401,7 @@ func CheckAddressOrg() {
 		// 签名
 		signedTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(chainID)), privateKey)
 		if err != nil {
-			log.Panicf("RpcNetworkID err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("RpcNetworkID err: [%T] %s", err, err.Error())
 			return
 		}
 		ts := types.Transactions{signedTx}
@@ -452,7 +452,7 @@ func CheckAddressOrg() {
 		// 插入发送数据
 		_, err = model.SQLCreateIgnoreManyTSend(sendRows, true)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更改tx整理状态
@@ -465,13 +465,13 @@ func CheckAddressOrg() {
 			},
 		)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 提交事物
 		err = dbTx.Commit()
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		isComment = true
@@ -484,7 +484,7 @@ func CheckRawTxSend() {
 	// 获取待发送的数据
 	sendRows, err := model.SQLSelectTSendColByStatus(hcommon.SendStatusInit)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 首先单独处理提领和代发，提取提币通知要使用的数据
@@ -551,7 +551,7 @@ func CheckRawTxSend() {
 		if sendRow.RelatedType == hcommon.SendRelationTypeWithdraw || sendRow.RelatedType == hcommon.SendRelationTypeSend {
 			withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 			if !ok {
-				log.Panicf("withdrawMap no: %d", sendRow.RelatedID)
+				hcommon.Log.Errorf("withdrawMap no: %d", sendRow.RelatedID)
 				return nil
 			}
 			userRow, ok := userMap[int64(withdrawRow.UserId)]
@@ -572,7 +572,7 @@ func CheckRawTxSend() {
 			reqObj["sign"] = GetSign(userRow.UserName, reqObj)
 			req, err := json.Marshal(reqObj)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return err
 			}
 			notifyRows = append(notifyRows, &model.TUserNotify{
@@ -598,13 +598,13 @@ func CheckRawTxSend() {
 		if sendRow.Hex != "" {
 			rawTxBytes, err := hex.DecodeString(sendRow.Hex)
 			if err != nil {
-				log.Print("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				continue
 			}
 			tx := new(types.Transaction)
 			err = rlp.DecodeBytes(rawTxBytes, &tx)
 			if err != nil {
-				log.Print("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				continue
 			}
 			err = ethclient.RpcSendTransaction(
@@ -613,27 +613,27 @@ func CheckRawTxSend() {
 			)
 			if err != nil {
 				if !strings.Contains(err.Error(), "known transaction") {
-					log.Print("err: [%T] %s", err, err.Error())
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 					continue
 				}
 			}
 			sendTxHashes = append(sendTxHashes, sendRow.TxID)
 			err = onSendOk(&sendRow)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 		} else if IsStringInSlice(sendTxHashes, sendRow.TxID) {
 			err = onSendOk(&sendRow)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 		}
 		// 插入通知
 		_, err = model.SQLCreateIgnoreManyTProductNotify(notifyRows)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更新提币状态
@@ -646,7 +646,7 @@ func CheckRawTxSend() {
 			},
 		)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更新eth零钱整理状态
@@ -659,7 +659,7 @@ func CheckRawTxSend() {
 			},
 		)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更新erc20零钱整理状态
@@ -672,7 +672,7 @@ func CheckRawTxSend() {
 			},
 		)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更新erc20手续费状态
@@ -685,7 +685,7 @@ func CheckRawTxSend() {
 			},
 		)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 更新发送状态
@@ -704,7 +704,7 @@ func CheckRawTxSend() {
 func CheckRawTxConfirm() {
 	sendRows, err := model.SQLSelectTSendColByStatus(hcommon.SendStatusSend)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	var withdrawIDs []int64
@@ -718,7 +718,7 @@ func CheckRawTxConfirm() {
 	}
 	withdrawMap, err := model.SQLGetWithdrawMap(withdrawIDs)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	var userIDs []int64
@@ -729,7 +729,7 @@ func CheckRawTxConfirm() {
 	}
 	userMap, err := model.SQLGetUserMap(userIDs)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	now := time.Now().Unix()
@@ -747,7 +747,7 @@ func CheckRawTxConfirm() {
 				sendRow.TxID,
 			)
 			if err != nil {
-				log.Print("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				continue
 			}
 			if rpcTx == nil {
@@ -759,7 +759,7 @@ func CheckRawTxConfirm() {
 			// 提币
 			withdrawRow, ok := withdrawMap[sendRow.RelatedID]
 			if !ok {
-				log.Panicf("no withdrawMap: %d", sendRow.RelatedID)
+				hcommon.Log.Errorf("no withdrawMap: %d", sendRow.RelatedID)
 				return
 			}
 			userRow, ok := userMap[int64(withdrawRow.UserId)]
@@ -780,7 +780,7 @@ func CheckRawTxConfirm() {
 			reqObj["sign"] = GetSign(userRow.UserName, reqObj)
 			req, err := json.Marshal(reqObj)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			notifyRows = append(notifyRows, &model.TUserNotify{
@@ -825,7 +825,7 @@ func CheckRawTxConfirm() {
 	// 添加通知信息
 	_, err = model.SQLCreateIgnoreManyTProductNotify(notifyRows)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 更新提币状态
@@ -838,7 +838,7 @@ func CheckRawTxConfirm() {
 		},
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 更新eth零钱整理状态
@@ -851,7 +851,7 @@ func CheckRawTxConfirm() {
 		},
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 更新erc20零钱整理状态
@@ -864,7 +864,7 @@ func CheckRawTxConfirm() {
 		},
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 更新erc20零钱整理eth手续费状态
@@ -877,7 +877,7 @@ func CheckRawTxConfirm() {
 		},
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 更新发送状态
@@ -896,7 +896,7 @@ func CheckWithdraw() {
 	// 获取需要处理的提币数据
 	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	if len(withdrawRows) == 0 {
@@ -908,13 +908,13 @@ func CheckWithdraw() {
 
 	_, err = StrToAddressBytes(*hotAddressValue)
 	if err != nil {
-		log.Panicf("eth hot address err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("eth hot address err: [%T] %s", err, err.Error())
 		return
 	}
 	// 获取私钥
 	privateKey, err := model.GetPkOfAddress(*hotAddressValue)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	// 获取热钱包余额
@@ -923,13 +923,13 @@ func CheckWithdraw() {
 		*hotAddressValue,
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	pendingBalanceRealStr := model.SQLGetTSendPendingBalanceReal(*hotAddressValue)
 	pendingBalance, err := EthStrToWeiBigInit(pendingBalanceRealStr)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	hotAddressBalance.Sub(hotAddressBalance, pendingBalance)
@@ -940,13 +940,13 @@ func CheckWithdraw() {
 	feeValue := gasLimit * *gasPrice
 	chainID, err := ethclient.RpcNetworkID(context.Background())
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	for _, withdrawRow := range withdrawRows {
 		err = handleWithdraw(withdrawRow.ID, chainID, *hotAddressValue, privateKey, hotAddressBalance, gasLimit, *gasPrice, feeValue)
 		if err != nil {
-			log.Print("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			continue
 		}
 	}
@@ -982,7 +982,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	hotAddressBalance.Sub(hotAddressBalance, balanceBigInt)
 	hotAddressBalance.Sub(hotAddressBalance, big.NewInt(feeValue))
 	if hotAddressBalance.Cmp(new(big.Int)) < 0 {
-		log.Panicf("hot balance limit")
+		hcommon.Log.Errorf("hot balance limit")
 		hotAddressBalance.Add(hotAddressBalance, balanceBigInt)
 		hotAddressBalance.Add(hotAddressBalance, big.NewInt(feeValue))
 		return nil
@@ -1049,7 +1049,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 	// 处理完成 提交事务
 	err = dbTx.Commit()
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return err
 	}
 	isComment = true
@@ -1071,7 +1071,7 @@ func CheckTxNotify() {
 	}
 	userMap, err := model.SQLGetUserMap(userIDs)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	var notifyTxIDs []int64
@@ -1096,7 +1096,7 @@ func CheckTxNotify() {
 		reqObj["sign"] = GetSign(userRow.UserName, reqObj)
 		req, err := json.Marshal(reqObj)
 		if err != nil {
-			log.Print("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			continue
 		}
 		notifyRows = append(notifyRows, &model.TUserNotify{
@@ -1117,7 +1117,7 @@ func CheckTxNotify() {
 	}
 	_, err1 := model.SQLCreateIgnoreManyTProductNotify(notifyRows)
 	if err1 != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	err = model.SQLUpdateTTxStatusByIDs(
@@ -1156,9 +1156,10 @@ func CheckErc20BlockSeek() {
 		}
 		contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
+
 		// 获取所有token
 		var configTokenRowAddresses []string
 		configTokenRowMap := make(map[string]*model.TAppConfigToken)
@@ -1182,7 +1183,7 @@ func CheckErc20BlockSeek() {
 					contractAbi.Events["Transfer"],
 				)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 					return
 				}
 				// 接收地址列表
@@ -1202,7 +1203,7 @@ func CheckErc20BlockSeek() {
 				// 从db中查询这些地址是否是冲币地址中的地址
 				dbAddressRows, err := model.SQLSelectTAddressKeyColByAddress(toAddresses)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 					return
 				}
 				// 时间
@@ -1222,14 +1223,14 @@ func CheckErc20BlockSeek() {
 					// 获取地址对应的交易列表
 					logs, ok := toAddressLogMap[dbAddressRow.UserAddress]
 					if !ok {
-						log.Panicf("toAddressLogMap no: %s", dbAddressRow.UserAddress)
+						hcommon.Log.Errorf("toAddressLogMap no: %s", dbAddressRow.UserAddress)
 						return
 					}
 					for _, log1 := range logs {
 						var transferEvent LogTransfer
 						err := contractAbi.Unpack(&transferEvent, "Transfer", log1.Data)
 						if err != nil {
-							log.Panicf("err: [%T] %s", err, err.Error())
+							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 							return
 						}
 						transferEvent.From = strings.ToLower(common.HexToAddress(log1.Topics[1].Hex()).Hex())
@@ -1237,7 +1238,7 @@ func CheckErc20BlockSeek() {
 						contractAddress := strings.ToLower(log1.Address.Hex())
 						configTokenRow, ok := configTokenRowMap[contractAddress]
 						if !ok {
-							log.Panicf("no configTokenRowMap of: %s", contractAddress)
+							hcommon.Log.Errorf("no configTokenRowMap of: %s", contractAddress)
 							return
 						}
 						rpcTxReceipt, err := ethclient.RpcTransactionReceipt(
@@ -1245,7 +1246,7 @@ func CheckErc20BlockSeek() {
 							log1.TxHash.Hex(),
 						)
 						if err != nil {
-							log.Panicf("err: [%T] %s", err, err.Error())
+							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 							return
 						}
 						if rpcTxReceipt.Status <= 0 {
@@ -1256,7 +1257,7 @@ func CheckErc20BlockSeek() {
 							log1.TxHash.Hex(),
 						)
 						if err != nil {
-							log.Panicf("err: [%T] %s", err, err.Error())
+							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 							return
 						}
 						if strings.ToLower(rpcTx.To().Hex()) != contractAddress {
@@ -1270,7 +1271,7 @@ func CheckErc20BlockSeek() {
 							transferEvent.Tokens,
 						)
 						if err != nil {
-							log.Panicf("err: [%T] %s", err, err.Error())
+							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 							return
 						}
 						if hexutil.Encode(input) != hexutil.Encode(rpcTx.Data()) {
@@ -1279,7 +1280,7 @@ func CheckErc20BlockSeek() {
 						}
 						balanceReal, err := TokenWeiBigIntToEthStr(transferEvent.Tokens, configTokenRow.TokenDecimals)
 						if err != nil {
-							log.Panicf("err: [%T] %s", err, err.Error())
+							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 							return
 						}
 						// 放入待插入数组
@@ -1299,13 +1300,13 @@ func CheckErc20BlockSeek() {
 							OrgStatus:    hcommon.TxOrgStatusInit,
 							OrgMsg:       "",
 							OrgTime:      now,
-							Remark: "",
+							Remark:       "",
 						})
 					}
 				}
 				_, err = model.SQLCreateIgnoreManyTTxErc20(txErc20Rows)
 				if err != nil {
-					log.Panicf("err: [%T] %s", err, err.Error())
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 					return
 				}
 			}
@@ -1317,7 +1318,7 @@ func CheckErc20BlockSeek() {
 				},
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 		}
@@ -1342,12 +1343,12 @@ func CheckErc20TxNotify() {
 	}
 	tokenMap, err := model.SQLGetAppConfigTokenMap(tokenIDs)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	userMap, err := model.SQLGetUserMap(userIds)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	var notifyTxIDs []int64
@@ -1356,7 +1357,7 @@ func CheckErc20TxNotify() {
 	for _, txRow := range txRows {
 		tokenRow, ok := tokenMap[txRow.TokenID]
 		if !ok {
-			log.Print("tokenMap no: %d", txRow.TokenID)
+			hcommon.Log.Errorf("tokenMap no: %d", txRow.TokenID)
 			continue
 		}
 		userRow, ok := userMap[txRow.UserId]
@@ -1377,7 +1378,7 @@ func CheckErc20TxNotify() {
 		reqObj["sign"] = GetSign(userRow.UserName, reqObj)
 		req, err := json.Marshal(reqObj)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		notifyRows = append(notifyRows, &model.TUserNotify{
@@ -1398,7 +1399,7 @@ func CheckErc20TxNotify() {
 	}
 	_, err = model.SQLCreateIgnoreManyTProductNotify(notifyRows)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	_, err = model.SQLUpdateTTxErc20StatusByIDs(
@@ -1410,7 +1411,7 @@ func CheckErc20TxNotify() {
 		},
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 }
@@ -1426,14 +1427,14 @@ func CheckErc20TxOrg() {
 	// chainID
 	chainID, err := ethclient.RpcNetworkID(context.Background())
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	//开启事务
 	isComment := false
 	dbTx, err := model.GetDb().DB().BeginTx(context.Background(), nil)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	defer func() {
@@ -1446,7 +1447,7 @@ func CheckErc20TxOrg() {
 		[]int64{hcommon.TxOrgStatusInit, hcommon.TxOrgStatusFeeConfirm},
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	if len(txRows) <= 0 {
@@ -1468,7 +1469,7 @@ func CheckErc20TxOrg() {
 	}
 	tokenMap, err := model.SQLGetAppConfigTokenMap(tokenIDs)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	txMap := make(map[int64]*model.TTxErc20)
@@ -1478,10 +1479,11 @@ func CheckErc20TxOrg() {
 	orgMap := make(map[string]*StOrgInfo)
 	// 整理地址
 	var toAddresses []string
+	//erc20整理
 	for _, txRow := range txRows {
 		tokenRow, ok := tokenMap[txRow.TokenID]
 		if !ok {
-			log.Panicf("no token of: %d", txRow.TokenID)
+			hcommon.Log.Errorf("no token of: %d", txRow.TokenID)
 			return
 		}
 		// 转换为map
@@ -1494,7 +1496,7 @@ func CheckErc20TxOrg() {
 				txRow.ToAddress,
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			addressEthBalanceMap[txRow.ToAddress] = balance
@@ -1513,7 +1515,7 @@ func CheckErc20TxOrg() {
 		orgInfo.TxIDs = append(orgInfo.TxIDs, txRow.ID)
 		txBalance, err := TokenEthStrToWeiBigInit(txRow.BalanceReal, tokenRow.TokenDecimals)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		orgInfo.TokenBalance.Add(orgInfo.TokenBalance, txBalance)
@@ -1522,232 +1524,102 @@ func CheckErc20TxOrg() {
 			toAddresses = append(toAddresses, txRow.ToAddress)
 		}
 	}
-	// 整理地址key
-	addressPKMap, err := GetPKMapOfAddresses(toAddresses)
-	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
-		return
-	}
-	// 需要手续费的整理信息
-	now := time.Now().Unix()
-	needEthFeeMap := make(map[string]*StOrgInfo)
-	for k, orgInfo := range orgMap {
-		toAddress := orgInfo.ToAddress
-		// 计算eth费用
-		addressEthBalanceMap[toAddress] = addressEthBalanceMap[toAddress].Sub(addressEthBalanceMap[toAddress], erc20Fee)
-		if addressEthBalanceMap[toAddress].Cmp(new(big.Int)) < 0 {
-			// eth手续费不足
-			// 处理添加手续费
-			needEthFeeMap[k] = orgInfo
-			continue
-		}
-		tokenRow, ok := tokenMap[orgInfo.TokenID]
-		if !ok {
-			log.Print("no tokenMap: %d", orgInfo.TokenID)
-			continue
-		}
-		orgMinBalance, err := TokenEthStrToWeiBigInit(tokenRow.OrgMinBalance, tokenRow.TokenDecimals)
+		// 整理地址key
+		addressPKMap, err := GetPKMapOfAddresses(toAddresses)
 		if err != nil {
-			log.Print("err: [%T] %s", err, err.Error())
-			continue
-		}
-		if orgInfo.TokenBalance.Cmp(orgMinBalance) < 0 {
-			log.Print("token balance < org min balance")
-			continue
-		}
-		// 处理token转账
-		privateKey, ok := addressPKMap[toAddress]
-		if !ok {
-			log.Print("addressMap no: %s", toAddress)
-			continue
-		}
-		// 获取nonce值
-		nonce, err := GetNonce(toAddress)
-		if err != nil {
-			log.Print("err: [%T] %s", err, err.Error())
-			continue
-		}
-		// 生成交易
-		contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
-		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
-		input, err := contractAbi.Pack(
-			"transfer",
-			common.HexToAddress(tokenRow.ColdAddress),
-			orgInfo.TokenBalance,
-		)
-		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
-			return
-		}
-		rpcTx := types.NewTransaction(
-			uint64(nonce),
-			common.HexToAddress(tokenRow.TokenAddress),
-			big.NewInt(0),
-			uint64(*erc20GasUseValue),
-			big.NewInt(*gasPriceValue),
-			input,
-		)
-		signedTx, err := types.SignTx(rpcTx, types.NewEIP155Signer(big.NewInt(chainID)), privateKey)
-		if err != nil {
-			log.Print("err: [%T] %s", err, err.Error())
-			continue
-		}
-		ts := types.Transactions{signedTx}
-		rawTxBytes := ts.GetRlp(0)
-		rawTxHex := hex.EncodeToString(rawTxBytes)
-		txHash := strings.ToLower(signedTx.Hash().Hex())
-		// 创建存入数据
-		balanceReal, err := TokenWeiBigIntToEthStr(orgInfo.TokenBalance, tokenRow.TokenDecimals)
-		if err != nil {
-			log.Print("err: [%T] %s", err, err.Error())
-			continue
-		}
-		// 待插入数据
-		var sendRows []*model.TSend
-		for rowIndex, txID := range orgInfo.TxIDs {
-			if rowIndex == 0 {
-				sendRows = append(sendRows, &model.TSend{
-					RelatedType:  hcommon.SendRelationTypeTxErc20,
-					RelatedID:    txID,
-					TokenID:      orgInfo.TokenID,
-					TxID:         txHash,
-					FromAddress:  toAddress,
-					ToAddress:    tokenRow.ColdAddress,
-					BalanceReal:  balanceReal,
-					Gas:          *erc20GasUseValue,
-					GasPrice:     *gasPriceValue,
-					Nonce:        nonce,
-					Hex:          rawTxHex,
-					CreateTime:   now,
-					HandleStatus: hcommon.SendStatusInit,
-					HandleMsg:    "",
-					HandleTime:   now,
-				})
-			} else {
-				sendRows = append(sendRows, &model.TSend{
-					RelatedType:  hcommon.SendRelationTypeTxErc20,
-					RelatedID:    txID,
-					TokenID:      orgInfo.TokenID,
-					TxID:         txHash,
-					FromAddress:  toAddress,
-					ToAddress:    tokenRow.ColdAddress,
-					BalanceReal:  "",
-					Gas:          0,
-					GasPrice:     0,
-					Nonce:        -1,
-					Hex:          "",
-					CreateTime:   now,
-					HandleStatus: hcommon.SendStatusInit,
-					HandleMsg:    "",
-					HandleTime:   now,
-				})
+		// 需要手续费的整理信息
+		now := time.Now().Unix()
+		needEthFeeMap := make(map[string]*StOrgInfo)
+		for k, orgInfo := range orgMap {
+			toAddress := orgInfo.ToAddress
+			// 计算eth费用
+			addressEthBalanceMap[toAddress] = addressEthBalanceMap[toAddress].Sub(addressEthBalanceMap[toAddress], erc20Fee)
+			if addressEthBalanceMap[toAddress].Cmp(new(big.Int)) < 0 {
+				// eth手续费不足
+				// 处理添加手续费
+				needEthFeeMap[k] = orgInfo
+				continue
 			}
-		}
-		// 插入发送队列
-		_, err = model.SQLCreateIgnoreManyTSend(sendRows, true)
-		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
-			return
-		}
-		// 更新整理状态
-		err = model.SQLUpdateTTxErc20OrgStatusByIDs(
-			orgInfo.TxIDs,
-			&model.TTxErc20{
-				OrgStatus: hcommon.TxOrgStatusHex,
-				OrgMsg:    "hex",
-				OrgTime:   now,
-			},
-		)
-		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
-			return
-		}
-	}
-	// 生成eth转账
-	if len(needEthFeeMap) > 0 {
-		// 获取热钱包地址
-		feeAddressValue := model.SQLGetTAppConfigStrValueByK("fee_wallet_address")
-		_, err = StrToAddressBytes(*feeAddressValue)
-		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
-			return
-		}
-		// 获取私钥
-		privateKey, err := model.GetPkOfAddress(*feeAddressValue)
-		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
-			return
-		}
-		feeAddressBalance, err := ethclient.RpcBalanceAt(
-			context.Background(),
-			*feeAddressValue,
-		)
-		if err != nil {
-			log.Panicf("RpcBalanceAt err: [%T] %s", err, err.Error())
-			return
-		}
-		pendingBalanceReal := model.SQLGetTSendPendingBalanceReal(*feeAddressValue)
-		pendingBalance, err := EthStrToWeiBigInit(pendingBalanceReal)
-		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
-			return
-		}
-		feeAddressBalance.Sub(feeAddressBalance, pendingBalance)
-		// 生成手续费交易
-		for _, orgInfo := range needEthFeeMap {
-			feeAddressBalance.Sub(feeAddressBalance, ethFee)
-			feeAddressBalance.Sub(feeAddressBalance, erc20Fee)
-			if feeAddressBalance.Cmp(new(big.Int)) < 0 {
-				log.Panicf("eth fee balance limit")
-				return
+			tokenRow, ok := tokenMap[orgInfo.TokenID]
+			if !ok {
+				hcommon.Log.Errorf("no tokenMap: %d", orgInfo.TokenID)
+				continue
 			}
-			// nonce
-			nonce, err := GetNonce(*feeAddressValue)
+			orgMinBalance, err := TokenEthStrToWeiBigInit(tokenRow.OrgMinBalance, tokenRow.TokenDecimals)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				continue
+			}
+			if orgInfo.TokenBalance.Cmp(orgMinBalance) < 0 {
+				hcommon.Log.Errorf("token balance < org min balance")
+				continue
+			}
+			// 处理token转账
+			privateKey, ok := addressPKMap[toAddress]
+			if !ok {
+				hcommon.Log.Errorf("addressMap no: %s", toAddress)
+				continue
+			}
+			// 获取nonce值
+			nonce, err := GetNonce(toAddress)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				continue
+			}
+			// 生成交易
+			contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
-			// 创建交易
-			var data []byte
-			tx := types.NewTransaction(
-				uint64(nonce),
-				common.HexToAddress(orgInfo.ToAddress),
-				erc20Fee,
-				uint64(ethGasUse),
-				big.NewInt(*gasPriceValue),
-				data,
+			input, err := contractAbi.Pack(
+				"transfer",
+				common.HexToAddress(tokenRow.ColdAddress),
+				orgInfo.TokenBalance,
 			)
-			signedTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(chainID)), privateKey)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
+			}
+			rpcTx := types.NewTransaction(
+				uint64(nonce),
+				common.HexToAddress(tokenRow.TokenAddress),
+				big.NewInt(0),
+				uint64(*erc20GasUseValue),
+				big.NewInt(*gasPriceValue),
+				input,
+			)
+			signedTx, err := types.SignTx(rpcTx, types.NewEIP155Signer(big.NewInt(chainID)), privateKey)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				continue
 			}
 			ts := types.Transactions{signedTx}
 			rawTxBytes := ts.GetRlp(0)
 			rawTxHex := hex.EncodeToString(rawTxBytes)
 			txHash := strings.ToLower(signedTx.Hash().Hex())
-			now := time.Now().Unix()
-			balanceReal, err := WeiBigIntToEthStr(erc20Fee)
+			// 创建存入数据
+			balanceReal, err := TokenWeiBigIntToEthStr(orgInfo.TokenBalance, tokenRow.TokenDecimals)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
-				return
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				continue
 			}
 			// 待插入数据
 			var sendRows []*model.TSend
 			for rowIndex, txID := range orgInfo.TxIDs {
 				if rowIndex == 0 {
 					sendRows = append(sendRows, &model.TSend{
-						RelatedType:  hcommon.SendRelationTypeTxErc20Fee,
+						RelatedType:  hcommon.SendRelationTypeTxErc20,
 						RelatedID:    txID,
-						TokenID:      0,
+						TokenID:      orgInfo.TokenID,
 						TxID:         txHash,
-						FromAddress:  *feeAddressValue,
-						ToAddress:    orgInfo.ToAddress,
+						FromAddress:  toAddress,
+						ToAddress:    tokenRow.ColdAddress,
 						BalanceReal:  balanceReal,
-						Gas:          ethGasUse,
+						Gas:          *erc20GasUseValue,
 						GasPrice:     *gasPriceValue,
 						Nonce:        nonce,
 						Hex:          rawTxHex,
@@ -1758,12 +1630,12 @@ func CheckErc20TxOrg() {
 					})
 				} else {
 					sendRows = append(sendRows, &model.TSend{
-						RelatedType:  hcommon.SendRelationTypeTxErc20Fee,
+						RelatedType:  hcommon.SendRelationTypeTxErc20,
 						RelatedID:    txID,
-						TokenID:      0,
+						TokenID:      orgInfo.TokenID,
 						TxID:         txHash,
-						FromAddress:  *feeAddressValue,
-						ToAddress:    orgInfo.ToAddress,
+						FromAddress:  toAddress,
+						ToAddress:    tokenRow.ColdAddress,
 						BalanceReal:  "",
 						Gas:          0,
 						GasPrice:     0,
@@ -1776,34 +1648,166 @@ func CheckErc20TxOrg() {
 					})
 				}
 			}
-			// 插入发送数据
+			// 插入发送队列
 			_, err = model.SQLCreateIgnoreManyTSend(sendRows, true)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			// 更新整理状态
 			err = model.SQLUpdateTTxErc20OrgStatusByIDs(
 				orgInfo.TxIDs,
 				&model.TTxErc20{
-					OrgStatus: hcommon.TxOrgStatusFeeHex,
-					OrgMsg:    "fee hex",
+					OrgStatus: hcommon.TxOrgStatusHex,
+					OrgMsg:    "hex",
 					OrgTime:   now,
 				},
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 		}
-	}
-	//提交事务
-	err = dbTx.Commit()
-	if err != nil {
-		mcommon.Log.Errorf("err: [%T] %s", err, err.Error())
-		return
-	}
-	isComment = true
+		// eth不足 生成eth转账
+		if len(needEthFeeMap) > 0 {
+			// 获取热钱包地址
+			feeAddressValue := model.SQLGetTAppConfigStrValueByK("fee_wallet_address")
+			_, err = StrToAddressBytes(*feeAddressValue)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			// 获取私钥
+			privateKey, err := model.GetPkOfAddress(*feeAddressValue)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			feeAddressBalance, err := ethclient.RpcBalanceAt(
+				context.Background(),
+				*feeAddressValue,
+			)
+			if err != nil {
+				hcommon.Log.Errorf("RpcBalanceAt err: [%T] %s", err, err.Error())
+				return
+			}
+			pendingBalanceReal := model.SQLGetTSendPendingBalanceReal(*feeAddressValue)
+			pendingBalance, err := EthStrToWeiBigInit(pendingBalanceReal)
+			if err != nil {
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+				return
+			}
+			feeAddressBalance.Sub(feeAddressBalance, pendingBalance)
+			// 生成手续费交易
+			for _, orgInfo := range needEthFeeMap {
+				feeAddressBalance.Sub(feeAddressBalance, ethFee)
+				feeAddressBalance.Sub(feeAddressBalance, erc20Fee)
+				if feeAddressBalance.Cmp(new(big.Int)) < 0 {
+					hcommon.Log.Errorf("eth fee balance limit")
+					return
+				}
+				// nonce
+				nonce, err := GetNonce(*feeAddressValue)
+				if err != nil {
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+					return
+				}
+				// 创建交易
+				var data []byte
+				tx := types.NewTransaction(
+					uint64(nonce),
+					common.HexToAddress(orgInfo.ToAddress),
+					erc20Fee,
+					uint64(ethGasUse),
+					big.NewInt(*gasPriceValue),
+					data,
+				)
+				signedTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(chainID)), privateKey)
+				if err != nil {
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+					return
+				}
+				ts := types.Transactions{signedTx}
+				rawTxBytes := ts.GetRlp(0)
+				rawTxHex := hex.EncodeToString(rawTxBytes)
+				txHash := strings.ToLower(signedTx.Hash().Hex())
+				now := time.Now().Unix()
+				balanceReal, err := WeiBigIntToEthStr(erc20Fee)
+				if err != nil {
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+					return
+				}
+				// 待插入数据
+				var sendRows []*model.TSend
+				for rowIndex, txID := range orgInfo.TxIDs {
+					if rowIndex == 0 {
+						sendRows = append(sendRows, &model.TSend{
+							RelatedType:  hcommon.SendRelationTypeTxErc20Fee,
+							RelatedID:    txID,
+							TokenID:      0,
+							TxID:         txHash,
+							FromAddress:  *feeAddressValue,
+							ToAddress:    orgInfo.ToAddress,
+							BalanceReal:  balanceReal,
+							Gas:          ethGasUse,
+							GasPrice:     *gasPriceValue,
+							Nonce:        nonce,
+							Hex:          rawTxHex,
+							CreateTime:   now,
+							HandleStatus: hcommon.SendStatusInit,
+							HandleMsg:    "",
+							HandleTime:   now,
+						})
+					} else {
+						sendRows = append(sendRows, &model.TSend{
+							RelatedType:  hcommon.SendRelationTypeTxErc20Fee,
+							RelatedID:    txID,
+							TokenID:      0,
+							TxID:         txHash,
+							FromAddress:  *feeAddressValue,
+							ToAddress:    orgInfo.ToAddress,
+							BalanceReal:  "",
+							Gas:          0,
+							GasPrice:     0,
+							Nonce:        -1,
+							Hex:          "",
+							CreateTime:   now,
+							HandleStatus: hcommon.SendStatusInit,
+							HandleMsg:    "",
+							HandleTime:   now,
+						})
+					}
+				}
+				// 插入发送数据
+				_, err = model.SQLCreateIgnoreManyTSend(sendRows, true)
+				if err != nil {
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+					return
+				}
+				// 更新整理状态
+				err = model.SQLUpdateTTxErc20OrgStatusByIDs(
+					orgInfo.TxIDs,
+					&model.TTxErc20{
+						OrgStatus: hcommon.TxOrgStatusFeeHex,
+						OrgMsg:    "fee hex",
+						OrgTime:   now,
+					},
+				)
+				if err != nil {
+					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+					return
+				}
+			}
+		}
+
+		//提交事务
+		err = dbTx.Commit()
+		if err != nil {
+			mcommon.Log.Errorf("err: [%T] %s", err, err.Error())
+			return
+		}
+		isComment = true
+
 }
 
 //erc20提币
@@ -1815,7 +1819,7 @@ func CheckErc20Withdraw() {
 	addressTokenBalanceMap := make(map[string]*big.Int)
 	tokenRows, err := model.SQLSelectTAppConfigTokenColAll()
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	for _, tokenRow := range tokenRows {
@@ -1826,7 +1830,7 @@ func CheckErc20Withdraw() {
 	}
 	withdrawRows, err := model.SQLSelectTWithdrawColByStatus(hcommon.WithdrawStatusInit)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	if len(withdrawRows) == 0 {
@@ -1841,7 +1845,7 @@ func CheckErc20Withdraw() {
 		// 获取私钥
 		_, err = StrToAddressBytes(tokenRow.HotAddress)
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		hotAddress := tokenRow.HotAddress
@@ -1850,12 +1854,12 @@ func CheckErc20Withdraw() {
 			// 获取私钥
 			keyRow := model.SQLGetTAddressKeyColByAddress(hotAddress)
 			if keyRow == nil {
-				log.Panicf("no key of: %s", hotAddress)
+				hcommon.Log.Errorf("no key of: %s", hotAddress)
 				return
 			}
 			key := hcommon.AesDecrypt(keyRow.Pwd, fmt.Sprintf("%s", setting.AesConf.Key))
 			if len(key) == 0 {
-				log.Panicf("error key of: %s", hotAddress)
+				hcommon.Log.Errorf("error key of: %s", hotAddress)
 				return
 			}
 			if strings.HasPrefix(key, "0x") {
@@ -1863,7 +1867,7 @@ func CheckErc20Withdraw() {
 			}
 			privateKey, err := crypto.HexToECDSA(key)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			addressKeyMap[hotAddress] = privateKey
@@ -1876,13 +1880,13 @@ func CheckErc20Withdraw() {
 				hotAddress,
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			pendingBalanceReal := model.SQLGetTSendPendingBalanceReal(hotAddress)
 			pendingBalance, err := EthStrToWeiBigInit(pendingBalanceReal)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			hotAddressBalance.Sub(hotAddressBalance, pendingBalance)
@@ -1898,13 +1902,13 @@ func CheckErc20Withdraw() {
 				tokenRow.HotAddress,
 			)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				return
 			}
 			addressTokenBalanceMap[tokenBalanceKey] = tokenBalance
 		}
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		// 获取gap price
@@ -1917,13 +1921,13 @@ func CheckErc20Withdraw() {
 		//获取当前区块信息
 		chainID, err := ethclient.RpcNetworkID(context.Background())
 		if err != nil {
-			log.Panicf("err: [%T] %s", err, err.Error())
+			hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 			return
 		}
 		for _, withdrawRow := range withdrawRows {
 			err = handleErc20Withdraw(withdrawRow.ID, chainID, &tokenMap, &addressKeyMap, &addressEthBalanceMap, &addressTokenBalanceMap, *gasLimit, *gasPrice, feeValue)
 			if err != nil {
-				log.Panicf("err: [%T] %s", err, err.Error())
+				hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				continue
 			}
 		}
@@ -1953,13 +1957,13 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	}
 	tokenRow, ok := (*tokenMap)[withdrawRow.Symbol]
 	if !ok {
-		log.Panicf("no tokenMap: %s", withdrawRow.Symbol)
+		hcommon.Log.Errorf("no tokenMap: %s", withdrawRow.Symbol)
 		return nil
 	}
 	hotAddress := tokenRow.HotAddress
 	key, ok := (*addressKeyMap)[hotAddress]
 	if !ok {
-		log.Panicf("no addressKeyMap: %s", hotAddress)
+		hcommon.Log.Errorf("no addressKeyMap: %s", hotAddress)
 		return nil
 	}
 	(*addressEthBalanceMap)[hotAddress] = (*addressEthBalanceMap)[hotAddress].Sub(
@@ -1967,7 +1971,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		feeValue,
 	)
 	if (*addressEthBalanceMap)[hotAddress].Cmp(new(big.Int)) < 0 {
-		log.Panicf("%s eth limit", hotAddress)
+		hcommon.Log.Errorf("%s eth limit", hotAddress)
 		return nil
 	}
 	tokenBalanceKey := fmt.Sprintf("%s-%s", tokenRow.HotAddress, tokenRow.TokenSymbol)
@@ -1980,7 +1984,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		tokenBalance,
 	)
 	if (*addressTokenBalanceMap)[tokenBalanceKey].Cmp(new(big.Int)) < 0 {
-		log.Panicf("%s token limit", tokenBalanceKey)
+		hcommon.Log.Errorf("%s token limit", tokenBalanceKey)
 		return nil
 	}
 	// 获取nonce值
@@ -1991,7 +1995,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	// 生成交易
 	contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return err
 	}
 	input, err := contractAbi.Pack(
@@ -2000,7 +2004,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 		tokenBalance,
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return err
 	}
 	rpcTx := types.NewTransaction(
@@ -2055,7 +2059,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 	// 处理完成，提交事务
 	err = dbTx.Commit()
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return err
 	}
 	isComment = true
@@ -2066,8 +2070,8 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 func CheckGasPrice() {
 	// 获取最高单价
 	maxValue := model.SQLGetTAppStatusIntValueByK("max_gas_price_eth")
-	resp,err := GetGas()
-	if err != nil{
+	resp, err := GetGas()
+	if err != nil {
 		return
 	}
 	toUserGasPrice := resp.Fast * int64(math.Pow10(8))
@@ -2085,7 +2089,7 @@ func CheckGasPrice() {
 		},
 	)
 	if err1 != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 	err = model.SQLUpdateTAppStatusIntByK(
@@ -2095,7 +2099,7 @@ func CheckGasPrice() {
 		},
 	)
 	if err != nil {
-		log.Panicf("err: [%T] %s", err, err.Error())
+		hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 		return
 	}
 }

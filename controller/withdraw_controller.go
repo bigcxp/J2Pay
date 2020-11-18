@@ -225,6 +225,8 @@ func PickEdit(c *gin.Context) {
 	response.SuccessMsg("成功")
 }
 
+
+
 // @Tags 商户提领代发管理
 // @Summary 通知
 // @Produce json

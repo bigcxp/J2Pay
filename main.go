@@ -22,7 +22,7 @@ func main() {
 	//初始化以太坊节点
 	ethclient.InitClient(fmt.Sprintf("%s", setting.EthConf.Url))
 	//定时器
-	 cron.Cron()
+	cron.Cron()
 	//网关
 	router := routers.InitRouter()
 	//启动
