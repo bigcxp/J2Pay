@@ -100,6 +100,9 @@ func CheckDoNotify() {
 					hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 				}
 			} else {
+				if len(body) > 500 {
+					body = body[:500]
+				}
 				err = model.SQLUpdateTProductNotifyStatusByID(
 					&model.TUserNotify{
 						ID:           initNotifyRow.ID,

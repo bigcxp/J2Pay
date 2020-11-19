@@ -460,7 +460,7 @@ func CheckAddressOrg() {
 			info.RowIDs,
 			&model.TTx{
 				OrgStatus: hcommon.TxOrgStatusHex,
-				OrgMsg:    "gen raw tx",
+				OrgMsg:    "hex",
 				OrgTime:   now,
 			},
 		)
@@ -667,7 +667,7 @@ func CheckRawTxSend() {
 			erc20TxIDs,
 			&model.TTxErc20{
 				OrgStatus: hcommon.TxOrgStatusSend,
-				OrgMsg:    "send",
+				OrgMsg:    "fee send",
 				OrgTime:   now,
 			},
 		)
@@ -1022,7 +1022,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 			ID:           withdrawID,
 			TxHash:       txHash,
 			HandleStatus: hcommon.WithdrawStatusHex,
-			HandleMsg:    "gen tx hex",
+			HandleMsg:    "hex",
 			HandleTime:   now,
 		},
 	)
@@ -1042,7 +1042,7 @@ func handleWithdraw(withdrawID int64, chainID int64, hotAddress string, privateK
 			Nonce:        nonce,
 			Hex:          rawTxHex,
 			HandleStatus: hcommon.SendStatusInit,
-			HandleMsg:    "init",
+			HandleMsg:    "",
 			HandleTime:   now,
 		},
 	)
@@ -1213,7 +1213,7 @@ func CheckErc20BlockSeek() {
 				// map[接收地址] => 系统id
 				addressSystemMap := make(map[string]int64)
 				for _, dbAddressRow := range dbAddressRows {
-					addressSystemMap[dbAddressRow.UserAddress] = int64(dbAddressRow.UseTag)
+					addressSystemMap[dbAddressRow.UserAddress] = dbAddressRow.UseTag
 				}
 				// 遍历数据库中有交易的地址
 				for _, dbAddressRow := range dbAddressRows {
@@ -1228,7 +1228,7 @@ func CheckErc20BlockSeek() {
 					}
 					for _, log1 := range logs {
 						var transferEvent LogTransfer
-						err := contractAbi.Unpack(&transferEvent, "Transfer", log1.Data)
+						err := contractAbi.UnpackIntoInterface(&transferEvent, "Transfer", log1.Data)
 						if err != nil {
 							hcommon.Log.Errorf("err: [%T] %s", err, err.Error())
 							return
@@ -2029,7 +2029,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 			ID:           withdrawID,
 			TxHash:       txHash,
 			HandleStatus: hcommon.WithdrawStatusHex,
-			HandleMsg:    "gen tx hex",
+			HandleMsg:    "hex",
 			HandleTime:   now,
 		},
 	)
@@ -2049,7 +2049,7 @@ func handleErc20Withdraw(withdrawID int64, chainID int64, tokenMap *map[string]*
 			Nonce:        nonce,
 			Hex:          rawTxHex,
 			HandleStatus: hcommon.SendStatusInit,
-			HandleMsg:    "init",
+			HandleMsg:    "",
 			HandleTime:   now,
 		},
 	)
