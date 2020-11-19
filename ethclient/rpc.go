@@ -18,6 +18,10 @@ import (
 
 var client *Client
 
+func GetClient() *Client{
+	return client
+}
+
 // InitClient 初始化接口对象
 func InitClient(uri string) {
 	var err error

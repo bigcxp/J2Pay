@@ -36,7 +36,9 @@ import (
 type Client struct {
 	c *rpc.Client
 }
-
+func (c *Client) GetClient() *Client{
+	return c
+}
 // Dial connects a client to the given URL.
 func Dial(rawurl string) (*Client, error) {
 	return DialContext(context.Background(), rawurl)

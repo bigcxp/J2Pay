@@ -102,6 +102,8 @@ type TSend struct {
 	HandleStatus int64  `gorm:"default:0;comment:'处理状态'";json:"handle_status"`                 // 处理状态
 	HandleMsg    string `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`                   // 处理消息
 	HandleTime   int64  `gorm:"default:0;comment:'处理时间'" json:"handle_time"`                   // 处理时间
+	GasLimit  int64  `gorm:"default:0;comment:'gasLimit'";json:"gas_limit"` 			//提交时gas Limit设置
+	GasUsed  int64  `gorm:"default:0;comment:'gasUsed'";json:"gas_used"`    			//实际使用的gas Used
 }
 
 // 根据条件获取配置
@@ -268,6 +270,16 @@ func (t *TAppConfigToken) SQLSelectBySymbol(symbol string) (*TAppConfigToken, er
 	}
 	return &row, err
 }
+// symbol代币类型
+func (t *TAppConfigToken) SQLSelectByID(id int64) (*TAppConfigToken, error) {
+	var row = TAppConfigToken{}
+	err := DB.Find(&row, "id=?", id).Error
+	if err != nil {
+		return &row, err
+	}
+	return &row, err
+}
+
 
 //获取token配置
 func SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
@@ -400,11 +412,26 @@ func SQLGetTSendMaxNonce(address string) int64 {
 	return i + 1
 }
 
+//通过交易发起地址查询nonce
+func SQLGetTSendMaxNonceByFrom(address string) int64 {
+	var i int64
+	GetDb().Table("t_send").Where("from_address = ?", address).Select("IFNULL(MAX(nonce), -2)").Row().Scan(&i)
+	//如果查询不到数据，说明链上没有该地址交易，这里不可以返回0，0说明nonce的值是0，没有nonce时需要返回小于0的数字
+	return i
+}
+
 // 获取地址的打包数额
 func SQLGetTSendPendingBalanceReal(address string) string {
 	var i string
 	GetDb().Table("t_send").Where("from_address = ? and handle_status <? limit 1", address, 2).Select("IFNULL(SUM(CAST(balance_real as DECIMAL(65,18))), \"0\")").Row().Scan(&i)
 	return i
+}
+
+// 获取地址的打包数额
+func (*TSend) SQLGetTSendByTXID(txid string) *TSend {
+	var row=TSend{}
+	GetDb().Table("t_send").Where("tx_id = ? ", txid).Find(&row)
+	return &row
 }
 
 //创建多个交易
