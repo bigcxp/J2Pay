@@ -4,6 +4,7 @@ import (
 	"j2pay-server/hcommon"
 	"j2pay-server/heth"
 	"j2pay-server/model"
+	"j2pay-server/myerr"
 	"log"
 	"math"
 	"strconv"
@@ -11,7 +12,6 @@ import (
 )
 
 type ETHService struct {
-
 }
 
 // 主要逻辑就是先乘，trunc之后再除回去，就达到了保留N位小数的效果
@@ -27,23 +27,22 @@ func FormatFloat(num float64, decimal int) string {
 	return strconv.FormatFloat(math.Trunc(num*d)/d, 'f', -1, 64)
 }
 
-
 //保存发送交易记录
-func (e * ETHService) saveTransaction(ethHelp *heth.ETHHelp,withdrawID int64,transactionType int64,tokenId int64)error{
+func (e *ETHService) saveTransaction(ethHelp *heth.ETHHelp, withdrawID int64, transactionType int64, tokenId int64) error {
 	_, err := model.SQLCreateTSend(
 		&model.TSend{
 			RelatedType:  transactionType,
 			RelatedID:    withdrawID,
-			TokenID:		tokenId,
+			TokenID:      tokenId,
 			TxID:         ethHelp.TxHash,
 			FromAddress:  ethHelp.FromAddress,
 			ToAddress:    ethHelp.ToAddress,
-			BalanceReal:  FormatFloat(ethHelp.SendBalance,  64),
-			GasLimit:          ethHelp.SendGasLimit,
+			BalanceReal:  FormatFloat(ethHelp.SendBalance, 64),
+			GasLimit:     ethHelp.SendGasLimit,
 			GasPrice:     ethHelp.SendGasPrice,
 			Nonce:        ethHelp.Nonce,
 			Hex:          ethHelp.RawTxHex,
-			CreateTime:time.Now().Unix(),
+			CreateTime:   time.Now().Unix(),
 			HandleStatus: hcommon.SendStatusInit,
 			HandleMsg:    "init",
 		},
@@ -57,36 +56,36 @@ func (e * ETHService) saveTransaction(ethHelp *heth.ETHHelp,withdrawID int64,tra
 //交易一致处于padding中，造成交易卡死，重新发起新的交易覆盖之前交易，需要提高gas费用
 //param txId  交易发起时的txid
 //maxGasJudgment 是否需要判断系统配置最大gas费限制
-func (e * ETHService) ERC20PaddingHander(txid string,maxGasJudgment bool)(success bool,err error){
-	success=false
-	var tSend=model.TSend{}
-	tSendMode:= tSend.SQLGetTSendByTXID(txid)
-	tokenConfigSql:=model.TAppConfigToken{}
-	tokenConfig,err:=  tokenConfigSql.SQLSelectByID(tSendMode.TokenID)
-	if err!=nil || tokenConfig.TokenAddress==""{
+func (e *ETHService) ERC20PaddingHander(txid string, maxGasJudgment bool) (success bool, err error) {
+	success = false
+	var tSend = model.TSend{}
+	tSendMode := tSend.SQLGetTSendByTXID(txid)
+	tokenConfigSql := model.TAppConfigToken{}
+	tokenConfig, err := tokenConfigSql.SQLSelectByID(tSendMode.TokenID)
+	if err != nil || tokenConfig.TokenAddress == "" {
 		log.Print("查询usdt绑定的合约出错，err: [%T] %s", err, err.Error())
 		return
 	}
-	var ethHelp =heth.ETHHelp{}
-	ethHelp.ToAddress= tSendMode.ToAddress
+	var ethHelp = heth.ETHHelp{}
+	ethHelp.ToAddress = tSendMode.ToAddress
 	ethHelp.FromAddress = tokenConfig.HotAddress
-	ethHelp.ContractAddress=tokenConfig.TokenAddress
-	ethHelp.Places= tokenConfig.TokenDecimals
-	ethHelp.Nonce=tSendMode.Nonce
-	pri,err:= ethHelp.GetPrivateKey(ethHelp.FromAddress)
-	if err!=nil {
+	ethHelp.ContractAddress = tokenConfig.TokenAddress
+	ethHelp.Places = tokenConfig.TokenDecimals
+	ethHelp.Nonce = tSendMode.Nonce
+	pri, err := ethHelp.GetPrivateKey(ethHelp.FromAddress)
+	if err != nil {
 		return
 	}
-	ethHelp.PrivateKey=pri
-	if err!=nil {
+	ethHelp.PrivateKey = pri
+	if err != nil {
 		return
 	}
-	gasData:= heth.GasData{}
-	gasDataSql:= ethHelp.GetGas()
+	gasData := heth.GasData{}
+	gasDataSql := ethHelp.GetGas()
 	//交易失败，增加原有gasprice比例20%
-	gasData.FastGasPrice=int64(float64( tSendMode.GasPrice)*1.2)
+	gasData.FastGasPrice = int64(float64(tSendMode.GasPrice) * 1.2)
 	//本次交易允许的最大值
-	var maximumAllowed =gasDataSql.FastGasPrice
+	var maximumAllowed = gasDataSql.FastGasPrice
 	//开关-----判断是否最大
 	if maxGasJudgment {
 		//如果从eth上获取的gasPrice快速交易参数，大于了系统设置的最大值，就使用系统最大值
@@ -95,77 +94,87 @@ func (e * ETHService) ERC20PaddingHander(txid string,maxGasJudgment bool)(succes
 		}
 		//如果gas最大值已经小于当前提交的gas值，那么说明当前交易不合理
 		if maximumAllowed <= gasData.FastGasPrice {
-		//TODO 取消交易逻辑
-		log.Print("当前交易的gas费用不合理，不适合交易")
-		return
+			//TODO 取消交易逻辑
+			log.Print("当前交易的gas费用不合理，不适合交易")
+			return
 		}
 	}
 	//增加20%后还是低于，本次交易允许的最大值
-	if gasData.FastGasPrice<maximumAllowed{
-		gasData.FastGasPrice=maximumAllowed
+	if gasData.FastGasPrice < maximumAllowed {
+		gasData.FastGasPrice = maximumAllowed
 	}
 
-	gasData.FastGasLimit=tSendMode.GasLimit
-	ethHelp.GasData=&gasData
-	if err!=nil {
+	gasData.FastGasLimit = tSendMode.GasLimit
+	ethHelp.GasData = &gasData
+	if err != nil {
 		return
 	}
 	chainID, err := ethHelp.GetchainID()
-	ethHelp.ChainID=chainID
-	ethHelp.SendBalance,err=strconv.ParseFloat(  tSendMode.BalanceReal,64)
-	var ethHelpRet,err2=ethHelp.ERC20Transaction(ethHelp)
-	if err2!=nil {
+	ethHelp.ChainID = chainID
+	ethHelp.SendBalance, err = strconv.ParseFloat(tSendMode.BalanceReal, 64)
+	var ethHelpRet, err2 = ethHelp.ERC20Transaction(ethHelp)
+	if err2 != nil {
 		log.Print("调用合约发起交易出错，err: [%T] %s", err2, err2.Error())
 		return
 	}
-	if ethHelpRet.TxHash!=""{
-		err=e.saveTransaction(&ethHelpRet,0,hcommon.SendRelationTypeWithdraw,tokenConfig.ID);
-		if err!=nil {
+	if ethHelpRet.TxHash != "" {
+		err = e.saveTransaction(ethHelpRet, 0, hcommon.SendRelationTypeWithdraw, tokenConfig.ID)
+		if err != nil {
 			log.Print("保存交易信息出现异常！，err: [%T] %s", err, err.Error())
 		}
-		success=true
+		success = true
 		return
 	}
 	return
 }
 
-
 //发起代币（erc20）交易
 //param toAddress 发送目标地址
 //param 发送数量
 //maxGasJudgment 是否需要判断系统配置最大gas费限制
-func (e * ETHService) ERC20Transaction(toAddress string,quantitySent float64,maxGasJudgment bool)(success bool,err error){
-	success=false
-	tokenConfigSql:=model.TAppConfigToken{}
-	tokenConfig,err:=  tokenConfigSql.SQLSelectBySymbol("usdt")
-	if err!=nil{
+func (e *ETHService) ERC20Transaction(toAddress string, quantitySent float64, nonce int64, maxGasJudgment bool, gasData *heth.GasData) (success bool, err error) {
+	success = false
+	defer func() { success = true }()
+	//获取相同金额发送同一地址的未处理的交易
+	ret, err := model.SQLGetTSendFindUntreated(FormatFloat(quantitySent, 64), toAddress)
+	if err != nil {
+		return
+	}
+	if ret > 0 {
+		log.Print("未处理的同金额的发送同一地址的交易不可发送！")
+		return
+	}
+	tokenConfigSql := model.TAppConfigToken{}
+	tokenConfig, err := tokenConfigSql.SQLSelectBySymbol("usdt")
+	if err != nil {
 		log.Printf("查询usdt绑定的合约出错，err: [%T] %s", err, err.Error())
 		return
 	}
-	var ethHelp =heth.ETHHelp{}
-	ethHelp.ToAddress= toAddress
+	var ethHelp = heth.ETHHelp{}
+	ethHelp.ToAddress = toAddress
 	ethHelp.FromAddress = tokenConfig.HotAddress
-	ethHelp.ContractAddress=tokenConfig.TokenAddress
-	ethHelp.Places= tokenConfig.TokenDecimals
-	nonce, err :=	ethHelp.GetNONCE(ethHelp.FromAddress)
-	if err!=nil {
+	ethHelp.ContractAddress = tokenConfig.TokenAddress
+	ethHelp.Places = tokenConfig.TokenDecimals
+	if nonce <= 0 {
+		nonce, err = ethHelp.GetNONCE(ethHelp.FromAddress)
+		if err != nil {
+			return
+		}
+	}
+	ethHelp.Nonce = nonce
+	//println("nonce====",nonce)
+	pri, err := ethHelp.GetPrivateKey(ethHelp.FromAddress)
+	if err != nil {
 		return
 	}
-	println("nonce====",nonce)
-	ethHelp.Nonce=nonce
-	pri,err:= ethHelp.GetPrivateKey(ethHelp.FromAddress)
-	if err!=nil {
+	ethHelp.PrivateKey = pri
+	if err != nil {
 		return
 	}
-	ethHelp.PrivateKey=pri
-	if err!=nil {
-		return
+	if gasData == nil || gasData.FastGasPrice <= 0 {
+		gasData = ethHelp.GetGas()
 	}
-	gasData:=  ethHelp.GetGas()
-	ethHelp.GasData=gasData
-	if err!=nil {
-		return
-	}
+	ethHelp.GasData = gasData
 	//开关------   判断是否最大
 	if maxGasJudgment {
 		//如果从eth上获取的gasPrice快速交易参数，大于了系统设置的最大值，就使用系统最大值
@@ -174,20 +183,45 @@ func (e * ETHService) ERC20Transaction(toAddress string,quantitySent float64,max
 		}
 	}
 	chainID, err := ethHelp.GetchainID()
-	ethHelp.ChainID=chainID
-	ethHelp.SendBalance=quantitySent
-	var ethHelpRet,err2=ethHelp.ERC20Transaction(ethHelp)
-	if err2!=nil {
-		log.Print("调用合约发起交易出错，err: [%T] %s", err2, err2.Error())
+	ethHelp.ChainID = chainID
+	ethHelp.SendBalance = quantitySent
+	var ethHelpRet, ethErr = ethHelp.ERC20Transaction(ethHelp)
+	defer saveNonceRecording(ethHelpRet, ethErr)
+	if ethErr != nil {
+		log.Print("调用合约发起交易出错，err: [%T] %s", ethErr, ethErr.Error())
 		return
 	}
-	if ethHelpRet.TxHash!=""{
-		err=e.saveTransaction(&ethHelpRet,0,hcommon.SendRelationTypeWithdraw,tokenConfig.ID);
-		if err!=nil {
+	if ethHelpRet.TxHash != "" {
+		err = e.saveTransaction(ethHelpRet, 0, hcommon.SendRelationTypeWithdraw, tokenConfig.ID)
+		if err != nil {
 			log.Print("保存交易信息出现异常！，err: [%T] %s", err, err.Error())
 		}
-		success=true
 		return
 	}
 	return
+}
+
+//保存nonce
+func saveNonceRecording(ethHelp *heth.ETHHelp, ethErr *myerr.EthError) {
+	var nonceRecording model.NonceRecording
+	if ethErr == nil {
+		//nonce正常提交保存
+		nonceRecording = model.NonceRecording{
+			Nonce:      ethHelp.Nonce,
+			OthersUsed: 0,
+			FormAddr:   ethHelp.FromAddress,
+		}
+	} else if ethErr.Code == 1 {
+		//nonce冲突,保存
+		nonceRecording = model.NonceRecording{
+			Nonce:      ethHelp.Nonce,
+			OthersUsed: 1,
+			ErrMsg:     ethErr.Error(),
+			FormAddr:   ethHelp.FromAddress,
+		}
+	}
+	err := nonceRecording.Create()
+	if err != nil {
+		log.Print("保存nonce出现异常，err: [%T] %s", err, err.Error())
+	}
 }

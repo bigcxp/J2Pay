@@ -102,8 +102,8 @@ type TSend struct {
 	HandleStatus int64  `gorm:"default:0;comment:'处理状态'";json:"handle_status"`                 // 处理状态
 	HandleMsg    string `gorm:"default:'';comment:'处理消息'";json:"handle_msg"`                   // 处理消息
 	HandleTime   int64  `gorm:"default:0;comment:'处理时间'" json:"handle_time"`                   // 处理时间
-	GasLimit  int64  `gorm:"default:0;comment:'gasLimit'";json:"gas_limit"` 			//提交时gas Limit设置
-	GasUsed  int64  `gorm:"default:0;comment:'gasUsed'";json:"gas_used"`    			//实际使用的gas Used
+	GasLimit     int64  `gorm:"default:0;comment:'gasLimit'";json:"gas_limit"`                 //提交时gas Limit设置
+	GasUsed      int64  `gorm:"default:0;comment:'gasUsed'";json:"gas_used"`                   //实际使用的gas Used
 }
 
 // 根据条件获取配置
@@ -113,13 +113,13 @@ func SQLGetTAppConfigIntValueByK(k string) *int64 {
 	GetDb().Table("t_app_config_int").Where("k = ?", k).Select("v").Row().Scan(&v)
 	return v
 }
-// 获取eth上，各种情况gas值
-func  SQLGetTAppConfigInt()( []*TAppStatusInt,error) {
-	var v  =[]*TAppStatusInt{}
-	err:=GetDb().Table("t_app_status_int").Find(&v).Error
-	return v,err
-}
 
+// 获取eth上，各种情况gas值
+func SQLGetTAppConfigInt() ([]*TAppStatusInt, error) {
+	var v = []*TAppStatusInt{}
+	err := GetDb().Table("t_app_status_int").Find(&v).Error
+	return v, err
+}
 
 // 根据条件获取block配置
 func SQLGetTAppStatusIntValueByK(k string) *int64 {
@@ -270,6 +270,7 @@ func (t *TAppConfigToken) SQLSelectBySymbol(symbol string) (*TAppConfigToken, er
 	}
 	return &row, err
 }
+
 // symbol代币类型
 func (t *TAppConfigToken) SQLSelectByID(id int64) (*TAppConfigToken, error) {
 	var row = TAppConfigToken{}
@@ -279,7 +280,6 @@ func (t *TAppConfigToken) SQLSelectByID(id int64) (*TAppConfigToken, error) {
 	}
 	return &row, err
 }
-
 
 //获取token配置
 func SQLSelectTAppConfigTokenColAll() ([]TAppConfigToken, error) {
@@ -412,12 +412,27 @@ func SQLGetTSendMaxNonce(address string) int64 {
 	return i + 1
 }
 
+//通过交易发起地址查询nonce最大值和最小值
+func SQLGetTSendMaxAndMinNonceByFrom(address string) int64 {
+	var i int64
+
+	GetDb().Table("t_send").Where("from_address = ?", address).Select("IFNULL(MAX(nonce), -2)").Row().Scan(&i)
+	//如果查询不到数据，说明链上没有该地址交易，这里不可以返回0，0说明nonce的值是0，没有nonce时需要返回小于0的数字
+	return i
+}
+
 //通过交易发起地址查询nonce
 func SQLGetTSendMaxNonceByFrom(address string) int64 {
 	var i int64
 	GetDb().Table("t_send").Where("from_address = ?", address).Select("IFNULL(MAX(nonce), -2)").Row().Scan(&i)
 	//如果查询不到数据，说明链上没有该地址交易，这里不可以返回0，0说明nonce的值是0，没有nonce时需要返回小于0的数字
 	return i
+}
+
+// 通过地址和金额查询未处理的交易
+func SQLGetTSendFindUntreated(sendBalanceReal string, toAddress string) (i int, err error) {
+	err = GetDb().Table("t_send").Where("to_address = ? and CONVERT(balance_real, DECIMAL(64,18))=CONVERT(?, DECIMAL(64,18))and handle_status=?", toAddress, sendBalanceReal, 0).Count(&i).Error
+	return
 }
 
 // 获取地址的打包数额
@@ -429,7 +444,7 @@ func SQLGetTSendPendingBalanceReal(address string) string {
 
 // 获取地址的打包数额
 func (*TSend) SQLGetTSendByTXID(txid string) *TSend {
-	var row=TSend{}
+	var row = TSend{}
 	GetDb().Table("t_send").Where("tx_id = ? ", txid).Find(&row)
 	return &row
 }
@@ -630,7 +645,7 @@ func SQLUpdateTAppStatusIntByK(row *TAppStatusInt) (err error) {
 }
 
 //更新gas费用
-func  SQLUpdateTAppStatusInt(rows []*TAppStatusInt) (err error) {
+func SQLUpdateTAppStatusInt(rows []*TAppStatusInt) (err error) {
 	if len(rows) == 0 {
 		log.Panicf("未获取到eth的gasPrices数据")
 		return
@@ -643,14 +658,12 @@ func  SQLUpdateTAppStatusInt(rows []*TAppStatusInt) (err error) {
 			tx.Commit()
 		}
 	}()
-	for  _,v:= range rows {
-		err = tx.Model(&TAppStatusInt{}).Where("k =?",v.K).
-			Update("v",v.V).Error
+	for _, v := range rows {
+		err = tx.Model(&TAppStatusInt{}).Where("k =?", v.K).
+			Update("v", v.V).Error
 	}
 	return
 }
-
-
 
 //更改ttx的org状态
 func SQLUpdateTTxOrgStatusByIDs(ids []int64, row *TTx) (err error) {

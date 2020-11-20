@@ -31,6 +31,9 @@ func InitRouter() *gin.Engine {
 		middleware.MakeSession(), // session支持
 		middleware.ErrorHandle(), // 错误处理
 	)
+	r.GET("/checkTest", controller.CheckcheckTest)
+	r.GET("/SendTestTest", controller.SendTest)
+
 	//不需要授权
 	r.POST("/login", controller.Login)
 	r.GET("/login", controller.LoginIndex)
@@ -75,7 +78,6 @@ func InitRouter() *gin.Engine {
 	//7.交易记录
 	r.GET("ethTransfer", controller.EthTransfer)
 	r.GET("hotTransfer", controller.HotTransfer)
-
 
 	r.GET("/userInfo", controller.UserInfo)
 	// 加入鉴权中间件

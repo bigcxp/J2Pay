@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"j2pay-server/myerr"
 
 	//"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -55,9 +55,9 @@ type ETHHelp struct {
 	//代币位数
 	Places int64
 	// 提交交易后，返回的hash
-	  TxHash string
+	TxHash string
 	//作用未明，后面补上
-	    RawTxHex string
+	RawTxHex string
 }
 
 //eth 获取的gas相关数据
@@ -73,7 +73,7 @@ type GasData struct {
 	//eth交易需要有矿工挖矿完成，一笔交易需要矿工挖矿多次完成，每次扣取GasLimit，共计完成GasPrice这么多次
 	//eth交易一般默认为21000gwei
 	DefaultGasLimit int64
-    // 通过计算获取的gasLimit
+	// 通过计算获取的gasLimit
 	FastGasLimit int64
 	//系统规定的最大gaslimit值
 	MaxGasPrice int64
@@ -122,8 +122,8 @@ func (*ETHHelp) GetGas() *GasData {
 			gasData.MaxGasPrice = v.V
 		}
 	}
-	if gasData.FastGasLimit==0{
-		gasData.FastGasLimit =DefaultGasLimit*3
+	if gasData.FastGasLimit == 0 {
+		gasData.FastGasLimit = DefaultGasLimit * 3
 	}
 	return &gasData
 }
@@ -131,31 +131,37 @@ func (*ETHHelp) GetGas() *GasData {
 //通过交易发起地址获取nonce,
 //return nonce交易编号每次加一
 func (*ETHHelp) GetNONCE(fromAddress string) (nonce int64, err error) {
-
-	// 通过rpc获取
-	rpcNonce, err := ethclient.RpcNonceAt(
+	// 通过rpc获取nonce交易数量，例如nonce=5 count=6
+	rpcNonceCount, err := ethclient.RpcNonceAt(
 		context.Background(),
 		fromAddress,
 	)
 	if nil != err {
 		return -1, err
 	}
+	rpcNonce := rpcNonceCount - 1
 	// 获取db nonce
-	nonce = model.SQLGetTSendMaxNonceByFrom(fromAddress)
+	nonceRecording := model.NonceRecording{}
+	maxAndMin, err := nonceRecording.SQLGetTSendMaxAndMinNonceByFrom(fromAddress, rpcNonce)
 	if err != nil {
-		log.Print("GetNonce err: [%T] %s", err, err.Error())
+		log.Print("GetNonce err:  %s", err, err.Error())
 		return -1, err
 	}
-	if nonce<0 && rpcNonce<=0{
+	if maxAndMin.MinNonce < 0 && rpcNonceCount <= 0 {
 		//说明该地址是第一次交易，nooce起始就应该是0
-		return 0,nil
-	}else if nonce==rpcNonce{
-		//说明链上的nonce和数据库的nonce一致，这个时候需要+1让下一个交易索引nonce+1
-		return rpcNonce + 1, nil
-	}else if(nonce>rpcNonce){
-		//说明链上的nonce小于数据库的nonce，这个时候说明链上还在处理上一个交易，但是我们已经提交了新的交易，这里就要以本地的nonce为主
-		return nonce + 1, nil
+		return 0, nil
 	}
+	if maxAndMin.MaxNonce <= rpcNonce {
+		//说明链上的nonce大于数据库的nonce,中途有第三方提交交易，这个时候使用rpcNonce
+		return rpcNonce + 1, nil
+	} else if maxAndMin.MinNonce > rpcNonce+1 {
+		//说明链上的nonce与数据库的nonce有一个以上数字空缺，需要补上
+		return rpcNonce + 1, nil
+	} else if maxAndMin.MaxNonce > rpcNonce {
+		//说明我们提交的交易，有一个以上被卡住了，这里不适合继续交易，需要盘查错误，找出nonce
+		return -1, errors.New("该账号的交易nonce被卡住,请管理员盘查!")
+	}
+
 	//TODO 其他情况暂时无法判断,就以链上的nonce为准
 	return rpcNonce + 1, nil
 }
@@ -544,12 +550,14 @@ func (e *ETHHelp) CheckTransaction(addresss []string) {
 					log.Print("err: [%T] %s", err, err.Error())
 					return
 				}
-				transferEvent.From = strings.ToLower(common.HexToAddress(logMode.Topics[1].Hex()).Hex());println("transferEvent.From==",transferEvent.From)
-				transferEvent.To = strings.ToLower(common.HexToAddress(logMode.Topics[2].Hex()).Hex());println("transferEvent.To==",transferEvent.To)
+				transferEvent.From = strings.ToLower(common.HexToAddress(logMode.Topics[1].Hex()).Hex())
+				println("transferEvent.From==", transferEvent.From)
+				transferEvent.To = strings.ToLower(common.HexToAddress(logMode.Topics[2].Hex()).Hex())
+				println("transferEvent.To==", transferEvent.To)
 				hax := logMode.TxHash.Hex()
-				println("txhash=======",hax)
+				println("txhash=======", hax)
 				var BlockHash = logMode.BlockHash.Hex()
-				println("BlockHash=======",BlockHash)
+				println("BlockHash=======", BlockHash)
 				//if BlockHash == HAX_0 && logMode.BlockNumber == 0 {
 				//	//判断为未打包状态
 				//	continue
@@ -656,27 +664,29 @@ func (*ETHHelp) CheckBalance() {
 
 //eth交易转账
 //param ethTransactionMode 包含交易得所有参数
-func (e *ETHHelp) ETHTransaction(ethTransactionMode ETHHelp) (ethHelp ETHHelp, err error) {
+func (e *ETHHelp) ETHTransaction(ethTransactionMode ETHHelp) (ethHelp *ETHHelp, ethErr *myerr.EthError) {
 	return e.transaction(ethTransactionMode, 1)
 }
 
 //desc erc20交易转账
 //param ethTransactionMode 包含交易得所有参数
-func (e *ETHHelp) ERC20Transaction(ethTransactionMode ETHHelp) (ethHelp ETHHelp, err error) {
+func (e *ETHHelp) ERC20Transaction(ethTransactionMode ETHHelp) (ethHelp *ETHHelp, ethErr *myerr.EthError) {
 	return e.transaction(ethTransactionMode, 2)
 }
-
-
 
 //发起交易
 //eth交易可以不适用合约，目前没有研究，逻辑上也不需要eth交易，不做处理
 //param transactionType 1=eth,2=代币交易
-func (e *ETHHelp) transaction(ethTransactionMode ETHHelp, transactionType int) (ethHelp ETHHelp, err error) {
-	if strings.TrimSpace(ethTransactionMode.ContractAddress) == "" && transactionType == 2 {
-		log.Print("请求发送链上交易参数中没有合约地址！")
+func (e *ETHHelp) transaction(ethTransactionMode ETHHelp, transactionType int) (ethHelp *ETHHelp, ethErr *myerr.EthError) {
+	if len(strings.TrimSpace(ethTransactionMode.ToAddress)) != 42 && transactionType == 2 {
+		log.Print("请求发送链上交易参数中目标地址不合法！")
 		return
 	}
-	if strings.TrimSpace(ethTransactionMode.FromAddress) == "" && transactionType == 1 {
+	if len(strings.TrimSpace(ethTransactionMode.ContractAddress)) != 42 && transactionType == 2 {
+		log.Print("请求发送链上交易参数中合约地址不合法！")
+		return
+	}
+	if len(strings.TrimSpace(ethTransactionMode.FromAddress)) != 42 && transactionType == 1 {
 		log.Print("请求发送链上交易参数中没有发起交易地址！")
 		return
 	}
@@ -690,6 +700,10 @@ func (e *ETHHelp) transaction(ethTransactionMode ETHHelp, transactionType int) (
 	}
 	if ethTransactionMode.Places <= 8 {
 		log.Print("请求发送链上交易的代币位数不合理！")
+		return
+	}
+	if ethTransactionMode.Nonce < 0 {
+		log.Print("请求的nonce不可以小于0！")
 		return
 	}
 	// 加载合约信息
@@ -712,7 +726,7 @@ func (e *ETHHelp) transaction(ethTransactionMode ETHHelp, transactionType int) (
 		//eth交易我认为就是，冷热钱包的转账交易，不需要太快
 		ethTransactionMode.SendGasPrice = ethTransactionMode.GasData.AvgGasPrice
 		//一般eth交易默认limit就够了
-		ethTransactionMode.SendGasLimit =DefaultGasLimit
+		ethTransactionMode.SendGasLimit = DefaultGasLimit
 	} else if transactionType == 2 {
 		//erc20 代币交易
 		erc20TransactionNum = e.BalanceToVirtualCurrencyWei(ethTransactionMode.SendBalance, 18)
@@ -762,16 +776,12 @@ func (e *ETHHelp) transaction(ethTransactionMode ETHHelp, transactionType int) (
 		log.Print("获取链上id失败，err: [%T] %s", err, err.Error())
 		return
 	}
-	//if signedTx.To() != nil {
-	//	println("发送交易链上失败，err: [%T] %s")
-	//	return
-	//}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// 交易发送
 	var err2 = ethclient.RpcSendTransaction(ctx, signedTx)
-	if err2 != nil {
-		println("发送交易链上失败，err: [%T] %s", err2, err2.Error())
+	ethErr = e.transactionErrHander(err2)
+	if ethErr != nil {
 		return
 	}
 	ts := types.Transactions{signedTx}
@@ -780,110 +790,88 @@ func (e *ETHHelp) transaction(ethTransactionMode ETHHelp, transactionType int) (
 	ethTransactionMode.RawTxHex = hex.EncodeToString(rawTxBytes)
 	//补充交易信息，供后面流程使用，用来标记交易记录
 	ethTransactionMode.TxHash = strings.ToLower(signedTx.Hash().Hex())
-	c:=ethclient.GetClient()
-	//TODO 等待挖矿完成
-	ret, err := bind.WaitMined(ctx, c, signedTx)
-	if err != nil {
-		log.Print("等待回调结果出错", err, err.Error())
+	log.Print("一笔%s支付交易发送，费用%s", typeStr, ethTransactionMode.SendBalance)
+	ethHelp = &ethTransactionMode
+	return
+}
+
+//发送交易错误处理
+func (*ETHHelp) transactionErrHander(err error) (ethErr *myerr.EthError) {
+	if err == nil {
+		return nil
+	} else {
+		println("发送交易链上失败，err: [%T] %s", err, err.Error())
+	}
+	return ethErr.ErrorType(err.Error())
+}
+
+//通过txhash查询交易结果
+//return result 交易结果 1=成功，2=未获取结果，0=失败
+//return tType 1=eth加以，2=erc20交易
+//return  gasUsed gas使用的数量
+func (*ETHHelp) CheckTransactionByTxHash(txHash string) (result int, tType int, gasUsed uint64, err error) {
+	result = 2
+	if len(txHash) <= 30 {
+		log.Print("txHash 参数值异常")
 		return
 	}
-	log.Print("请求回调结果=====", ret)
-	log.Print("一笔%s支付交易发送，费用%s", typeStr, ethTransactionMode.SendBalance)
-	ethHelp = ethTransactionMode
-	return ethTransactionMode, err
-}
-//通过txhash查询交易结果
-func  (*ETHHelp)  CheckTransactionByTxHash(txHash string) (rpcTxReceipt *types.Receipt,err error){
-	queryTicker := time.NewTicker(time.Second)
-	c:=ethclient.GetClient()
-	defer queryTicker.Stop()
+	c := ethclient.GetClient()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// 读取abi
-	type LogTransfer struct {
-		From   string
-		To     string
-		Tokens *big.Int
-	}
-	contractAbi, err := abi.JSON(strings.NewReader(ethclient.EthABI))
-	var transferEvent LogTransfer
 
-	if err != nil {
-		log.Print("err: [%T] %s", err, err.Error())
-		return
-	}
+	var index = 10
+	var rpcTxReceipt *types.Receipt
 	for {
 
 		rpcTxReceipt, err = c.TransactionReceipt(ctx, common.HexToHash(txHash))
 		if err != nil {
-			if  strings.Contains(err.Error(), "\"code\":-32005,\"message\""){
+			if strings.Contains(err.Error(), "\"code\":-32005,\"message\"") {
 				println("eth查询交易结果请求过多，被屏蔽了！", "err", err.Error())
 				return
 			}
-			if  strings.Contains(err.Error(), "Receipt retrieval failed err 401 Unauthorized: invalid project id")			||
+			if strings.Contains(err.Error(), "Receipt retrieval failed err 401 Unauthorized: invalid project id") ||
 				strings.Contains(err.Error(), "401 Unauthorized: invalid project id") {
 				println("eth访问地址出现异常！", "err", err.Error())
 				return
 			}
 			println("Receipt retrieval failed", "err", err.Error())
-		} else {
-			println("Transaction not yet mined")
+			index = index - 1
+			if index == 0 {
+				break
+			}
 		}
-		if rpcTxReceipt != nil {
-			println("receipt return ===",rpcTxReceipt)
+		//TODO 1=成功，0=失败，是否还有其他状态
+		if rpcTxReceipt != nil && rpcTxReceipt.Status != 1 {
+			println("交易失败，状态=", rpcTxReceipt.Status)
+			return
+		} else if rpcTxReceipt != nil && rpcTxReceipt.Status == 1 {
 			break
 		}
 
-		// Wait for the next round.
-		select {
-		case <-ctx.Done():
-			println("Done()",ctx.Err())
-			return
-		case <-queryTicker.C:
-		}
 	}
-	println(strings.ToLower(common.HexToAddress(rpcTxReceipt.TxHash.Hex()).Hex()))
+	if rpcTxReceipt == nil {
+		println("未获取到交易状态")
+		return
+	}
+	println(rpcTxReceipt.TxHash.Hex())
 	println("CumulativeGasUsed======", rpcTxReceipt.CumulativeGasUsed)
 	println("GasUsed======", rpcTxReceipt.GasUsed)
-	//TODO 1=成功，0=失败，是否还有其他状态
-	if rpcTxReceipt.Status != 1 {
-		println("Status",rpcTxReceipt.Status)
-	}
-	rpcTx, err := ethclient.RpcTransactionByHash(
-		context.Background(),
-		txHash,
-	)
-	if err != nil {
-		log.Print("err: [%T] %s", err, err.Error())
-		return nil,nil
-	}
 	println(rpcTxReceipt.ContractAddress.Hex())
-	var log=rpcTxReceipt.Logs[0]
-	err = contractAbi.Unpack(&transferEvent, "Transfer", log.Data)
-
-	// 检测input
-	input, err := contractAbi.Pack(
-		"transfer",
-		common.HexToAddress(log.Topics[2].Hex()),
-		transferEvent.Tokens,
-	)
-	if err != nil {
-		println("err: [%T] %s", err, err.Error())
-		return
-	}
-	if hexutil.Encode(input) != hexutil.Encode(rpcTx.Data()) {
-		// input 不匹配
-		println("input 不匹配")
-		return
-	}
+	//交易块 BlockNumber
 	println(rpcTxReceipt.BlockNumber)
-	balanceReal, err := TokenWeiBigIntToEthStr(transferEvent.Tokens, 18)
-	if err != nil {
-		println("err: [%T] %s", err, err.Error())
-		return
+	//合约地址为空，说明是eth交易
+	if rpcTxReceipt.ContractAddress.Hex() == HAX_0 {
+		tType = 1
+	} else {
+		//erc20交易
+		tType = 2
 	}
-	println("实际支付金额", balanceReal)
-	return
+	//已经计算出使用gas费用，说明交易成功
+	if rpcTxReceipt.CumulativeGasUsed > 0 {
+		result = 1
+		gasUsed = rpcTxReceipt.GasUsed
+	}
+	return result, tType, gasUsed, err
 }
 
 // 将交易的数字转换为该虚拟币对应的位数
