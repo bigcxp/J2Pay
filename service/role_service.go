@@ -29,7 +29,10 @@ func RoleDetail(id int) (response.RoleList, error) {
 		id, _ := strconv.Atoi(v)
 		res.Auth = append(res.Auth, id)
 	}
-	baseAuth := model.GetAllBaseAuth("is_menu = 0 and id in (?)", res.Auth)
+	baseAuth ,err:= model.GetAllBaseAuth("is_menu = 0 and id in (?)", res.Auth)
+	if err != nil {
+		return res,err
+	}
 	for _, v := range baseAuth {
 		res.BaseAuth = append(res.BaseAuth, v.Id)
 	}
@@ -52,7 +55,10 @@ func RoleAdd(role request.RoleAdd) error {
 	}
 
 	// 严谨起见，从数据库获取权限
-	all := model.GetAllBaseAuth("id in (?)", role.Auth)
+	all,err := model.GetAllBaseAuth("id in (?)", role.Auth)
+	if err != nil {
+		return err
+	}
 	allIds := make([]string, 0)
 	for _, v := range all {
 		allIds = append(allIds, strconv.Itoa(v.Id))
@@ -80,7 +86,10 @@ func RoleEdit(role request.RoleEdit) error {
 	}
 
 	// 严谨起见，从数据库获取权限
-	all := model.GetAllBaseAuth("id in (?)", role.Auth)
+	all ,err:= model.GetAllBaseAuth("id in (?)", role.Auth)
+	if err != nil {
+		return err
+	}
 	allIds := make([]string, 0)
 	for _, v := range all {
 		allIds = append(allIds, strconv.Itoa(v.Id))

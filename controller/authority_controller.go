@@ -14,7 +14,11 @@ import (
 // @Router /auth/tree [get]
 func AuthTree(c *gin.Context) {
 	response := util.Response{c}
-	res := service.AuthTreeCache()
+	res,err := service.AuthTreeCache()
+	if err != nil{
+		response.SetOtherError(err)
+		return
+	}
 	response.SuccessData(res)
 }
 
@@ -25,6 +29,10 @@ func AuthTree(c *gin.Context) {
 // @Router /auth/list [get]
 func AuthList(c *gin.Context) {
 	response := util.Response{c}
-	res := service.AuthListCache()
+	res ,err:= service.AuthListCache()
+	if err != nil {
+		response.SetOtherError(err)
+		return
+	}
 	response.SuccessData(res)
 }

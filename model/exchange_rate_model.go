@@ -22,12 +22,15 @@ type Rate struct {
 }
 
 //查询记录
-func (r *Rate) GetAllRate() response.RatePage {
+func (r *Rate) GetAllRate() (response.RatePage,error) {
 	all := response.RatePage{
 		Data: []response.Rate{},
 	}
-	DB.Find(&all.Data)
-	return all
+	err := DB.Find(&all.Data).Error
+	if err != nil {
+		return response.RatePage{}, err
+	}
+	return  all,nil
 }
 
 // 根据ID获取汇率详情
@@ -63,7 +66,10 @@ func (r *Rate) Update(rate request.RateEdit) (err error) {
 
 		}
 	}()
-	rates := GetRateByWhere("id = ?", rate.ID)
+	rates,err := GetRateByWhere("id = ?", rate.ID)
+	if err != nil {
+		return err
+	}
 	err = tx.Model(&rates).
 		Updates(Rate{ReceiveWeightType: rate.ReceiveWeightType, PayWeightType: rate.PayWeightType,
 			ReceiveWeightAddOrReduce: rate.ReceiveWeightAddOrReduce, PayWeightAddOrReduce: rate.PayWeightAddOrReduce,
@@ -73,7 +79,7 @@ func (r *Rate) Update(rate request.RateEdit) (err error) {
 }
 
 // 根据条件获取详情
-func GetRateByWhere(where ...interface{}) (ra Rate) {
-	DB.First(&ra, where...)
+func GetRateByWhere(where ...interface{}) (ra Rate,err error) {
+	err = DB.First(&ra, where...).Error
 	return
 }

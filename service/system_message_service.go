@@ -22,8 +22,14 @@ func MessageList(title string, page, pageSize int) (res response.SystemMessagePa
 	if err != nil {
 		return
 	}
-	users := model.GetAllUser()
-	mappings := model.GetMessageUserMapping()
+	users,err := model.GetAllUser()
+	if err != nil {
+		return response.SystemMessagePage{},err
+	}
+	mappings,err := model.GetMessageUserMapping()
+	if err != nil {
+		return response.SystemMessagePage{},err
+	}
 	for i, v := range res.Data {
 		_, ok := mappings[v.Id]
 		if !ok {
@@ -55,8 +61,14 @@ func MessageListByUser(uid, page, pageSize int) (res response.AdminUserMessagePa
 	if err != nil {
 		return
 	}
-	messages := model.GetAllMessage()
-	mappings := model.GetUserMessageMapping()
+	messages ,err:= model.GetAllMessage()
+	if err != nil {
+		return response.AdminUserMessagePage{},err
+	}
+	mappings ,err:= model.GetUserMessageMapping()
+	if err != nil {
+		return response.AdminUserMessagePage{},err
+	}
 	for i, v := range res.Data {
 		_, ok := mappings[v.Id]
 		if !ok {

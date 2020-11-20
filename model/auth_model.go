@@ -15,15 +15,15 @@ type Auth struct {
 }
 
 // 查询所有权限
-func GetAllAuth(where ...interface{}) (res []response.Auth) {
-	DB.Model(Auth{}).Find(&res, where...)
+func GetAllAuth(where ...interface{}) (res []response.Auth,err error) {
+	err = DB.Model(Auth{}).Find(&res, where...).Error
 	return
 }
 
 // 查询所有权限
-func GetAllBaseAuth(where ...interface{}) (res []Auth) {
-	DB.Model(Auth{}).
+func GetAllBaseAuth(where ...interface{}) (res []Auth,err error) {
+	err = DB.Model(Auth{}).
 		Order("id asc").
-		Find(&res, where...)
+		Find(&res, where...).Error
 	return
 }

@@ -44,8 +44,12 @@ type AdminUser struct {
 
 // 获取所有后台组织
 func (u *AdminUser) GetAll(page, pageSize int, where ...interface{}) (response.AdminUserPage, error) {
+	count, err2 := u.GetCount(where...)
+	if err2 != nil {
+		return response.AdminUserPage{}, err2
+	}
 	all := response.AdminUserPage{
-		Total:       u.GetCount(where...),
+		Total:       count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.AdminUserList{},
@@ -66,9 +70,12 @@ func (u *AdminUser) GetAllMessage(page, pageSize int, where ...interface{}) (res
 	user := &response.AdminUserMessageList{}
 	DB.Where("id = ?", 1).Preload("system_message").Find(&user)
 	logger.Logger.Println(user)
-
+	count, err2 := u.GetCount(where...)
+	if err2 != nil {
+		return response.AdminUserMessagePage{}, err2
+	}
 	all := response.AdminUserMessagePage{
-		Total:       u.GetCount(where...),
+		Total:      count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.AdminUserMessageList{},
@@ -145,7 +152,6 @@ func (u *AdminUser) Edit() error {
 		return err
 	}
 	tx.Commit()
-
 	return nil
 }
 
@@ -172,19 +178,22 @@ func GetUserByWhere(where ...interface{}) (au AdminUser, err error) {
 }
 
 // 获取所有后台组织数量
-func (u *AdminUser) GetCount(where ...interface{}) (count int) {
+func (u *AdminUser) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
 		DB.Model(&u).Count(&count)
 		return
 	}
-	DB.Model(&u).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&u).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }
 
-func GetAllUser() (mapping map[int]response.UserNames) {
+func GetAllUser() (mapping map[int]response.UserNames,err error) {
 	var users []response.UserNames
 	mapping = make(map[int]response.UserNames)
-	DB.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
+	err = DB.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
 	for _, user := range users {
 		mapping[user.Id] = user
 	}

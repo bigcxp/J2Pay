@@ -7,15 +7,14 @@ type SystemMessageUser struct {
 
 // 获取所有系统消息和用户对应表
 // [系统消息ID] => [用户ID_1, 用户ID_2, 用户ID_3]
-func GetMessageUserMapping() map[int][]int {
+func GetMessageUserMapping() (map[int][]int,error) {
 	var all []SystemMessageUser
-	DB.Select([]string{"system_message_id", "admin_user_id"}).
+	err := DB.Select([]string{"system_message_id", "admin_user_id"}).
 		Where("system_message_id !=0 ").
-		Find(&all)
-
-	//select * from message
-	//left join system_messgage
-	//
+		Find(&all).Error
+	if err != nil {
+		return nil, err
+	}
 	hash := make(map[int][]int)
 	for _, v := range all {
 		messageId := v.SystemMessageId
@@ -27,16 +26,19 @@ func GetMessageUserMapping() map[int][]int {
 			hash[messageId] = []int{userId}
 		}
 	}
-	return hash
+	return hash,nil
 }
 
 // 获取所有系统消息和用户对应表
 // [用户ID] => [公告ID_1, 公告ID_2, 公告ID_3]
-func GetUserMessageMapping() map[int][]int {
+func GetUserMessageMapping() (map[int][]int,error) {
 	var all []SystemMessageUser
-	DB.Select([]string{"system_message_id", "admin_user_id"}).
+	err := DB.Select([]string{"system_message_id", "admin_user_id"}).
 		Where("admin_user_id != 0 ").
-		Find(&all)
+		Find(&all).Error
+	if err != nil {
+		return nil, err
+	}
 	hash := make(map[int][]int)
 	for _, v := range all {
 		messageId := v.SystemMessageId
@@ -48,5 +50,5 @@ func GetUserMessageMapping() map[int][]int {
 			hash[userId] = []int{messageId}
 		}
 	}
-	return hash
+	return hash,nil
 }

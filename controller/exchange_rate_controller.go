@@ -26,7 +26,11 @@ func RateIndex(c *gin.Context) {
 // @Router /rate [get]
 func RateList(c *gin.Context) {
 	response := util.Response{c}
-	detail := service.GetAllRate()
+	detail,err := service.GetAllRate()
+	if err != nil {
+		response.SetOtherError(err)
+		return
+	}
 	response.SuccessData(detail)
 }
 

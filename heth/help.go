@@ -125,7 +125,10 @@ func GetNonce(address string) (int64, error) {
 		return 0, err
 	}
 	// 获取db nonce
-	dbNonce:= model.SQLGetTSendMaxNonce(address)
+	dbNonce,err := model.SQLGetTSendMaxNonce(address)
+	if err != nil {
+		return 0,err
+	}
 	if dbNonce > rpcNonce {
 		rpcNonce = dbNonce
 	}

@@ -17,8 +17,12 @@ type SystemMessage struct {
 
 // 获取所有系统消息
 func (s *SystemMessage) GetAll(page, pageSize int, where ...interface{}) (response.SystemMessagePage, error) {
+	count, err2 := s.GetCount(where...)
+	if err2 != nil {
+		return response.SystemMessagePage{}, err2
+	}
 	all := response.SystemMessagePage{
-		Total:       s.GetCount(where...),
+		Total:      count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.SystemMessageList{},
@@ -112,20 +116,22 @@ func (s *SystemMessage) Del() error {
 }
 
 // 获取所有系统公告数量
-func (s *SystemMessage) GetCount(where ...interface{}) (count int) {
+func (s *SystemMessage) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
 		DB.Model(&s).Count(&count)
 		return
 	}
-	DB.Model(&s).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&s).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }
 
-func GetAllMessage() (mapping map[int]response.AdminSystemMessage) {
+func GetAllMessage() (mapping map[int]response.AdminSystemMessage,err error) {
 	var systemMessages []response.AdminSystemMessage
-
 	mapping = make(map[int]response.AdminSystemMessage)
-	DB.Table("system_message").Select("id,title,begin_time,end_time").Order("id desc").Find(&systemMessages)
+	err = DB.Table("system_message").Select("id,title,begin_time,end_time").Order("id desc").Find(&systemMessages).Error
+	if err != nil {
+		return nil, err
+	}
 	for _, systemMessage := range systemMessages {
 		mapping[systemMessage.Id] = systemMessage
 	}

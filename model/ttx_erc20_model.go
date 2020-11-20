@@ -30,8 +30,12 @@ type TTxErc20 struct {
 
 //获取所有交易订单明细列表
 func (t *TTxErc20) GetAllErc20Detail(page, pageSize int, where ...interface{}) (response.Erc20Page, error) {
+	count, err2 := t.GetCount(where...)
+	if err2 != nil {
+		return response.Erc20Page{}, err2
+	}
 	all := response.Erc20Page{
-		Total:       t.GetCount(where...),
+		Total:       count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.Erc20List{},
@@ -47,7 +51,10 @@ func (t *TTxErc20) GetAllErc20Detail(page, pageSize int, where ...interface{}) (
 		all.Data[index].Create = time.Unix(all.Data[index].CreateTime,0)
 		if v.OrderId != "" && v.Status == 2 {
 			//获取该交易订单
-			orderByWhere := GetOrderByWhere("order_code = ?", v.OrderId)
+			orderByWhere,err := GetOrderByWhere("order_code = ?", v.OrderId)
+			if err != nil {
+				return response.Erc20Page{}, err
+			}
 			//获取组织
 			userByWhere, _ := GetUserByWhere("id = ?", orderByWhere.UserId)
 			all.Data[index].RealName = userByWhere.RealName
@@ -70,7 +77,10 @@ func (t *TTxErc20) GetErc20Detail(id ...int) (res response.Erc20List, err error)
 	res.Create = time.Unix(res.CreateTime,0)
 	if res.OrderId != "" && res.Status == 2 {
 		//获取该交易订单
-		orderByWhere := GetOrderByWhere("order_code = ?", res.OrderId)
+		orderByWhere ,err:= GetOrderByWhere("order_code = ?", res.OrderId)
+		if err != nil {
+			return response.Erc20List{},err
+		}
 		//获取组织
 		userByWhere, _ := GetUserByWhere("id = ?", orderByWhere.UserId)
 		res.RealName = userByWhere.RealName
@@ -109,17 +119,17 @@ func (t *TTxErc20) BindOrder(order request.Erc20Edit) (err error) {
 }
 
 // 根据条件获取订单明细详情
-func GetErc20ByWhere(where ...interface{}) (t TTxErc20) {
-	DB.First(&t, where...)
+func GetErc20ByWhere(where ...interface{}) (t TTxErc20,err error) {
+	err = DB.First(&t, where...).Error
 	return
 }
 
 // 获取所有交易订单数量
-func (t *TTxErc20) GetCount(where ...interface{}) (count int) {
+func (t *TTxErc20) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
 		DB.Model(&t).Count(&count)
 		return
 	}
-	DB.Model(&t).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&t).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }

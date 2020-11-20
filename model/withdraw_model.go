@@ -74,13 +74,21 @@ func (p *TWithdraw) GetAllSend(page, pageSize int, where ...interface{}) (respon
 
 // 商户端获取所有提领代发订单列表
 func (p *TWithdraw) GetAll(page, pageSize int, where ...interface{}) (response.MerchantPickSendPage, error) {
+	fee, err2 := p.getFee()
+	if err2 != nil {
+		return response.MerchantPickSendPage{}, err2
+	}
+	amount, err2 := p.getAmount()
+	if err2 != nil {
+		return response.MerchantPickSendPage{}, err2
+	}
 	all := response.MerchantPickSendPage{
 		Total:       p.GetCount(where...),
 		PerPage:     pageSize,
 		CurrentPage: page,
-		TotalFee:    p.getFee(),
-		TotalReduce: validate.Decimal(p.getFee() + p.getAmount()),
-		TotalAmount: p.getAmount(),
+		TotalFee:    fee,
+		TotalReduce: validate.Decimal(fee + amount),
+		TotalAmount: amount,
 		Data:        []response.MerchantPickList{},
 	}
 	//分页查询
@@ -90,10 +98,17 @@ func (p *TWithdraw) GetAll(page, pageSize int, where ...interface{}) (response.M
 		return response.MerchantPickSendPage{}, err
 	}
 	for index, v := range all.Data {
-		user, _ := GetUserByWhere("id = ?", v.UserId)
+		user, err := GetUserByWhere("id = ?", v.UserId)
+		if err != nil {
+			return response.MerchantPickSendPage{},err
+		}
 		all.Data[index].RealName = user.RealName
 		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
-		all.Data[index].GasFee = GetGasFeeDetail().EthFee
+		detail, err := GetGasFeeDetail()
+		if err != nil {
+			return response.MerchantPickSendPage{}, err
+		}
+		all.Data[index].GasFee = detail.EthFee
 	}
 	return all, err
 }
@@ -125,7 +140,10 @@ func (p *TWithdraw) GetSendDetail(id ...int) (res response.SendList, err error) 
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
-	user, _ := GetUserByWhere("id = ?", res.UserId)
+	user, err := GetUserByWhere("id = ?", res.UserId)
+	if err != nil {
+		return
+	}
 	res.RealName = user.RealName
 	res.DelMoney = res.Amount + res.Fee
 	return
@@ -138,7 +156,10 @@ func (p *TWithdraw) GetPickSendDetail(id ...int) (res response.MerchantPickList,
 		Where("id = ?", p.ID).
 		First(&res).
 		Error
-	user, _ := GetUserByWhere("id = ?", res.UserId)
+	user, err := GetUserByWhere("id = ?", res.UserId)
+	if err != nil {
+		return
+	}
 	res.RealName = user.RealName
 	res.DelMoney = res.Amount + res.Fee
 	//gasFee 待完成·
@@ -157,6 +178,9 @@ func (p *TWithdraw) CancelPick(id, status int64) (err error) {
 		}
 	}()
 	pick,err := GetPickByWhere("id = ?", id)
+	if err != nil {
+		return err
+	}
 	err = tx.Model(&pick).
 		Updates(TWithdraw{HandleStatus: status}).Error
 	return
@@ -177,37 +201,37 @@ func SQLCreateTWithdraw(row *TWithdraw) error {
 }
 
 //获取提领总金额
-func (p *TWithdraw) getAmount() float64 {
+func (p *TWithdraw) getAmount() (float64,error) {
 	var totalAmount int
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
 	err := DB.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
-		return 0
+		return 0,err
 	}
 	for _, v := range all.Data {
 		atoi, _ := strconv.Atoi(v.Amount)
 		totalAmount +=atoi
 	}
-	return validate.Decimal(float64(totalAmount))
+	return validate.Decimal(float64(totalAmount)),nil
 }
 
 //总手续费
-func (p *TWithdraw) getFee() float64 {
+func (p *TWithdraw) getFee() (float64,error) {
 	var totalFee int
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
 	err := DB.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
-		return 0
+		return 0,err
 	}
 	for _, v := range all.Data {
 		fee, _ := strconv.Atoi(v.Fee)
 		totalFee += fee
 	}
-	return validate.Decimal(float64(totalFee))
+	return validate.Decimal(float64(totalFee)),nil
 }
 
 // 根据条件获取详情

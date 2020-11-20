@@ -28,8 +28,12 @@ type Order struct {
 
 //获取所有订单列表
 func (o *Order) GetAllMerchantOrder(page, pageSize int, where ...interface{}) (response.OrderPage, error) {
+	count, err2 := o.GetCount(where...)
+	if err2 != nil {
+		return response.OrderPage{}, err2
+	}
 	all := response.OrderPage{
-		Total:          o.GetCount(where...),
+		Total:          count,
 		PerPage:        pageSize,
 		CurrentPage:    page,
 		TotalAmount:    o.getTotalAmount(),
@@ -63,7 +67,7 @@ func (o *Order) GetAllMerchantOrder(page, pageSize int, where ...interface{}) (r
 }
 
 // 获取所有订单数量
-func (o *Order) GetCount(where ...interface{}) (count int) {
+func (o *Order) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
 		DB.Model(&o).Count(&count)
 		return
@@ -110,7 +114,10 @@ func (o *Order) Create() error {
 //修改订单
 func (o *Order) UpdateOrder(order request.OrderEdit) error {
 	tx := DB.Begin()
-	orders := GetOrderByWhere("id = ?", order.ID)
+	orders,err := GetOrderByWhere("id = ?", order.ID)
+	if err != nil {
+		return err
+	}
 	if err := tx.Model(&orders).
 		Updates(Order{Status: order.Status, Address: order.Address, ShouldAmount: order.ShouldAmount, ExprireTime: order.ExprireTime}).Error; err != nil {
 		tx.Rollback()
@@ -136,8 +143,8 @@ func BindErc20(Erc20Code string, orderCode string) (err error) {
 }
 
 // 根据条件获取订单详情
-func GetOrderByWhere(where ...interface{}) (o Order) {
-	DB.First(&o, where...)
+func GetOrderByWhere(where ...interface{}) (o Order,err error) {
+	err = DB.First(&o, where...).Error
 	return
 }
 

@@ -54,7 +54,11 @@ func OrderAdd(c *gin.Context,order request.OrderAdd) (error, response.UserAddr) 
 		return  myerr.NewNormalValidateError("没有用户信息"),response.UserAddr{}
 	}
 	//判断订单编号是否重复
-	if hasCode := model.GetOrderByWhere("order_code = ?", order.OrderCode); hasCode.ID > 0 {
+	 hasCode ,err:= model.GetOrderByWhere("order_code = ?", order.OrderCode)
+	if err != nil {
+		return err,response.UserAddr{}
+	}
+	if hasCode.ID > 0 {
 		return myerr.NewDbValidateError("商户订单编号重复！"), response.UserAddr{}
 	}
 	//判断金额不能为负数

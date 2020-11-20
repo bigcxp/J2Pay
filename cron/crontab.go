@@ -32,12 +32,12 @@ func Cron() {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 eth 冲币
-		_, err = c.AddFunc("@every 20m", heth.CheckBlockSeek)
+		_, err = c.AddFunc("@every 1m", heth.CheckBlockSeek)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 eth 零钱整理=>充币地址整理到冷钱包
-		_, err = c.AddFunc("@every 30m", heth.CheckAddressOrg)
+		_, err = c.AddFunc("@every 20m", heth.CheckAddressOrg)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
@@ -47,29 +47,29 @@ func Cron() {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 eth 发送交易
-		_, err = c.AddFunc("@every 50m", heth.CheckRawTxSend)
+		_, err = c.AddFunc("@every 2m", heth.CheckRawTxSend)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 eth 交易上链=》是否完成打包
-		_, err = c.AddFunc("@every 60m", heth.CheckRawTxConfirm)
+		_, err = c.AddFunc("@every 3m", heth.CheckRawTxConfirm)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 eth 通知到账
-		_, err = c.AddFunc("@every 70m", heth.CheckTxNotify)
+		_, err = c.AddFunc("@every 8m", heth.CheckTxNotify)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 eth gas price
-		_, err = c.AddFunc("@every 5m", heth.CheckGasPrice)
+		_, err = c.AddFunc("@every 6m", heth.CheckGasPrice)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 
 		// --- erc20 ---
 		// 检测 erc20 冲币
-		_, err = c.AddFunc("@every 5s", heth.CheckErc20BlockSeek)
+		_, err = c.AddFunc("@every 1m", heth.CheckErc20BlockSeek)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
@@ -79,12 +79,12 @@ func Cron() {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 erc20 零钱整理
-		_, err = c.AddFunc("@every 10s", heth.CheckErc20TxOrg)
+		_, err = c.AddFunc("@every 5m", heth.CheckErc20TxOrg)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}
 		// 检测 erc20 提币
-		_, err = c.AddFunc("@every 20s", heth.CheckErc20Withdraw)
+		_, err = c.AddFunc("@every 40s", heth.CheckErc20Withdraw)
 		if err != nil {
 			hcommon.Log.Errorf("cron add func error: %#v", err)
 		}

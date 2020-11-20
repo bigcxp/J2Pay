@@ -28,15 +28,19 @@ type Account struct {
 }
 
 // 根据条件获取账户详情
-func GetAccountByWhere(where ...interface{}) (ac Account,err error) {
+func GetAccountByWhere(where ...interface{}) (ac Account, err error) {
 	err = DB.First(&ac, where...).Error
 	return
 }
 
 // 获取所有账户
 func (a *Account) GetAll(page, pageSize int, where ...interface{}) (response.AccountPage, error) {
+	count, err2 := a.GetCount(where...)
+	if err2 != nil {
+		return response.AccountPage{}, err2
+	}
 	all := response.AccountPage{
-		Total:       a.GetCount(where...),
+		Total:       count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.AccountList{},
@@ -90,7 +94,7 @@ func (a *Account) Edit(account request.AccountEdit) error {
 	tx := DB.Begin()
 	account1, _ := GetAccountByWhere("id = ?", a.ID)
 	if err := tx.Model(&account1).
-		Updates(Account{RID:account.RID,Status: account.Status,UpdateTime: a.UpdateTime}).Error; err != nil {
+		Updates(Account{RID: account.RID, Status: account.Status, UpdateTime: a.UpdateTime}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -122,7 +126,7 @@ func (a *Account) UpdatePassword(id int64, password string) (err error) {
 
 		}
 	}()
-	user,_ := GetUserByWhere("id = ?", id)
+	user, _ := GetUserByWhere("id = ?", id)
 	err = tx.Model(&user).
 		Updates(Account{Password: password}).Error
 	return
@@ -132,9 +136,9 @@ func (a *Account) UpdatePassword(id int64, password string) (err error) {
 func (a *Account) Google(google request.Google) (err error) {
 	tx := DB.Begin()
 	updateInfo := map[string]interface{}{
-		"is_open" : google.IsOpen,
+		"is_open": google.IsOpen,
 	}
-	if err := tx.Model(Account{}).Where("id = ?",google.ID).
+	if err := tx.Model(Account{}).Where("id = ?", google.ID).
 		Updates(updateInfo).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -161,9 +165,15 @@ func (a *Account) Del() error {
 }
 
 // 根据用户 ID 获取所属角色
-func GetAccountRole(userId int64) (userRoles response.CasRole) {
-	roles := GetAllRole()
-	mappings := GetAccountRoleMapping()
+func GetAccountRole(userId int64) (userRoles response.CasRole, err error) {
+	roles, err := GetAllRole()
+	if err != nil {
+		return response.CasRole{}, err
+	}
+	mappings ,err:= GetAccountRoleMapping()
+	if err != nil {
+		return response.CasRole{},err
+	}
 	_, ok := mappings[userId]
 	if !ok {
 		return
@@ -173,20 +183,32 @@ func GetAccountRole(userId int64) (userRoles response.CasRole) {
 }
 
 // 根据账户 ID 获取权限
-func GetAccountAuth(Id int64) (auth []Auth) {
-	role := GetAccountRole(Id)
+func GetAccountAuth(Id int64) (auth []Auth, err error) {
+	role, err := GetAccountRole(Id)
+	if err != nil {
+		return nil, err
+	}
 	var dbRole Role
 	var whereAuthId []string
-	DB.Model(Role{}).Select("auth").First(&dbRole, "id = ?", role.ID)
+	err = DB.Model(Role{}).Select("auth").First(&dbRole, "id = ?", role.ID).Error
+	if err != nil {
+		return nil, nil
+	}
 	whereAuthId = append(whereAuthId, dbRole.Auth)
-	DB.Find(&auth, "id in (?)", strings.Split(strings.Join(whereAuthId, ","), ","))
+	err = DB.Find(&auth, "id in (?)", strings.Split(strings.Join(whereAuthId, ","), ",")).Error
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
-func GetAllAccount() (mapping map[int]response.UserNames) {
+func GetAllAccount() (mapping map[int]response.UserNames, err error) {
 	var users []response.UserNames
 	mapping = make(map[int]response.UserNames)
-	DB.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users)
+	err = DB.Table("admin_user").Select("id,user_name").Order("id desc").Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
 	for _, user := range users {
 		mapping[user.Id] = user
 	}
@@ -196,7 +218,7 @@ func GetAllAccount() (mapping map[int]response.UserNames) {
 // 编辑用户
 func (u *Account) EditToken(username, token string) error {
 	tx := DB.Begin()
-	account ,_:= GetAccountByWhere("user_name = ?", username)
+	account, _ := GetAccountByWhere("user_name = ?", username)
 	if err := tx.Model(&account).
 		Updates(Account{LastLoginTime: time.Now().Unix(), QrcodeUrl: validate.NewGoogleAuth().GetQrcodeUrl(username, account.Secret), Token: token}).Error; err != nil {
 		tx.Rollback()
@@ -208,11 +230,11 @@ func (u *Account) EditToken(username, token string) error {
 }
 
 // 获取所有账户数量
-func (a *Account) GetCount(where ...interface{}) (count int) {
+func (a *Account) GetCount(where ...interface{}) (count int, err error) {
 	if len(where) == 0 {
 		DB.Model(&a).Count(&count)
 		return
 	}
-	DB.Model(&a).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&a).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }

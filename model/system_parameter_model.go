@@ -17,10 +17,9 @@ type Parameter struct {
 }
 
 //查询系统参数数据
-func (p *Parameter) GetDetail() response.Parameter {
-	var parameter response.Parameter
-	DB.First(&parameter)
-	return parameter
+func (p *Parameter) GetDetail() (parameter response.Parameter,err error) {
+	err = DB.Model(&Parameter{}).First(&parameter).Error
+	return
 }
 
 //更新系统参数
@@ -34,7 +33,10 @@ func (p *Parameter) UpdateParameter(edit request.ParameterEdit) (err error) {
 
 		}
 	}()
-	parameter := GetParameterByWhere("id = ?", edit.ID)
+	parameter ,err:= GetParameterByWhere("id = ?", edit.ID)
+	if err != nil {
+		return err
+	}
 	ethFee := validate.Decimal(validate.WrapToFloat64(edit.GasPrice, 10) * validate.Unwrap(int64(edit.GasLimit), 10) * 0.0000000001)
 	err = tx.Model(&parameter).
 		Updates(Parameter{Confirmation: edit.Confirmation, GasLimit: edit.GasLimit, GasPrice: edit.GasPrice, EthFee: ethFee}).Error
@@ -52,7 +54,10 @@ func (p *Parameter) UpdateGasPrice(edit request.ParameterEdit) (err error) {
 
 		}
 	}()
-	parameter := GetParameterByWhere("id = ?", edit.ID)
+	parameter,err := GetParameterByWhere("id = ?", edit.ID)
+	if err != nil {
+		return err
+	}
 	ethFee := validate.Decimal(validate.WrapToFloat64(edit.GasPrice, 10) * validate.Unwrap(int64(parameter.GasLimit), 10) * 0.0000000001)
 	err = tx.Model(&parameter).
 		Updates(Parameter{GasPrice: edit.GasPrice, EthFee: ethFee}).Error
@@ -60,14 +65,13 @@ func (p *Parameter) UpdateGasPrice(edit request.ParameterEdit) (err error) {
 }
 
 // 根据条件获取详情
-func GetParameterByWhere(where ...interface{}) (pa Parameter) {
-	DB.First(&pa, where...)
+func GetParameterByWhere(where ...interface{}) (pa Parameter,err error) {
+	err = DB.First(&pa, where...).Error
 	return
 }
 
 //查询GasFee
-func GetGasFeeDetail() response.Parameter {
-	var parameter response.Parameter
-	DB.First(&parameter)
-	return parameter
+func GetGasFeeDetail() (parameter response.Parameter,err error) {
+	err = DB.First(&parameter).Error
+	return
 }

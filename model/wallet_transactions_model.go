@@ -33,8 +33,12 @@ type HotTransaction struct {
 
 //查询所有eth交易
 func (e *EthTransaction) GetAll(page, pageSize int, where ...interface{}) (response.EthTransactionPage, error) {
+	count, err2 := e.GetCount(where...)
+	if err2 != nil {
+		return response.EthTransactionPage{}, err2
+	}
 	all := response.EthTransactionPage{
-		Total:       e.GetCount(where...),
+		Total:       count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.EthTransaction{},
@@ -50,8 +54,12 @@ func (e *EthTransaction) GetAll(page, pageSize int, where ...interface{}) (respo
 
 //查询所有hot交易
 func (h *HotTransaction) GetAll(page, pageSize int, where ...interface{}) (response.HotTransactionPage, error) {
+	count, err2 := h.GetCount(where...)
+	if err2 != nil {
+		return response.HotTransactionPage{}, err2
+	}
 	all := response.HotTransactionPage{
-		Total:       h.GetCount(where...),
+		Total:       count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.HotTransaction{},
@@ -106,21 +114,21 @@ func UpdateAmount(handleStatus int, address []Address) (err error) {
 }
 
 // 获取所有ETH交易数量
-func (e *EthTransaction) GetCount(where ...interface{}) (count int) {
+func (e *EthTransaction) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
-		DB.Model(&e).Count(&count)
+		err = DB.Model(&e).Count(&count).Error
 		return
 	}
-	DB.Model(&e).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&e).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }
 
 // 获取所有Hot交易数量
-func (h *HotTransaction) GetCount(where ...interface{}) (count int) {
+func (h *HotTransaction) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
-		DB.Model(&h).Count(&count)
+		err = DB.Model(&h).Count(&count).Error
 		return
 	}
-	DB.Model(&h).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&h).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }

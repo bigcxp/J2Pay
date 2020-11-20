@@ -20,8 +20,12 @@ type Return struct {
 
 //获取所有订单列表
 func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.ReturnPage, error) {
+	count, err2 := r.GetCount(where...)
+	if err2 != nil {
+		return response.ReturnPage{}, err2
+	}
 	all := response.ReturnPage{
-		Total:       r.GetCount(where...),
+		Total:      count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.ReturnList{},
@@ -40,12 +44,12 @@ func (r *Return) GetAll(page, pageSize int, where ...interface{}) (response.Retu
 }
 
 // 获取所有退款订单数量
-func (r *Return) GetCount(where ...interface{}) (count int) {
+func (r *Return) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
 		DB.Model(&r).Count(&count)
 		return
 	}
-	DB.Model(&r).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&r).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }
 

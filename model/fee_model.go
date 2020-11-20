@@ -18,8 +18,12 @@ type Fee struct {
 
 //获取所有手续费列表
 func (f *Fee) GetAll(page, pageSize int, where ...interface{}) (response.FeePage, error) {
+	count, err2 := f.GetCount(where...)
+	if err2 != nil {
+		return response.FeePage{}, err2
+	}
 	all := response.FeePage{
-		Total:       f.GetCount(where...),
+		Total:       count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.FeeList{},
@@ -36,7 +40,10 @@ func (f *Fee) GetAll(page, pageSize int, where ...interface{}) (response.FeePage
 //手续费结账
 func (f *Fee) Settlement(id uint) error {
 	tx := DB.Begin()
-	fee := GetFeeByWhere("id = ?", id)
+	fee,err := GetFeeByWhere("id = ?", id)
+	if err != nil {
+		return err
+	}
 	if err := tx.Model(&fee).
 		Updates(Fee{Status: 2}).Error; err != nil {
 		tx.Rollback()
@@ -62,18 +69,18 @@ func (f *Fee) Create() error {
 }
 
 // 获取所有手续费列表数量
-func (f *Fee) GetCount(where ...interface{}) (count int) {
+func (f *Fee) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
 		DB.Model(&f).Count(&count)
 		return
 	}
-	DB.Model(&f).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&f).Where(where[0], where[1:]...).Count(&count).Error
 	return
 
 }
 
 // 根据条件获取详情
-func GetFeeByWhere(where ...interface{}) (fe Fee) {
-	DB.First(&fe, where...)
+func GetFeeByWhere(where ...interface{}) (fe Fee,err error) {
+	err = DB.First(&fe, where...).Error
 	return
 }

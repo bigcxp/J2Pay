@@ -80,7 +80,11 @@ func Erc20Add(erc20add request.Erc20Add) error {
 		OrgStatus:    0,
 	}
 	// 1.判断txid是否重复
-	if hasTx := model.GetErc20ByWhere("tx_id = ?", erc20add.TxID); hasTx.ID > 0 {
+	 hasTx ,err:= model.GetErc20ByWhere("tx_id = ?", erc20add.TxID)
+	if err != nil {
+		return err
+	}
+	if hasTx.ID > 0 {
 		return myerr.NewDbValidateError("txid已存在")
 	}
 	return t.Create()
@@ -118,14 +122,21 @@ func IsBindOrder(erc20 request.Erc20Edit) error {
 		}
 	} else {
 		//查询订单明细
-		ercdetail := model.GetErc20ByWhere("id = ?", erc20.ID)
-		//查询订单是否已经绑定
-		if hasTx := model.GetOrderByWhere("transaction_id = ?", ercdetail.SystemID); hasTx.ID > 0 {
-			return myerr.NewDbValidateError("该订单已绑定")
-		}
-		err := model.BindErc20(ercdetail.SystemID, erc20.OrderId)
+		ercdetail ,err:= model.GetErc20ByWhere("id = ?", erc20.ID)
 		if err != nil {
 			return err
+		}
+		//查询订单是否已经绑定
+		hasTx ,err:= model.GetOrderByWhere("transaction_id = ?", ercdetail.SystemID);
+		if err != nil {
+			return err
+		}
+		if hasTx.ID > 0 {
+			return myerr.NewDbValidateError("该订单已绑定")
+		}
+		err2 := model.BindErc20(ercdetail.SystemID, erc20.OrderId)
+		if err2 != nil {
+			return err2
 		}
 		txErc20 := model.TTxErc20{}
 		erc20Add := request.Erc20Edit{

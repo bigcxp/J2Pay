@@ -8,10 +8,13 @@ import (
 )
 
 //获取所有汇率列表
-func GetAllRate()  response.RatePage{
+func GetAllRate()  (response.RatePage,error){
 	rate := model.Rate{}
-	allRate := rate.GetAllRate()
-	return allRate
+	allRate,err := rate.GetAllRate()
+	if err != nil {
+		return response.RatePage{},err
+	}
+	return allRate,nil
 }
 
 // ID获取汇率详情

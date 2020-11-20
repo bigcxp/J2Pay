@@ -6,7 +6,6 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aristanetworks/goarista v0.0.0-20200812190859-4cb0e71f3c0e // indirect
-	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/casbin/casbin/v2 v2.11.3
 	github.com/casbin/gorm-adapter/v2 v2.1.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -20,7 +19,8 @@ require (
 	github.com/go-playground/validator/v10 v10.3.0 // indirect
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/iancoleman/strcase v0.1.2
-	github.com/jinzhu/gorm v1.9.16
+	github.com/jinzhu/gorm v1.9.12
+	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -28,6 +28,7 @@ require (
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/mojocn/base64Captcha v1.3.1
 	github.com/moremorefun/mcommon v0.1.79

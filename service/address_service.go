@@ -63,7 +63,10 @@ func AddAddress(addr request.AddressAdd) (err error) {
 //启用 停用 地址
 func RestartAddr(address request.OpenOrStopAddress) (err error) {
 	//根据ids查询出地址
-	allAddress := model.GetAllAddress("id in (?)", address.ID)
+	allAddress,err := model.GetAllAddress("id in (?)", address.ID)
+	if err != nil {
+		return err
+	}
 	var addrs []model.Address
 	//遍历地址
 	for _, v := range allAddress {
@@ -95,7 +98,10 @@ func UpdateBalance(ids request.UpdateAmount) (err error) {
 //编辑钱包地址 用户在停用状态下才可编辑
 func AddressEdit(ids request.AddressEdit) (err error) {
 	//查询出所有钱包地址
-	addressees := model.GetAllAddress("id in (?)", ids.ID)
+	addressees,err := model.GetAllAddress("id in (?)", ids.ID)
+	if err != nil {
+		return err
+	}
 	var addrs []model.Address
 	if len(addressees) == 0 {
 		return
@@ -120,7 +126,10 @@ func AddressEdit(ids request.AddressEdit) (err error) {
 //删除钱包地址 需要地址的指派状态为停用
 func AddressDel(ids request.AddressDel) (err error) {
 	//查询出所有钱包地址
-	addressees := model.GetAllAddress("id in (?)", ids.ID)
+	addressees,err := model.GetAllAddress("id in (?)", ids.ID)
+	if err != nil {
+		return err
+	}
 	var addrs []model.Address
 	if len(addressees) == 0 {
 		return

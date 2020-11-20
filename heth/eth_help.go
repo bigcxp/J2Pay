@@ -139,7 +139,7 @@ func (*ETHHelp) GetNONCE(fromAddress string) (nonce int64, err error) {
 		return 0, err
 	}
 	// 获取db nonce
-	nonce = model.SQLGetTSendMaxNonce(fromAddress)
+	nonce,err = model.SQLGetTSendMaxNonce(fromAddress)
 	if err != nil {
 		log.Print("GetNonce err: [%T] %s", err, err.Error())
 		return 0, err
@@ -164,7 +164,7 @@ func (*ETHHelp) GetPrivateKey(fromAddress string) (privateKey string, err error)
 		return
 	}
 	//通过热钱包地址查询pwd
-	keyRow := model.SQLGetTAddressKeyColByAddress(fromAddress)
+	keyRow,err := model.SQLGetTAddressKeyColByAddress(fromAddress)
 	if err != nil {
 		log.Print("err: [%T] %s", err, err.Error())
 		return
@@ -288,9 +288,15 @@ func (e *ETHHelp) Createddress(addr request.AddressAdd) ([]string, error) {
 //@param 需要检查的地址
 func (e *ETHHelp) CheckTransaction22(addresss []string) {
 	// 获取配置 延迟确认数
-	confirmValue := model.SQLGetTAppConfigIntValueByK("block_confirm_num")
+	confirmValue ,err:= model.SQLGetTAppConfigIntValueByK("block_confirm_num")
+	if err != nil {
+		return
+	}
 	// 获取状态 erc20最后一次获取链上的块数量
-	seekValue := model.SQLGetTAppStatusIntValueByK("erc20_seek_num")
+	seekValue ,err:= model.SQLGetTAppStatusIntValueByK("erc20_seek_num")
+	if err != nil {
+		return
+	}
 	// rpc 获取当前最新区块数
 	rpcBlockNum, err := ethclient.RpcBlockNumber(context.Background())
 	if err != nil {
@@ -377,7 +383,7 @@ func (e *ETHHelp) CheckTransaction22(addresss []string) {
 				}
 				for _, log1 := range logs {
 					var transferEvent LogTransfer
-					err := contractAbi.Unpack(&transferEvent, "Transfer", log1.Data)
+					err := contractAbi.UnpackIntoInterface(&transferEvent, "Transfer", log1.Data)
 					if err != nil {
 						log.Print("err: [%T] %s", err, err.Error())
 						return
@@ -475,9 +481,15 @@ func (e *ETHHelp) CheckTransaction22(addresss []string) {
 //@param 需要检查的地址
 func (e *ETHHelp) CheckTransaction(addresss []string) {
 	// 获取配置 延迟确认数
-	confirmValue := model.SQLGetTAppConfigIntValueByK("block_confirm_num")
+	confirmValue,err := model.SQLGetTAppConfigIntValueByK("block_confirm_num")
+	if err != nil {
+		return
+	}
 	// 获取状态 erc20最后一次获取链上的块数量
-	seekValue := model.SQLGetTAppStatusIntValueByK("erc20_seek_num")
+	seekValue ,err:= model.SQLGetTAppStatusIntValueByK("erc20_seek_num")
+	if err != nil {
+		return
+	}
 	// rpc 获取当前最新区块数
 	rpcBlockNum, err := ethclient.RpcBlockNumber(context.Background())
 	if err != nil {
@@ -534,7 +546,7 @@ func (e *ETHHelp) CheckTransaction(addresss []string) {
 					continue
 				}
 				var transferEvent LogTransfer
-				err := contractAbi.Unpack(&transferEvent, "Transfer", logMode.Data)
+				err := contractAbi.UnpackIntoInterface(&transferEvent, "Transfer", logMode.Data)
 				if err != nil {
 					log.Print("err: [%T] %s", err, err.Error())
 					return

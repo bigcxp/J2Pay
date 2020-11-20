@@ -14,8 +14,12 @@ type Role struct {
 
 // 获取所有角色
 func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
+	count, err2 := r.getCount()
+	if err2 != nil {
+		return response.RolePage{}, err2
+	}
 	all := response.RolePage{
-		Total:       r.getCount(),
+		Total:       count,
 		PerPage:     page,
 		CurrentPage: pageSize,
 		Data:        []response.RoleList{},
@@ -27,10 +31,10 @@ func (r *Role) GetAll(page, pageSize int) (response.RolePage, error) {
 	return all, err
 }
 
-func GetAllRole() (mapping map[int]response.CasRole) {
+func GetAllRole() (mapping map[int]response.CasRole,err error) {
 	var roles []response.CasRole
 	mapping = make(map[int]response.CasRole)
-	DB.Table("role").Select("role.id,role.name").Order("role.id asc").Find(&roles)
+	err = DB.Table("role").Select("role.id,role.name").Order("role.id asc").Find(&roles).Error
 	for _, role := range roles {
 		mapping[role.ID] = role
 	}
@@ -141,7 +145,7 @@ func (r *Role) Del() error {
 }
 
 // 获取角色条数
-func (r *Role) getCount() (total int) {
+func (r *Role) getCount() (total int,err error) {
 	DB.Model(&r).Count(&total)
 	return
 }

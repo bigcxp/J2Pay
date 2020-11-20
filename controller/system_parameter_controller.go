@@ -9,13 +9,12 @@ import (
 	"strconv"
 )
 
-
 // @Tags 系统参数管理
 // @Summary 系统参数管理
 // @Produce json
 // @Router /parameterIndex [get]
 func ParameterIndex(c *gin.Context) {
-	c.HTML(200,"parameter.html" ,gin.H{
+	c.HTML(200, "parameter.html", gin.H{
 		"code": http.StatusOK,
 	})
 }
@@ -27,7 +26,11 @@ func ParameterIndex(c *gin.Context) {
 // @Router /system [get]
 func SystemParameter(c *gin.Context) {
 	response := util.Response{c}
-	detail := service.GetDetail()
+	detail, err := service.GetDetail()
+	if err != nil {
+		response.SetValidateError(err)
+		return
+	}
 	response.SuccessData(detail)
 }
 
@@ -72,5 +75,3 @@ func SystemGasPriceEdit(c *gin.Context) {
 	}
 	response.SuccessMsg("成功")
 }
-
-

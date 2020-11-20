@@ -23,8 +23,12 @@ type Address struct {
 
 //查询所有收款地址
 func (a *Address) GetAllAddress(page, pageSize int, where ...interface{}) (response.AddressPage, error) {
+	count, err2 := a.GetCount(where...)
+	if err2 != nil {
+		return response.AddressPage{}, err2
+	}
 	all := response.AddressPage{
-		Total:       a.GetCount(where...),
+		Total:       count,
 		PerPage:     pageSize,
 		CurrentPage: page,
 		Data:        []response.Address{},
@@ -139,7 +143,10 @@ func AddressDel(addr []Address) error {
 //储值  eth钱包=>用户收款地址 eth余额必须足够 =>生成eth交易
 func (a *Address) Save(address request.SaveAmount) error {
 	tx := DB.Begin()
-	addresss := GetAddressByWhere("id = ?", address.ID)
+	addresss,err := GetAddressByWhere("id = ?", address.ID)
+	if err != nil {
+		return err
+	}
 	if err := tx.Model(&addresss).
 		Updates(Address{EthAmount: address.EthAmount}).Error; err != nil {
 		tx.Rollback()
@@ -153,7 +160,10 @@ func (a *Address) Save(address request.SaveAmount) error {
 //结账 指派状态为停用 eth金额不能小于最小矿工费 =》生成热钱包交易
 func (a *Address) Col(address request.Math) error {
 	tx := DB.Begin()
-	addresss := GetAddressByWhere("id = ?", address.ID)
+	addresss ,err:= GetAddressByWhere("id = ?", address.ID)
+	if err != nil {
+		return err
+	}
 	if err := tx.Model(&addresss).
 		Updates(Address{Status: address.Status}).Error; err != nil {
 		tx.Rollback()
@@ -169,7 +179,10 @@ func UpdateBalance(ids request.UpdateAmount) (err error) {
 	tx := DB.Begin()
 	now := time.Now().Unix()
 	//查询出钱包地址
-	address := GetAllAddress("id in (?)", ids.ID)
+	address,err := GetAllAddress("id in (?)", ids.ID)
+	if err != nil {
+		return err
+	}
 	for _, v := range address {
 		if err := tx.Model(&v).Updates(Address{UpdateTime: now}).Error; err != nil {
 			return err
@@ -181,35 +194,35 @@ func UpdateBalance(ids request.UpdateAmount) (err error) {
 }
 
 // 获取所有收款地址数量
-func (a *Address) GetCount(where ...interface{}) (count int) {
+func (a *Address) GetCount(where ...interface{}) (count int,err error) {
 	if len(where) == 0 {
 		DB.Model(&a).Count(&count)
 		return
 	}
-	DB.Model(&a).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&a).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }
 
 // 获取所有收款地址数量
-func GetAddressCount(where ...interface{}) (count int64) {
+func GetAddressCount(where ...interface{}) (count int64,err error) {
 	if len(where) == 0 {
 		DB.Model(&Address{}).Count(&count)
 		return
 	}
-	DB.Model(&Address{}).Where(where[0], where[1:]...).Count(&count)
+	err = DB.Model(&Address{}).Where(where[0], where[1:]...).Count(&count).Error
 	return
 }
 
 // 根据条件获取钱包地址
-func GetAddressByWhere(where ...interface{}) (a Address) {
-	DB.First(&a, where...)
+func GetAddressByWhere(where ...interface{}) (a Address,err error) {
+	err = DB.First(&a, where...).Error
 	return
 }
 
 // 根据条件获取钱包地址列表
-func GetAllAddress(where ...interface{}) (res []Address) {
-	DB.Model(Address{}).
+func GetAllAddress(where ...interface{}) (res []Address,err error) {
+	err = DB.Model(Address{}).
 		Order("id asc").
-		Find(&res, where...)
+		Find(&res, where...).Error
 	return
 }

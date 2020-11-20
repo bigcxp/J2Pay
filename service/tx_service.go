@@ -37,7 +37,10 @@ func CreateEthTx(eth request.EthTxAdd) error {
 	defer casbin.ClearEnforcer()
 	nowTime := time.Now().Unix()
 	//获取eth钱包地址
-	ethAddress := model.GetAddressByWhere("handle_status = ? and use_tag = ?", 1, -2)
+	ethAddress,err := model.GetAddressByWhere("handle_status = ? and use_tag = ?", 1, -2)
+	if err != nil {
+		return err
+	}
 	e := model.EthTransaction{
 		From:           ethAddress.UserAddress,
 		To:             eth.To,
@@ -56,14 +59,23 @@ func CreateHotTx(hot request.HotTxAdd) error {
 	defer casbin.ClearEnforcer()
 	nowTime := time.Now().Unix()
 	//获取eth钱包地址
-	hotAddress := model.GetAddressByWhere("handle_status = ? and use_tag = ?", 1, -1)
+	hotAddress,err := model.GetAddressByWhere("handle_status = ? and use_tag = ?", 1, -1)
+	if err != nil {
+		return err
+	}
 	//获取商户钱包地址 商户充币地址归集到主钱包
 	adminUser,_ := model.GetUserByWhere("id = ?", hotAddress.UseTag)
 	//获取手续费 先检测gaslimit
 	heth.CheckGasPrice()
 	//获取gasPrice
-	gasPriceValue:= model.SQLGetTAppStatusIntValueByK("to_user_gas_price")
-	gasLimitValue := model.SQLGetTAppStatusIntValueByK( "gas_limit")
+	gasPriceValue,err := model.SQLGetTAppStatusIntValueByK("to_user_gas_price")
+	if err != nil {
+		return err
+	}
+	gasLimitValue ,err:= model.SQLGetTAppStatusIntValueByK( "gas_limit")
+	if err != nil {
+		return err
+	}
 	feeValue := *gasPriceValue * *gasLimitValue
 	//判断是代发还是提领还是结账 结账=》排程结账 手动结账
 	//1:代发,2:排程结账,3:手动结账

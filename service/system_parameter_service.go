@@ -8,10 +8,10 @@ import (
 )
 
 //系统参数详情
-func GetDetail() response.Parameter {
+func GetDetail() (response.Parameter,error) {
 	p := model.Parameter{}
-	detail := p.GetDetail()
-	return detail
+	detail,err := p.GetDetail()
+	return detail,err
 }
 
 //更新系统参数

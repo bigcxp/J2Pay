@@ -16,11 +16,14 @@ type CasbinRule struct {
 
 // 获取所有用户和角色对应表
 // [用户ID] => [角色ID]
-func GetAccountRoleMapping() map[int64]int {
+func GetAccountRoleMapping() (map[int64]int,error) {
 	var all []CasbinRule
-	DB.Select([]string{"substring(v0, 6) as v0", "substring(v1, 6) as v1"}).
-		Where("p_type = 'g' and v0 like ?",  "user:%").
-		Find(&all)
+	err := DB.Select([]string{"substring(v0, 6) as v0", "substring(v1, 6) as v1"}).
+		Where("p_type = 'g' and v0 like ?", "user:%").
+		Find(&all).Error
+	if err != nil {
+		return nil, err
+	}
 	hash := make(map[int64]int)
 	for _, v := range all {
 		userId, _ := strconv.Atoi(v.V0)
@@ -32,7 +35,7 @@ func GetAccountRoleMapping() map[int64]int {
 			hash[int64(userId)] = roleId
 		}
 	}
-	return hash
+	return hash,nil
 }
 
 // 根据条件查数据
