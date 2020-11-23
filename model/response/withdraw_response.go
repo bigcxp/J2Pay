@@ -5,11 +5,11 @@ import (
 )
 
 //管理端提领返回列表
-type PickUpPage struct {
-	Total       int        `json:"total"`        // 总共多少页
-	PerPage     int        `json:"per_page"`     // 当前页码
-	CurrentPage int        `json:"current_page"` // 每页显示多少条
-	Data        []PickList `json:"data"`
+type WithdrawPage struct {
+	Total       int            `json:"total"`        // 总共多少页
+	PerPage     int            `json:"per_page"`     // 当前页码
+	CurrentPage int            `json:"current_page"` // 每页显示多少条
+	Data        []WithdrawList `json:"data"`
 }
 
 //管理端代发返回列表
@@ -21,7 +21,7 @@ type SendPage struct {
 }
 
 //商户端提领代发返回列表
-type MerchantPickSendPage struct {
+type MerchantPickSendPage struct{
 	Total       int                `json:"total"`        // 总共多少页
 	PerPage     int                `json:"per_page"`     // 当前页码
 	CurrentPage int                `json:"current_page"` // 每页显示多少条
@@ -32,7 +32,7 @@ type MerchantPickSendPage struct {
 }
 
 //管理端提领对象
-type PickList struct {
+type WithdrawList struct {
 	ID          uint      `json:"id"`           //ID
 	UserId      int       `json:"user_id"`      //商户id
 	RealName    string    `json:"real_name"`    //组织名称

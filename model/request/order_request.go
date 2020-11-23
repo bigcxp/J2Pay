@@ -2,7 +2,8 @@ package request
 
 //新增订单
 type OrderAdd struct {
-	Uts       int64   `json:"uts" binding:"required" example:"1231244520" form:"uts"`                           //时间戳
+	Uts       int64   `json:"uts" binding:"required" example:"1231244520" form:"uts"` //时间戳
+	Sign      string  `json:"sign" binding:"required"` //签名
 	UID       int64   `json:"uid" binding:"" form:"uid"`                                                        //组织ID
 	OrderCode string  `json:"order_code" binding:"required,max=255" example:"asfasgdsasfgas" form:"order_code"` //商户订单编号
 	Amount    float64 `json:"amount" binding:"required" example:"1" form:"amount"`                              //数量

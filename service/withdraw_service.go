@@ -1,8 +1,11 @@
 package service
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/moremorefun/mcommon"
 	"github.com/shopspring/decimal"
+	"io/ioutil"
 	"j2pay-server/hcommon"
 	"j2pay-server/heth"
 	"j2pay-server/model"
@@ -29,12 +32,11 @@ func MerchantPickList(fromDate, toDate, code string, types, userId, status, page
 		//将时间进行转换
 		res, err = pick.GetAll(page, pageSize, "user_id = ? and status = ? or type = ? or real_name like ? or is_code like ? or UNIX_TIMESTAMP(created_at)>=? or  UNIX_TIMESTAMP(created_at) <=?", userId, status, types, code, fromDate, toDate)
 	}
-
 	return
 }
 
 // 管理端 提领订单列表
-func PickUpList(fromDate, toDate string, status, types, userId, page, pageSize int) (res response.PickUpPage, err error) {
+func PickUpList(fromDate, toDate string, status, types, userId, page, pageSize int) (res response.WithdrawPage, err error) {
 	pick := model.TWithdraw{}
 
 	if status == 0 && fromDate == "" && toDate == "" && userId == 0 {
@@ -71,7 +73,7 @@ func MerchantPickDetail(id int64) (res response.MerchantPickList, err error) {
 }
 
 // 管理端提领订单详情
-func PickDetail(id int64) (res response.PickList, err error) {
+func PickDetail(id int64) (res response.WithdrawList, err error) {
 	pick := model.TWithdraw{
 		ID: id,
 	}
@@ -115,6 +117,38 @@ func WithdrawAdd(with request.WithDrawAdd) (error, response.WithDrawRes) {
 			return myerr.NewNormalValidateError("IP Limit"), response.WithDrawRes{}
 		}
 	}
+	// 接口验证签名
+	var body []byte
+	if cb, ok := c.Get(gin.BodyBytesKey); ok {
+		if cbb, ok := cb.([]byte); ok {
+			body = cbb
+		}
+	}
+	if body == nil {
+		body, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			return myerr.NewNormalValidateError("获取body为空"),  response.WithDrawRes{}
+		}
+		c.Set(gin.BodyBytesKey, body)
+	}
+	oldObj := gin.H{}
+	err := json.Unmarshal(body, &oldObj)
+	if err != nil {
+		log.Println("req body error")
+		return myerr.NewNormalValidateError("req body erro"), response.WithDrawRes{}
+	}
+	checkObj := gin.H{}
+	for k, v := range oldObj {
+		if k != "sign" {
+			checkObj[k] = v
+		}
+	}
+	checkSign := mcommon.WechatGetSign(user.UserName, checkObj)
+	if checkSign == "" || checkSign != with.Sign {
+		log.Println("sign error of: %s", user.RealName)
+		return myerr.NewNormalValidateError("sign error of"), response.WithDrawRes{}
+	}
+
 	if err2 != nil {
 		return err2, response.WithDrawRes{}
 	}
@@ -210,6 +244,38 @@ func SendAdd(with request.SendAdd) (error, response.SendRes) {
 			return myerr.NewNormalValidateError("IP Limit"), response.SendRes{}
 		}
 	}
+	// 接口验证签名
+	var body []byte
+	if cb, ok := c.Get(gin.BodyBytesKey); ok {
+		if cbb, ok := cb.([]byte); ok {
+			body = cbb
+		}
+	}
+	if body == nil {
+		body, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			return myerr.NewNormalValidateError("获取body为空"),  response.SendRes{}
+		}
+		c.Set(gin.BodyBytesKey, body)
+	}
+	oldObj := gin.H{}
+	err := json.Unmarshal(body, &oldObj)
+	if err != nil {
+		log.Println("req body error")
+		return myerr.NewNormalValidateError("req body erro"), response.SendRes{}
+	}
+	checkObj := gin.H{}
+	for k, v := range oldObj {
+		if k != "sign" {
+			checkObj[k] = v
+		}
+	}
+	checkSign := mcommon.WechatGetSign(user.UserName, checkObj)
+	if checkSign == "" || checkSign != with.Sign {
+		log.Println("sign error of: %s", user.RealName)
+		return myerr.NewNormalValidateError("sign error of"), response.SendRes{}
+	}
+
 	if user.ID == 0 {
 		return myerr.NewNormalValidateError(" 没有该组织i信息"), response.SendRes{}
 	}

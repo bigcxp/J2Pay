@@ -116,8 +116,8 @@ func InitRouter() *gin.Engine {
 	}
 	//商户提领 代发
 	{
-		r.POST("/merchantPick",middleware.RsaSetUp(), controller.PickAdd)
-		r.POST("/merchantSend",middleware.RsaSetUp(), controller.SendAdd)
+		r.POST("/merchantPick", controller.PickAdd)
+		r.POST("/merchantSend", controller.SendAdd)
 		r.GET("/merchantPick", controller.MerchantPickIndex)
 		r.GET("/merchantPick/:id", controller.MerchantPickDetail)
 
@@ -133,7 +133,7 @@ func InitRouter() *gin.Engine {
 	}
 	//订单
 	{
-		r.POST("/order",middleware.RsaSetUp(), controller.OrderAdd)
+		r.POST("/order", controller.OrderAdd)
 		r.GET("/order", controller.OrderList)
 		r.GET("/order/:id", controller.OrderDetail)
 		r.PUT("/order/:id", controller.OrderEdit)

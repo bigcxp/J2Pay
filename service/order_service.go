@@ -1,8 +1,11 @@
 package service
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/moremorefun/mcommon"
 	"github.com/prometheus/common/log"
+	"io/ioutil"
 	"j2pay-server/model"
 	"j2pay-server/model/request"
 	"j2pay-server/model/response"
@@ -45,7 +48,7 @@ func OrderDetail(id uint) (res response.RealOrderList, err error) {
 	return res, err
 }
 
-// 新增订单 (为商户分配充币地址)
+// 新增订单 (获取充币地址)
 func OrderAdd(c *gin.Context,order request.OrderAdd) (error, response.UserAddr) {
 	defer casbin.ClearEnforcer()
 	//获取当前登录用户
@@ -78,6 +81,39 @@ func OrderAdd(c *gin.Context,order request.OrderAdd) (error, response.UserAddr) 
 				return myerr.NewNormalValidateError("IP Limit"), response.UserAddr{}
 			}
 		}
+
+		// 接口验证签名
+		var body []byte
+		if cb, ok := c.Get(gin.BodyBytesKey); ok {
+			if cbb, ok := cb.([]byte); ok {
+				body = cbb
+			}
+		}
+		if body == nil {
+			body, err = ioutil.ReadAll(c.Request.Body)
+			if err != nil {
+				return myerr.NewNormalValidateError("获取body为空"), response.UserAddr{}
+			}
+			c.Set(gin.BodyBytesKey, body)
+		}
+		oldObj := gin.H{}
+		err = json.Unmarshal(body, &oldObj)
+		if err != nil {
+			log.Warnf("req body error")
+			return myerr.NewNormalValidateError("req body erro"), response.UserAddr{}
+		}
+		checkObj := gin.H{}
+		for k, v := range oldObj {
+			if k != "sign" {
+				checkObj[k] = v
+			}
+		}
+		checkSign := mcommon.WechatGetSign(user1.UserName, checkObj)
+		if checkSign == "" || checkSign != order.Sign {
+			log.Warnf("sign error of: %s", user1.RealName)
+			return myerr.NewNormalValidateError("sign error of"), response.UserAddr{}
+		}
+
 		//用户是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}
@@ -127,6 +163,38 @@ func OrderAdd(c *gin.Context,order request.OrderAdd) (error, response.UserAddr) 
 				return myerr.NewNormalValidateError("IP Limit"), response.UserAddr{}
 			}
 		}
+		// 接口验证签名
+		var body []byte
+		if cb, ok := c.Get(gin.BodyBytesKey); ok {
+			if cbb, ok := cb.([]byte); ok {
+				body = cbb
+			}
+		}
+		if body == nil {
+			body, err = ioutil.ReadAll(c.Request.Body)
+			if err != nil {
+				return myerr.NewNormalValidateError("获取body为空"), response.UserAddr{}
+			}
+			c.Set(gin.BodyBytesKey, body)
+		}
+		oldObj := gin.H{}
+		err = json.Unmarshal(body, &oldObj)
+		if err != nil {
+			log.Warnf("req body error")
+			return myerr.NewNormalValidateError("req body erro"), response.UserAddr{}
+		}
+		checkObj := gin.H{}
+		for k, v := range oldObj {
+			if k != "sign" {
+				checkObj[k] = v
+			}
+		}
+		checkSign := mcommon.WechatGetSign(user1.UserName, checkObj)
+		if checkSign == "" || checkSign != order.Sign {
+			log.Warnf("sign error of: %s", user1.RealName)
+			return myerr.NewNormalValidateError("sign error of"), response.UserAddr{}
+		}
+
 		//组织是否开启收款功能
 		if user1.IsCollection != 1 {
 			return myerr.NewNormalValidateError("未开启收款功能"), response.UserAddr{}

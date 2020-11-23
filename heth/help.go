@@ -94,6 +94,8 @@ func GetSign(appSecret string, paramsMap gin.H) string {
 	return strings.ToUpper(signedString)
 }
 
+
+
 // GetUUIDStr 获取唯一字符串
 func GetUUIDStr() string {
 	u1 := uuid.NewV4()

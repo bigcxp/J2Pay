@@ -10,7 +10,7 @@ import (
 //提领 代发
 type TWithdraw struct {
 	ID           int64
-	WithdrawType int       `gorm:"default:0;comment:' 类型 1 零钱整理 2 提币 3 代发'";json:"withdraw_type"`               //  类型 1 零钱整理 2 提币 3 代发
+	WithdrawType int       `gorm:"default:0;comment:' 类型 1 零钱整理 2 提币 3 代发'";json:"withdraw_type"`              //  类型 1 零钱整理 2 提币 3 代发
 	SystemID     string    `gorm:"default:'';comment:'系统编号'";json:"system_id"`                                 // 系统编号
 	MerchantID   string    `gorm:"default:'';comment:'商户订单编号'";json:"merchant_id"`                             // 商户订单编号
 	ToAddress    string    `gorm:"default:'';comment:'提币地址'";json:"to_address"`                                // 提币地址
@@ -28,18 +28,18 @@ type TWithdraw struct {
 }
 
 // 管理端获取所有提领订单列表
-func (p *TWithdraw) GetAllPick(page, pageSize int, where ...interface{}) (response.PickUpPage, error) {
-	all := response.PickUpPage{
+func (p *TWithdraw) GetAllPick(page, pageSize int, where ...interface{}) (response.WithdrawPage, error) {
+	all := response.WithdrawPage{
 		Total:       p.GetCount(where...),
 		PerPage:     pageSize,
 		CurrentPage: page,
-		Data:        []response.PickList{},
+		Data:        []response.WithdrawList{},
 	}
 	//分页查询
 	offset := GetOffset(page, pageSize)
 	err := DB.Model(&p).Order("id desc").Limit(pageSize).Offset(offset).Find(&all.Data, where...).Error
 	if err != nil {
-		return response.PickUpPage{}, err
+		return response.WithdrawPage{}, err
 	}
 	for index, v := range all.Data {
 		user, _ := GetUserByWhere("id = ?", v.UserId)
@@ -100,7 +100,7 @@ func (p *TWithdraw) GetAll(page, pageSize int, where ...interface{}) (response.M
 	for index, v := range all.Data {
 		user, err := GetUserByWhere("id = ?", v.UserId)
 		if err != nil {
-			return response.MerchantPickSendPage{},err
+			return response.MerchantPickSendPage{}, err
 		}
 		all.Data[index].RealName = user.RealName
 		all.Data[index].DelMoney = all.Data[index].Amount + all.Data[index].Fee
@@ -124,7 +124,7 @@ func (p *TWithdraw) GetCount(where ...interface{}) (count int) {
 }
 
 // 管理端根据ID获取提领订单详情
-func (p *TWithdraw) GetPickDetail(id ...int) (res response.PickList, err error) {
+func (p *TWithdraw) GetPickDetail(id ...int) (res response.WithdrawList, err error) {
 	err = DB.Table("pick").
 		Where("id = ?", p.ID).
 		First(&res).
@@ -177,7 +177,7 @@ func (p *TWithdraw) CancelPick(id, status int64) (err error) {
 
 		}
 	}()
-	pick,err := GetPickByWhere("id = ?", id)
+	pick, err := GetPickByWhere("id = ?", id)
 	if err != nil {
 		return err
 	}
@@ -201,42 +201,42 @@ func SQLCreateTWithdraw(row *TWithdraw) error {
 }
 
 //获取提领总金额
-func (p *TWithdraw) getAmount() (float64,error) {
+func (p *TWithdraw) getAmount() (float64, error) {
 	var totalAmount int
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
 	err := DB.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	for _, v := range all.Data {
 		atoi, _ := strconv.Atoi(v.Amount)
-		totalAmount +=atoi
+		totalAmount += atoi
 	}
-	return validate.Decimal(float64(totalAmount)),nil
+	return validate.Decimal(float64(totalAmount)), nil
 }
 
 //总手续费
-func (p *TWithdraw) getFee() (float64,error) {
+func (p *TWithdraw) getFee() (float64, error) {
 	var totalFee int
 	all := response.MerchantPickSendPage{
 		Data: []response.MerchantPickList{},
 	}
 	err := DB.Model(&p).Order("id desc").Where("status = ?", 2).Find(&all.Data).Error
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	for _, v := range all.Data {
 		fee, _ := strconv.Atoi(v.Fee)
 		totalFee += fee
 	}
-	return validate.Decimal(float64(totalFee)),nil
+	return validate.Decimal(float64(totalFee)), nil
 }
 
 // 根据条件获取详情
-func GetPickByWhere(where ...interface{}) ( TWithdraw,error) {
+func GetPickByWhere(where ...interface{}) (TWithdraw, error) {
 	var pi TWithdraw
 	err := DB.First(&pi, where...).Error
-	return pi,err
+	return pi, err
 }

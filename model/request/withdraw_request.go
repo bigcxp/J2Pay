@@ -3,6 +3,7 @@ package request
 //提领
 type WithDrawAdd struct {
 	RealName string `json:"real_name"`                  //商户
+	Sign     string `json:"sign" binding:"required"`    //签名
 	Symbol   string `json:"symbol" binding:"required"`  //币种
 	Balance  string `json:"balance" binding:"required"` //金额
 	Remark   string `json:"remark" binding:""`          //备注
@@ -11,6 +12,7 @@ type WithDrawAdd struct {
 //代发
 type SendAdd struct {
 	OrderCode string `json:"order_code" binding:"required,max=255" example:"asfasgdsasfgas" form:"order_code"` //商户订单编号
+	Sign      string `json:"sign" binding:"required"`                                                          //签名
 	RealName  string `json:"real_name"`                                                                        //商户名称
 	Symbol    string `json:"symbol" binding:"required"`                                                        //币种
 	Address   string `json:"address" binding:"required"`                                                       //收款地址

@@ -16,9 +16,9 @@ type Order struct {
 	ReceiptAmount float64 `gorm:"default:0;comment:'实收金额';";json:"receipt_amount"`
 	Fee           float64 `gorm:"default:0;comment:'手续费';";json:"fee"`
 	ReturnAmount  float64 `gorm:"default:0;comment:'退款金额';";json:"return_amount"`
-	CreateTime    int64   `gorm:"comment:'创建时间';";json:"create_time"`
-	FinishTime    int64   `gorm:"comment:'完成时间';";json:"finishTime"`
-	ExprireTime   int64   `gorm:"comment:'过期时间';";json:"exprireTime"`
+	CreateTime    int64   `gorm:"default:0;comment:'创建时间';";json:"create_time"`
+	FinishTime    int64   `gorm:"default:0;comment:'完成时间';";json:"finishTime"`
+	ExprireTime   int64   `gorm:"default:0;comment:'过期时间';";json:"exprireTime"`
 	Remark        string  `gorm:"default:'';comment:'备注';";json:"remark"`
 	Address       string  `gorm:"default:'';comment:'收款地址';";json:"charge_address"`
 	UserId        int64   `gorm:"default:0;comment:'组织ID'";json:"user_id"`
