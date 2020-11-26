@@ -1,0 +1,165 @@
+<style type="text/css">
+.layui-form-item .layui-inline{margin-right:0;}
+</style>
+<blockquote class="layui-elem-quote">实收明细记录</blockquote>
+
+<fieldset class="table-search-fieldset">
+	<legend>搜索信息</legend>
+	<div style="margin: 10px 10px 10px 10px">
+		<form action="" class="layui-form layui-form-pane">
+			<div class="layui-form-item">
+				<div class="layui-inline">
+					<label class="layui-form-label">日期范围</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="from_date" id="from_date" type="text" placehoder=""/></div>
+					<div class="layui-form-mid">-</div>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="to_date" id="to_date" type="text"/></div>
+				</div>
+				
+				<div class="layui-inline">
+					<label class="layui-form-label">系统编号</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="idCode" type="text" placehoder="系统编号"/></div>
+					
+					<label class="layui-form-label">收款地址</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="address" type="text" placehoder="收款地址"/></div>
+					
+					<label class="layui-form-label">交易hash</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="txid" type="text" placehoder="交易hash"/></div>
+				</div>
+				<div class="layui-inline">
+					<label class="layui-form-label">状态</label>
+					<div class="layui-input-inline" style="width:90px">
+						<select name="status">
+							<option value="" selected>全部</option>
+							<option value="1">已绑定</option>
+							<option value="2">未绑定</option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-inline">
+					<button class="layui-btn layui-btn-primary" lay-filter="data-search-btn" lay-submit="" type="submit">
+						<i class="layui-icon">&#xe615;</i>搜索
+					</button>
+					<button class="layui-btn layui-btn-primary" lay-filter="data-reset" lay-submit="" type="submit">
+						<i class="layui-icon">&#xe666;</i>重置
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</fieldset>
+
+<table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+
+<script type="text/html" id="tablebar1">
+	<a class="layui-btn layui-btn-sm layui-btn-primary data-count-view" lay-event="detail" operate="detail" title="查看"><i class="fa">&#xf06e;</i></a>
+	<a class="layui-btn layui-btn-normal layui-btn-sm data-count-edit" lay-event="edit" operate="edit" title="编辑"><i class="fa">&#xf044;</i></a>
+</script>
+
+<form class="layui-hide h5form" id="hide_form" action=""></form>
+
+<script type="text/javascript">
+function render_status(d){
+	var obj={
+		'1':'<font color="green">已绑定</font>',
+		'2':'<font color="blue">未绑定</font>',
+	}
+	return obj[d['status']]||'未知'
+}
+
+
+layui.use(['form'],function(){
+	var dt=new Date();
+	var nowStr=dt.getFullYear()+'-'+add_zero((dt.getMonth()+1),2)+'-'+add_zero(dt.getDate(),2)+' 23:59:59';
+	var lastStr=dt.getFullYear()+'-'+add_zero((dt.getMonth()+1),2)+'-'+add_zero(dt.getDate(),2)+' 00:00:00';
+
+	laydate.render({
+		type:'datetime',elem: '#from_date',max:1,
+		format:'yyyy-MM-dd HH:mm:ss'
+		,value:lastStr
+	});
+	laydate.render({
+		type:'datetime',elem: '#to_date',max:1,
+		format:'yyyy-MM-dd HH:mm:ss'
+		,value:nowStr
+	});
+	
+	var cols=[[
+		
+		{title: '操作', width: 160, toolbar: '#tablebar', align: "center",fixed:'left'},
+		//{type: "checkbox", width: 50},
+		{field: 'id', width: 80, title: 'ID', sort: true},
+
+		{field:'real_name',width:120,title:'组织名称'},
+		{field:'order_id',width:180,title:'商户订单编号'},
+		{field:'to_address',width:180,title:'收款地址'},
+		{field:'balance_real',width:160,title:'金额'},
+		{field:'status',width:90,title:'状态',templet:render_status},
+		{field:'tx_id',width:180,title:'交易id'},
+		{field:'remark',width:120,title:'备注'},
+		{field:'create_time',width:160,title:'创建时间',templet:function(d){return render_timestamp(d['create_time'])}},
+		{field:'create',width:160,title:'创建时间',templet:function(d){return render_date(d['create'])}}
+		
+	]];
+
+	window.dataTable=table.render({
+		elem: '#currentTableId',
+		url:'/detail',
+		toolbar:'#toolbar',
+		defaultToolbar: ['filter','exports','print'],
+		cols:cols,
+		request:{
+			'pageName':'page',
+			'limitName':'pageSize'
+		},
+		parseData:function(res){
+			return {
+			"code": (res.code==1)?0:(res.code*-1), //解析接口状态
+			"msg": res.msg, //解析提示文本
+			"count": res.data.total, //解析数据长度
+			"data": res.data.data //解析数据列表
+			};
+		},
+		limits: [10,20,50,100],
+		limit: 20,
+		page: true,
+		done:function(res){
+			
+		}
+	});
+
+	//搜索
+	form.on('submit(data-search-btn)',function(data){
+		table.reload('currentTableId',{page: {curr: 1}, where:data.field});
+		return false;
+	});
+	//reset
+	form.on('submit(data-reset)',function(data){
+		table.reload('currentTableId',{page:{curr:1},where:''});
+		document.forms[0].reset();
+		form.render();
+		return false;
+	});
+	
+	//表格行toolbar按钮事件
+	table.on('tool(currentTableFilter)',function (obj){
+		var data = obj.data;
+
+		if(obj.event === 'detail'){
+			open_dlg('详情: '+data.user_name,'/main#0|admin-user-detail?id='+data.id)
+		}else if(obj.event === 'edit'){
+			open_dlg('编辑: '+data.user_name,'/main#0|admin-user-edit?id='+data.id)
+		}
+	});
+	//工具栏事件
+	table.on('toolbar(currentTableFilter)',function(obj){
+		if(obj.event == 'add'){
+			open_dlg('分配地址: ','/main#0|address-charge-add');
+			return;
+		}
+		
+	});
+
+	form.render();
+});
+</script>

@@ -1,0 +1,170 @@
+<style type="text/css">
+.layui-form-item .layui-inline{margin-right:0;}
+</style>
+<blockquote class="layui-elem-quote">退款订单</blockquote>
+
+<fieldset class="table-search-fieldset">
+	<legend>搜索信息</legend>
+	<div style="margin: 10px 10px 10px 10px">
+		<form action="" class="layui-form layui-form-pane">
+			<div class="layui-form-item">
+				<div class="layui-inline">
+					<label class="layui-form-label">商户订单号</label>
+					<div class="layui-input-inline"><input autocomplete="off" class="layui-input" name="orderCode" type="text"/></div>
+				</div>
+				<div class="layui-inline">
+					<label class="layui-form-label">状态</label>
+					<div class="layui-input-inline" style="width:90px">
+						<select name="status">
+							<option value="" selected>全部</option>
+							<option value="1">待退款</option>
+							<option value="2">退款中</option>
+							<option value="3">退款失败</option>
+							<option value="4">已退款</option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-inline">
+					<button class="layui-btn layui-btn-primary" lay-filter="data-search-btn" lay-submit="" type="submit">
+						<i class="layui-icon">&#xe615;</i>搜索
+					</button>
+					<button class="layui-btn layui-btn-primary" lay-filter="data-reset" lay-submit="" type="submit">
+						<i class="layui-icon">&#xe666;</i>重置
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</fieldset>
+
+<table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+
+<script type="text/html" id="toolbar1">
+<div class="layui-btn-container">
+	<a class="layui-btn layui-btn-normal layui-btn-sm" lay-event="add" operate="add"><i class="layui-icon layui-icon-add-circle-fine"></i> 新增退款 </a>
+</div>
+</script>
+
+<form class="layui-hide h5form" id="hide_form" action=""></form>
+
+<script type="text/javascript">
+function render_status(d){
+	var obj={
+		'1':'<font color="#990000">待退款</font>',
+		'2':'<font color="blue">退款中</font>',
+		'3':'<font color="red">退款失败</font>',
+		'4':'<font color="green">已退款</font>',
+	}
+	return obj[d['status']]||'未知'
+}
+
+
+layui.use(['form'],function(){
+	
+	var cols=[[
+		
+		{title: '操作', width: 160, toolbar: '#tablebar', align: "center",fixed:'left'},
+		{type: "checkbox", width: 50},
+		{field: 'id', width: 80, title: 'ID', sort: true},
+
+		{field:'user_id',width:120,title:'商户id'},
+		{field:'system_code',width:160,title:'系统订单编号'},
+		{field:'order_code',width:160,title:'商户订单编号'},
+		{field:'status',width:120,title:'退款状态',templet:render_status},
+		{field:'real_name',width:120,title:'组织名称'},
+		{field:'amount',width:120,title:'实收金额'},
+		{field:'finishTime',width:120,title:'完成时间',templet:function(d){return render_timestamp(d['finishTime'])} }
+		
+	]];
+
+	window.dataTable=table.render({
+		elem: '#currentTableId',
+		url:'/return',
+		toolbar:'#toolbar1',
+		defaultToolbar: ['filter','exports','print'],
+		cols:cols,
+		request:{
+			'pageName':'page',
+			'limitName':'pageSize'
+		},
+		parseData:function(res){
+			return {
+			"code": (res.code==1)?0:(res.code*-1), //解析接口状态
+			"msg": res.msg, //解析提示文本
+			"count": res.data.total, //解析数据长度
+			"data": res.data.data //解析数据列表
+			};
+		},
+		limits: [10,20,50,100],
+		limit: 20,
+		page: true,
+		done:function(res){
+			
+		}
+	});
+
+	//搜索
+	form.on('submit(data-search-btn)',function(data){
+		table.reload('currentTableId',{page: {curr: 1}, where:data.field});
+		return false;
+	});
+	//reset
+	form.on('submit(data-reset)',function(data){
+		table.reload('currentTableId',{page:{curr:1},where:''});
+		document.forms[0].reset();
+		form.render();
+		return false;
+	});
+	
+	//表格行toolbar按钮事件
+	table.on('tool(currentTableFilter)',function (obj){
+		var data = obj.data;
+
+		if(obj.event === 'detail'){
+			open_dlg('详情: '+data.user_name,'/main#0|admin-user-detail?id='+data.id)
+		}else if(obj.event === 'edit'){
+			open_dlg('编辑: '+data.user_name,'/main#0|admin-user-edit?id='+data.id)
+		}else if(obj.event === 'del'){
+			confirmdel('/addrDel/'+data.id,null);
+		}
+	});
+	//工具栏事件
+	table.on('toolbar(currentTableFilter)',function(obj){
+		if(obj.event == 'add'){
+			open_dlg('分配地址: ','/main#0|address-charge-add');
+			return;
+		}
+		var checkStatus = table.checkStatus('currentTableId')
+		var data = checkStatus.data;
+		if(!data.length){msgerr('请选择要处理的数据');return;}
+		if(obj.event=='restart'){
+			var arr=[];
+			$.each(data,function(k,v){
+				arr.push(v.id);
+			})
+			open_dlg('开启/禁用: 已选择('+arr.length+')项 ','/main#0|address-charge-restart?ids='+arr.join(','));
+			return;
+		}else if(obj.event=='edit'){
+			var arr=[];
+			$.each(data,function(k,v){
+				arr.push(v.id);
+			})
+			open_dlg('重新分配地址: 已选择('+arr.length+')项 ','/main#0|address-charge-edit?ids='+arr.join(','));
+			return;
+		}else if(obj.event=='updateBalance'){
+			var dom=$('#hide_form');
+			var arr=[];
+			var str=''
+			$.each(data,function(k,v){
+				str+='<input type="hidden" name="id" value="'+v.id+'" />';
+			});
+			dom.html(str);
+			h5post('#hide_form','/updateBalance');
+			return;
+		}
+	});
+
+	form.render();
+});
+</script>

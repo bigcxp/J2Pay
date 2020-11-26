@@ -77,6 +77,11 @@ function trim_data(data){
 	})
 	return $.param(res);
 }
+function add_zero(v, len) {
+	var str = '0000000000' + v;
+	var alen = str.length;
+	return str.substr(alen - len, len);
+}
 function form2json(el){
 	if(!el){el='form:eq(0)';}
 	var o={};

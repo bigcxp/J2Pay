@@ -14,7 +14,7 @@
 	window.csrf_token=sessionStorage.getItem('token');
 	if(!csrf_token){
 		window.stop();
-		location.href='/login';
+		location.replace('/login');
 	}
 	</script>
 	<link rel="icon" href="/static/images/favicon.ico">
@@ -64,11 +64,11 @@
 					<a href="javascript:;" data-check-screen="full"><i class="fa fa-arrows-alt"></i></a>
 				</li>
 				<li class="layui-nav-item layuimini-setting">
-					<a href="javascript:;">admin</a>
+					<a href="javascript:;" id="username_txt"></a>
 					<dl class="layui-nav-child">
-						<dd>
+						<!--<dd>
 							<a href="javascript:;" layuimini-content-href="page/user-setting.html" data-title="基本资料" data-icon="fa fa-gears">基本资料<span class="layui-badge-dot"></span></a>
-						</dd>
+						</dd>-->
 						<dd>
 							<a href="javascript:;" layuimini-content-href="page/user-password.html" data-title="修改密码" data-icon="fa fa-gears">修改密码</a>
 						</dd>
@@ -215,11 +215,20 @@ layui.use(['jquery', 'layer', 'miniAdmin'], function () {
 			maxTabNum: 20			  // 最大的tab打开数量
 		};
 		miniAdmin.render(opts);
-	});
+	},'json');
+
+	$.get('/userInfo',function(res){
+		if(res['code']!=1){
+			msgerr(res['msg']||'用户信息获取失败')
+			return;
+		}
+		var v=res['user'];
+		$('#username_txt').text(v.username)
+	},'json');
 	
 	$('.login-out').on("click", function () {
 		sessionStorage.removeItem('token')
-		layer.msg('退出登录成功', function () {
+		msgok('退出登录成功', function () {
 			window.location = '/login';
 		});
 	});
